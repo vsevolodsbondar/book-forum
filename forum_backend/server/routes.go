@@ -8,7 +8,7 @@ import (
 func NewRouter() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /", handler.GetLanding)
+	mux.HandleFunc("GET /api/posts", handler.GetLanding)
 	//middlewares
 
 	return mux
