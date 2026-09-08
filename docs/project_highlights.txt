@@ -1,0 +1,24 @@
+Web-forum
+
+Forum for book readers. Forum will have different themed folders: general discussions - topics, book-themed topics, etc.
+Filtering of the the themes/topics is a must, so each of them will have some labels. Filtering is only for registered users. Project supports authentication, so each user is an entity in DB. Sessions have expiration dates. Like/dislike funtionality is expected for forum posts and comments and those are displayable for all.
+
+Highlights:
+- Frontend program
+- Backend program
+- Authentication program with sessions/ UUIDs for session management
+- Encription of password
+- Labeled topics/posts
+- Likes/dislikes for for posts and comments
+- Functionality changes for authenicated users
+- Post filtering
+- Dockering the project
+- DB: SQLite
+
+Suggested bonus functionality:
+- A search feature
+- Allow users to upload images or other files
+- User profile page
+
+Potential bonuses:
+- Funtionality of messaging between users in-real-time (web-socket)
