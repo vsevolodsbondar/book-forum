@@ -11,7 +11,7 @@ posts.forEach(post => {
 })
 
 async function getPosts() {
-  const response = await fetch("/api/forum/posts")
+  const response = await fetch("/api/posts")
 
   return response.json()
 }
