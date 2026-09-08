@@ -5,11 +5,6 @@ import (
 	"net/http"
 )
 
-func NewRouter() http.Handler {
-	mux := http.NewServeMux()
-
+func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/posts", handler.GetLanding)
-	//middlewares
-
-	return mux
 }
