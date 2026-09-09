@@ -23,7 +23,7 @@ func Server(ctx context.Context) (*http.Server, error) {
 
 	srv := &http.Server{
 		Addr:    cfg.Host + ":" + cfg.Port,
-		Handler: middleware.CORS(mux),
+		Handler: middleware.RecoverPanic(middleware.CORS(middleware.Timeout(mux))),
 		BaseContext: func(_ net.Listener) context.Context {
 			return ctx
 		},
