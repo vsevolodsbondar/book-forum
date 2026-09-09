@@ -5,7 +5,6 @@ import (
 )
 
 func GetLanding(w http.ResponseWriter, r *http.Request) {
-
 	jsonMock := `[
 		{
 	        "id": 1,
