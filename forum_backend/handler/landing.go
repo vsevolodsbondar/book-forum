@@ -1,6 +1,8 @@
 package handler
 
-import "net/http"
+import (
+	"net/http"
+)
 
 func GetLanding(w http.ResponseWriter, r *http.Request) {
 	jsonMock := `[

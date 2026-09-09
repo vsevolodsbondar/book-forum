@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"forum_backend/server"
 	"log"
@@ -8,7 +9,15 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
 
-	fmt.Println("Starting server...")
-	log.Fatalln(http.ListenAndServe(":8080", server.NewRouter()))
+	srv, err := server.Server(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		errMsg := fmt.Sprintf("Server error: %v", err.Error())
+		log.Fatal(errMsg)
+	}
 }

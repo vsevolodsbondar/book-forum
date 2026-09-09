@@ -1,0 +1,33 @@
+services:
+  frontend:
+    container_name: front
+    build:
+      context: ./forum_frontend
+    ports:
+      - "5173:80"
+    networks:
+      - forum_project
+    depends_on:
+      - backend
+
+  backend:
+    container_name: back
+    build:
+      context: ./forum_backend
+    ports:
+      - "8080:8080"
+    networks:
+      - forum_project
+
+  auth_service:
+    container_name: auth_service
+    build:
+      context: ./auth_service
+    ports:
+      - "8081:8080"
+    networks:
+      - forum_project
+
+networks:
+  forum_project:
+    name: forum_project
