@@ -15,8 +15,8 @@ Instead of changing a live database by hand, we store every schema change as a s
 Migration files live in the `migrations/` folder and are named like this:
 
 ```
-v001_init_schema.sql
-v002_add_something.sql
+0001_init_schema.sql
+0002_add_something.sql
 ```
 
 The number at the start of the name sets the **order in which files are applied** — files are applied strictly in increasing order. This matters because some tables reference others (for example, `post` references `user`), and the referenced table has to be created first.
