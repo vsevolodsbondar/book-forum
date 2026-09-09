@@ -1,6 +1,6 @@
 services:
   frontend:
-    container_name: literary_front
+    container_name: front
     build:
       context: ./forum_frontend
     ports:
@@ -11,7 +11,7 @@ services:
       - backend
 
   backend:
-    container_name: literary_back
+    container_name: back
     build:
       context: ./forum_backend
     ports:
@@ -20,7 +20,7 @@ services:
       - forum_project
 
   auth_service:
-    container_name: literary_auth
+    container_name: auth_service
     build:
       context: ./auth_service
     ports:
