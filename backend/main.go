@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"forum_backend/db"
 	"forum_backend/server"
@@ -9,12 +10,21 @@ import (
 )
 
 func main() {
-	//initialize database
+	ctx := context.Background()
+
 	database, err := db.Init()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer database.Close()
-	fmt.Println("Starting server...")
-	log.Fatalln(http.ListenAndServe(":8080", server.NewRouter()))
+
+	srv, err := server.Server(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		errMsg := fmt.Sprintf("Server error: %v", err.Error())
+		log.Fatal(errMsg)
+	}
 }

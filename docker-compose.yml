@@ -1,18 +1,17 @@
 services:
-
   frontend:
-    container_name: literary_front
+    container_name: front
     build:
       context: ./forum_frontend
     ports:
-      - "3000:80"
+      - "5173:80"
     networks:
       - forum_project
     depends_on:
       - backend
 
   backend:
-    container_name: literary_back
+    container_name: back
     build:
       context: ./forum_backend
     ports:
@@ -21,7 +20,7 @@ services:
       - forum_project
 
   auth_service:
-    container_name: literary_auth
+    container_name: auth_service
     build:
       context: ./auth_service
     ports:

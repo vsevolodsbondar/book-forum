@@ -7,14 +7,14 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o auth .
+RUN go build -o /tmp/forum-backend .
 
 FROM debian:bookworm-slim
 
 WORKDIR /app
 
-COPY --from=builder /app/auth .
+COPY --from=builder /tmp/forum-backend /app/forum-backend
 
 EXPOSE 8080
 
-CMD ["./auth"]
+CMD ["/app/forum-backend"]
