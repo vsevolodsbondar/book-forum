@@ -30,8 +30,10 @@ CREATE TABLE IF NOT EXISTS comment(
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     post_id INTEGER NOT NULL,
     parent_comment_id INTEGER,
+    author_id INTEGER,
     FOREIGN KEY(post_id) REFERENCES post(id) ON DELETE CASCADE,
     FOREIGN KEY(parent_comment_id) REFERENCES comment(id) ON DELETE SET NULL,
+    FOREIGN KEY(author_id) REFERENCES user(id) ON DELETE SET NULL,
     CHECK (parent_comment_id != id)
 );
 CREATE TABLE IF NOT EXISTS likes(
