@@ -7,6 +7,7 @@ import (
 	"auth/internal/response"
 )
 
+// Logger logs each incoming request's method and path before calling next.
 func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		slog.InfoContext(
@@ -20,6 +21,8 @@ func Logger(next http.Handler) http.Handler {
 	})
 }
 
+// Recovery catches panics in the current request goroutine, logs them,
+// and attempts to send a JSON 500 response.
 func Recovery(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {

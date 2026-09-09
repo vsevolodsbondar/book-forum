@@ -18,6 +18,7 @@ func main() {
 	}
 }
 
+// run owns application startup so deferred cleanup runs before main exits on error.
 func run() error {
 	cfg := config.Load()
 
