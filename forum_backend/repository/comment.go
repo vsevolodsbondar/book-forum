@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"forum_backend/model"
-	"time"
 )
 
 type SQLiteCommentRepository struct {
@@ -16,7 +15,7 @@ func NewSQLiteCommentRepository(db *sql.DB) *SQLiteCommentRepository {
 }
 
 type CommentRepository interface {
-	Create(ctx context.Context, actor *model.CreateCommentRequest) (int64, error)
+	Create(ctx context.Context, actor *model.CreateCommentRequest) (*model.Comment, error)
 	// GetAll(moviesFlag bool, page int, size int, pagination bool) (model.PaginatedCommentResponse, error)
 	// Update(id int, actor model.CommentPatchRequest) (model.Comment, error)
 	// Delete(id int, force bool) (int64, error)
@@ -30,14 +29,23 @@ func (cr *SQLiteCommentRepository) Create(ctx context.Context, comment *model.Cr
 	defer tx.Rollback()
 	query := `INSERT INTO comment (text, post_id, user_id, parent_comment_id) VALUES (?,?,?, ?) RETURNING *;`
 	var c model.Comment
-	createdAt, updatedAt := "", ""
-	err = tx.QueryRowContext(ctx, query, comment.Text, comment.PostID, comment.UserID, comment.ParentCommentID).Scan(&c.ID, &c.Text, &c.PostID, &c.UserID, &c.ParentCommentID, &createdAt, &updatedAt)
+	strCreated, strUpdated := "", ""
+	err = tx.QueryRowContext(ctx, query, comment.Text, comment.PostID, comment.UserID, comment.ParentCommentID).Scan(&c.ID, &c.Text, &strCreated, &strUpdated, &c.PostID, &c.ParentCommentID, &c.UserID)
 	if err != nil {
 		return nil, err
 	}
-	createdAtDate := time.Parse()
+	dateCreated, err := parseSQLiteTime(strCreated)
+	if err != nil {
+		return nil, err
+	}
+	dateUpdated, err := parseSQLiteTime(strUpdated)
+	if err != nil {
+		return nil, err
+	}
+	c.CreatedAt = dateCreated
+	c.UpdatedAt = dateUpdated
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
-	return c, nil
+	return &c, nil
 }
