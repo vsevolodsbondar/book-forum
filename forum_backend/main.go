@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"forum_backend/db"
 	"forum_backend/server"
 	"log"
 	"net/http"
@@ -10,6 +11,13 @@ import (
 
 func main() {
 	ctx := context.Background()
+
+	//initialize database
+	database, err := db.Init()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer database.Close()
 
 	srv, err := server.Server(ctx)
 	if err != nil {
