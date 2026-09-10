@@ -32,4 +32,3 @@ func run() error {
 	slog.Info("starting server", "addr", addr)
 
 	return http.ListenAndServe(addr, server.New(database))
-}

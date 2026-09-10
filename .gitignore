@@ -1,0 +1,2 @@
+/forum_backend/db/*
+!/forum_backend/db/init.go
