@@ -3,7 +3,9 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"forum_backend/model"
+	"time"
 )
 
 type SQLiteCommentRepository struct {
@@ -17,7 +19,7 @@ func NewSQLiteCommentRepository(db *sql.DB) *SQLiteCommentRepository {
 type CommentRepository interface {
 	Create(ctx context.Context, actor *model.CreateCommentRequest) (*model.Comment, error)
 	GetAll(ctx context.Context, pageInt int, sizeInt int, idPost int) (model.AllComments, error)
-	// Update(id int, actor model.CommentPatchRequest) (model.Comment, error)
+	Update(ctx context.Context, comment model.CommentPatchRequest, idComment int) (*model.Comment, error)
 	// Delete(id int, force bool) (int64, error)
 }
 
@@ -99,4 +101,33 @@ func (cr *SQLiteCommentRepository) GetAll(ctx context.Context, pageInt int, size
 	comments.Size = sizeInt
 	comments.Total = countComments
 	return &comments, nil
+}
+func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.CommentPatchRequest, idComment int) (*model.Comment, error) {
+	tx, err := cr.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	query := `SELECT text, updated_id 
+	FROM comment 
+	WHERE id = ?`
+	row := tx.QueryRow(query, idComment)
+	var text, updated_id string
+	err = row.Scan(&text, &updated_id)
+	if err != nil {
+		return nil, err
+	}
+	if text == comment.Text {
+		return nil, fmt.Errorf("comment wasn't changed")
+	}
+	updated := time.Now().Format("2006-01-02 15:04:05")
+	newQuery := `UPDATE comment SET text = ?, updated_id = ? WHERE id = ?`
+	updatedComment, err := tx.ExecContext(ctx, newQuery, comment.Text, updated)
+	if err != nil {
+		return nil, err
+	}
+	rowsAffected, _ := updatedComment.RowsAffected()
+	if rowsAffected == 0 {
+		return nil, fmt.Errorf("actor was updated by someone else, refetch and try again")
+	}
 }
