@@ -1,0 +1,6 @@
+# Local SQLite database and journal files
+/db/*.db
+/db/*.db-*
+
+# Compiled backend binary
+/forum_backend
