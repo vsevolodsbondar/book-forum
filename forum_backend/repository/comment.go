@@ -130,4 +130,7 @@ func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.Com
 	if rowsAffected == 0 {
 		return nil, fmt.Errorf("actor was updated by someone else, refetch and try again")
 	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
 }
