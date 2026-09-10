@@ -29,3 +29,7 @@ func (cs *CommentService) Create(ctx context.Context, comment *model.CreateComme
 	}
 	return commentWritten, nil
 }
+func (cs *CommentService) GetAll(ctx context.Context, pageInt int, sizeInt int, idPost int) (*model.AllComments, error) {
+	comments, err := cs.repo.GetAll(ctx, pageInt, sizeInt, idPost)
+	return &comments, err
+}
