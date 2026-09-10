@@ -27,3 +27,6 @@ type AllComments struct {
 	Size     int `json:"size"`
 	Total    int `json:"total"`
 }
+type CommentPatchRequest struct {
+	Text string
+}
