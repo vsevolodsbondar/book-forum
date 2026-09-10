@@ -1,0 +1,10 @@
+# Local runtime data
+/data/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Compiled auth binary
+/auth

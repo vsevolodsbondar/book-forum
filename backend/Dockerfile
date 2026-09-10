@@ -1,4 +1,4 @@
-FROM golang:1.27.1 AS builder
+FROM golang:1.27.1-bookworm AS builder
 
 # it is the folder inside of the image that will be built
 WORKDIR /app
