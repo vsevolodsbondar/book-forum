@@ -1,4 +1,4 @@
-FROM golang:1.27 AS builder
+FROM golang:1.27.1 AS builder
 
 WORKDIR /app
 
@@ -15,6 +15,6 @@ WORKDIR /app
 
 COPY --from=builder /app/auth .
 
-EXPOSE 8080
+EXPOSE 8081
 
 CMD ["./auth"]
