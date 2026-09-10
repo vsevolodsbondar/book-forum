@@ -2,7 +2,7 @@ services:
   frontend:
     container_name: front
     build:
-      context: ./forum_frontend
+      context: ./frontend
     ports:
       - "5173:80"
     networks:
@@ -13,18 +13,18 @@ services:
   backend:
     container_name: back
     build:
-      context: ./forum_backend
+      context: ./backend
     ports:
       - "8080:8080"
     networks:
       - forum_project
 
   auth_service:
-    container_name: auth_service
+    container_name: auth
     build:
-      context: ./auth_service
+      context: ./auth
     ports:
-      - "8081:8080"
+      - "8081:8081"
     networks:
       - forum_project
 

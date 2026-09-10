@@ -1,2 +1,2 @@
-/forum_backend/db/*
-!/forum_backend/db/init.go
+/backend/db/*
+!/backend/db/init.go
