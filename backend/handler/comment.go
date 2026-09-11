@@ -16,7 +16,7 @@ func NewCommentHandler(service *service.CommentService) *CommentHandler {
 	return &CommentHandler{service: service}
 }
 
-// not done fully
+// on all hanlders has be a check of userID
 func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var commentRaw model.CreateCommentRequest
 	var commentBody model.CreateCommentBody
@@ -70,3 +70,25 @@ func (h *CommentHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(comments)
 }
+func (h *CommentHandler) Update(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	commentID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	comentToUpdate := model.CommentPatchRequest{}
+	err = json.NewDecoder(r.Body).Decode(&comentToUpdate)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	updatedComment, err := h.service.Update(ctx, comentToUpdate, commentID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(updatedComment)
+}
+func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {}
