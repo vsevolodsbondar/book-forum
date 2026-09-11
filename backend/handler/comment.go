@@ -91,4 +91,17 @@ func (h *CommentHandler) Update(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(updatedComment)
 }
-func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {}
+func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	commentID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	ctx := r.Context()
+	err = h.service.Delete(ctx, commentID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
