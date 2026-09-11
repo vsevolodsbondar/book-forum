@@ -12,7 +12,7 @@ type Config struct {
 // It does not load a .env file itself.
 func Load() Config {
 	return Config{
-		Port:     getEnv("PORT", "8080"),
+		Port:     getEnv("PORT", "8081"),
 		Database: getEnv("DATABASE", "./data/auth.db"),
 	}
 }
