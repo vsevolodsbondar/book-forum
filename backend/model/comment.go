@@ -28,5 +28,10 @@ type AllComments struct {
 	Total    int `json:"total"`
 }
 type CommentPatchRequest struct {
-	Text string
+	Text string `json:"text"`
+}
+type UpdatedComment struct {
+	ID        int64     `json:"id"`
+	Text      string    `json:"text"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

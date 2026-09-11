@@ -19,7 +19,7 @@ func NewSQLiteCommentRepository(db *sql.DB) *SQLiteCommentRepository {
 type CommentRepository interface {
 	Create(ctx context.Context, actor *model.CreateCommentRequest) (*model.Comment, error)
 	GetAll(ctx context.Context, pageInt int, sizeInt int, idPost int) (model.AllComments, error)
-	Update(ctx context.Context, comment model.CommentPatchRequest, idComment int) (*model.Comment, error)
+	Update(ctx context.Context, comment model.CommentPatchRequest, idComment int) (*model.UpdatedComment, error)
 	// Delete(id int, force bool) (int64, error)
 }
 
@@ -102,35 +102,42 @@ func (cr *SQLiteCommentRepository) GetAll(ctx context.Context, pageInt int, size
 	comments.Total = countComments
 	return &comments, nil
 }
-func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.CommentPatchRequest, idComment int) (*model.Comment, error) {
+func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.CommentPatchRequest, idComment int) (*model.UpdatedComment, error) {
 	tx, err := cr.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
-	query := `SELECT text, updated_id 
+	query := `SELECT text, updated_at 
 	FROM comment 
 	WHERE id = ?`
 	row := tx.QueryRow(query, idComment)
-	var text, updated_id string
-	err = row.Scan(&text, &updated_id)
+	var text, updated_at string
+	err = row.Scan(&text, &updated_at)
 	if err != nil {
 		return nil, err
 	}
 	if text == comment.Text {
 		return nil, fmt.Errorf("comment wasn't changed")
 	}
-	updated := time.Now().Format("2006-01-02 15:04:05")
-	newQuery := `UPDATE comment SET text = ?, updated_id = ? WHERE id = ?`
-	updatedComment, err := tx.ExecContext(ctx, newQuery, comment.Text, updated)
+	updated := time.Now().UTC()
+	updatedStr := updated.Format("2006-01-02 15:04:05")
+	newQuery := `UPDATE comment SET text = ?, updated_at = ? WHERE id = ?`
+	result, err := tx.ExecContext(ctx, newQuery, comment.Text, updatedStr, idComment)
 	if err != nil {
 		return nil, err
 	}
-	rowsAffected, _ := updatedComment.RowsAffected()
+	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		return nil, fmt.Errorf("actor was updated by someone else, refetch and try again")
+		return nil, fmt.Errorf("comment with this id doesn't exist")
 	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
+	updatedComment := model.UpdatedComment{
+		ID:        int64(idComment),
+		Text:      comment.Text,
+		UpdatedAt: updated,
+	}
+	return &updatedComment, nil
 }
