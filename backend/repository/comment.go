@@ -19,8 +19,8 @@ func NewSQLiteCommentRepository(db *sql.DB) *SQLiteCommentRepository {
 type CommentRepository interface {
 	Create(ctx context.Context, actor *model.CreateCommentRequest) (*model.Comment, error)
 	GetAll(ctx context.Context, pageInt int, sizeInt int, idPost int) (model.AllComments, error)
-	Update(ctx context.Context, comment model.CommentPatchRequest, idComment int) (*model.UpdatedComment, error)
-	// Delete(id int, force bool) (int64, error)
+	Update(ctx context.Context, comment model.CommentPatchRequest, commentID int) (*model.UpdatedComment, error)
+	Delete(ctx context.Context, commentID int) error
 }
 
 func (cr *SQLiteCommentRepository) Create(ctx context.Context, comment *model.CreateCommentRequest) (*model.Comment, error) {
@@ -102,7 +102,7 @@ func (cr *SQLiteCommentRepository) GetAll(ctx context.Context, pageInt int, size
 	comments.Total = countComments
 	return &comments, nil
 }
-func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.CommentPatchRequest, idComment int) (*model.UpdatedComment, error) {
+func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.CommentPatchRequest, commentID int) (*model.UpdatedComment, error) {
 	tx, err := cr.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.Com
 	query := `SELECT text, updated_at 
 	FROM comment 
 	WHERE id = ?`
-	row := tx.QueryRow(query, idComment)
+	row := tx.QueryRow(query, commentID)
 	var text, updated_at string
 	err = row.Scan(&text, &updated_at)
 	if err != nil {
@@ -123,7 +123,7 @@ func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.Com
 	updated := time.Now().UTC()
 	updatedStr := updated.Format("2006-01-02 15:04:05")
 	newQuery := `UPDATE comment SET text = ?, updated_at = ? WHERE id = ?`
-	result, err := tx.ExecContext(ctx, newQuery, comment.Text, updatedStr, idComment)
+	result, err := tx.ExecContext(ctx, newQuery, comment.Text, updatedStr, commentID)
 	if err != nil {
 		return nil, err
 	}
@@ -135,9 +135,61 @@ func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.Com
 		return nil, err
 	}
 	updatedComment := model.UpdatedComment{
-		ID:        int64(idComment),
+		ID:        int64(commentID),
 		Text:      comment.Text,
 		UpdatedAt: updated,
 	}
 	return &updatedComment, nil
+}
+func (cr *SQLiteCommentRepository) Delete(ctx context.Context, commentID int) error {
+	tx, err := cr.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	queryExists := `SELECT EXISTS(SELECT 1 FROM post WHERE init_comment_id = ?);`
+	queryExistsParent := `SELECT EXISTS(SELECT 1 FROM comment WHERE parent_comment_id = ?);`
+	queryReset := `UPDATE comment SET text = ?, updated_at = ?, user_id = ? WHERE id = ?`
+	queryDelete := `DELETE FROM comment WHERE id = ?`
+	row := tx.QueryRow(queryExists, commentID)
+	isExists := 0
+	err = row.Scan(&isExists)
+	if err != nil {
+		return err
+	}
+	if isExists == 1 {
+		return fmt.Errorf("you not allowed to delete this comment (delete post)")
+	}
+	var isParent int
+	row = tx.QueryRow(queryExistsParent, commentID)
+	err = row.Scan(&isParent)
+	if err != nil {
+		return err
+	}
+	if isParent == 0 {
+		result, err := tx.ExecContext(ctx, queryDelete, commentID)
+		if err != nil {
+			return err
+		}
+		rowsAffected, err := result.RowsAffected()
+		if rowsAffected == 0 {
+			return fmt.Errorf("comment with this id doesn't exist")
+		}
+	} else {
+		text := "Deleted message"
+		updated := time.Now().UTC().Format("2006-01-02 15:04:05")
+		var userID *int64
+		result, err := tx.ExecContext(ctx, queryReset, text, updated, userID, commentID)
+		if err != nil {
+			return err
+		}
+		rowsAffected, err := result.RowsAffected()
+		if rowsAffected == 0 {
+			return fmt.Errorf("comment with this id doesn't exist")
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	return nil
 }

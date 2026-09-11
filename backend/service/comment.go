@@ -33,12 +33,16 @@ func (cs *CommentService) GetAll(ctx context.Context, pageInt int, sizeInt int, 
 	comments, err := cs.repo.GetAll(ctx, pageInt, sizeInt, idPost)
 	return &comments, err
 }
-func (cs *CommentService) Update(ctx context.Context, comment model.CommentPatchRequest, idComment int) (*model.UpdatedComment, error) {
+func (cs *CommentService) Update(ctx context.Context, comment model.CommentPatchRequest, commentID int) (*model.UpdatedComment, error) {
 	var isValidated bool
 	comment.Text, isValidated = helper.IsEmptyText(comment.Text)
 	if !isValidated {
 		return nil, fmt.Errorf("Your message is empty")
 	}
-	updatedComment, err := cs.repo.Update(ctx, comment, idComment)
+	updatedComment, err := cs.repo.Update(ctx, comment, commentID)
 	return updatedComment, err
+}
+func (cs *CommentService) Delete(ctx context.Context, commentID int) error {
+	err := cs.repo.Delete(ctx, commentID)
+	return err
 }
