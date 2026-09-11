@@ -52,3 +52,40 @@ Example: `GET /posts/5/comments?page=2&size=10`
 **Post scoping**
 
 `post_id` comes from the URL (same as in Create), and every query — both fetching the page of comments and counting the total — filters `WHERE post_id = ?`. This is also why the `idx_comment_post_id` index exists: it makes this filter fast even as the number of comments grows, instead of scanning the whole `comment` table on every request.
+
+## Update a comment
+
+`PATCH /comments/{id}` — unlike Create and GetAll, the comment's own id comes from the URL here, not a `post_id`. A comment has its own identity (its own row, its own id), so a point operation on one specific comment addresses it directly by its own id rather than going through its post.
+
+**Request body**
+
+```json
+{
+  "text": "Updated text"
+}
+```
+
+Only `text` can be changed. `post_id`, `user_id`, and `parent_comment_id` are not editable through this endpoint.
+
+**Behavior**
+
+- Empty/blank text is rejected before touching the database.
+- If the new text is identical to the current text, the request is rejected — there's nothing to update.
+- `updated_at` is set to the current time (UTC) by the server; the client never sends it.
+- Returns the updated comment (`id`, `text`, `updated_at`).
+
+**Not yet implemented:** checking that the requester is actually the comment's author. Right now anyone can PATCH any comment id — this needs the authenticated user's id (from the JWT) compared against the comment's `user_id` before allowing the update. To be added once the auth token setup is finalized with the auth team.
+
+## Delete a comment
+
+`DELETE /comments/{id}`
+
+**Behavior is not a plain delete — two special cases:**
+
+- **A post's initial comment (`post.init_comment_id`) cannot be deleted directly.** Since a post's "body" is really its first comment, deleting it would leave the post without content. The frontend won't expose a delete button for it, and the backend also rejects it directly (so this can't be bypassed by calling the API directly).
+- **A comment that other comments reply to (has a `parent_comment_id` pointing to it) is not physically deleted.** Deleting it would either cascade-delete the whole reply thread or leave replies pointing at nothing. Instead, its `text` is replaced with a placeholder ("Deleted message") and `user_id` is set to `null` — the comment stays in place so replies remain valid, but shows as removed.
+- **A comment with no replies and that isn't a post's initial comment is deleted normally** (`DELETE FROM comment`). Its own likes are removed automatically via `ON DELETE CASCADE`.
+
+Returns `204 No Content` on success.
+
+**Not yet implemented:** same as Update — author ownership isn't checked yet.
