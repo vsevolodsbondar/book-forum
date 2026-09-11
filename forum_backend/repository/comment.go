@@ -21,23 +21,20 @@ type CommentRepository interface {
 	// Delete(id int, force bool) (int64, error)
 }
 
-func (c *SQLiteCommentRepository) Create(ctx context.Context, comment *model.CreateCommentRequest) (int64, error) {
+func (c *SQLiteCommentRepository) Create(ctx context.Context, comment *model.CreateCommentRequest) (*model.Comment, error) {
 	tx, err := c.db.BeginTx(ctx, nil)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	defer tx.Rollback()
-	query := `INSERT INTO comment (text, post_id, parent_comment_id) VALUES (?,?,?);`
-	result, err := tx.ExecContext(ctx, query, comment.Text, comment.PostID, comment.ParentCommentID)
+	query := `INSERT INTO comment (text, post_id, user_id, parent_comment_id) VALUES (?,?,?, ?) RETURNING *;`
+	var c model.Comment
+	err := tx.QueryRowContext(ctx, query, comment.Text, comment.PostID, comment.UserID, comment.ParentCommentID).Scan(&c.ID, &c.Text, &c.PostID, &c.UserID, &c.ParentCommentID, &c.CreatedAt, &c.UpdatedAt)
 	if err != nil {
-		return 0, err
-	}
-	id, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	if err := tx.Commit(); err != nil {
-		return 0, err
+		return nil, err
 	}
-	return id, nil
+	return c, nil
 }

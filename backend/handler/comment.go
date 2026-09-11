@@ -5,6 +5,7 @@ import (
 	"forum_backend/model"
 	"forum_backend/service"
 	"net/http"
+	"strconv"
 )
 
 type CommentHandler struct {
@@ -16,11 +17,22 @@ func NewCommentHandler(service *service.CommentService) *CommentHandler {
 }
 func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var commentRaw model.CreateCommentRequest
+	var commentBody model.CreateCommentBody
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
-	err := decoder.Decode(&commentRaw)
+	err := decoder.Decode(&commentBody)
 	if err != nil {
-		return http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
+	idPost, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	commentRaw.Text = commentBody.Text
+	commentRaw.PostID = int64(idPost)
 	ctx := r.Context()
+	_, err = h.service.Create(ctx, &commentRaw)
+
 }
