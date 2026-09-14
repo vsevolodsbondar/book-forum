@@ -600,6 +600,23 @@ body{
     border-radius: 5px;
     cursor: pointer;
 }
+.blue_empty_btn{
+    padding: 10px;
+    border: none;
+    background-color: transparent;
+    font-size: 1.1rem;
+    color: var(--font-color-blue);
+    cursor: pointer;
+}
+.input{
+    font-size: 1.2rem;
+    color: var(--font-color-grey);
+    border: 2px solid var(--back-darker-grey);
+    border-radius: 3px;
+}
+.input:focus{
+    outline: 2px solid var(--btn-main-back-color);
+}
 
 /* main */
 .main{
@@ -686,7 +703,8 @@ body{
     align-items: flex-start;
     gap: 25px;
 }
-.post{
+.post,
+.comment{
     width: 90%;
     padding: 30px;
     border-radius: 5px;
@@ -753,28 +771,107 @@ body{
     justify-content: flex-start;
     gap: 15px;
 }
-.stats p{
+.stats p,
+.stats button{
     position: relative;
     padding-left: 27px;
     font-size: 1.2rem;
     color: var(--font-color-grey);
+    border: none;
+    background-color: transparent;
 }
-.stats p::before{
+.stats p::before,
+.stats button::before{
     content: "";
     position: absolute;
     left: 0;
-    top: 2px;
+    top: 0px;
     width: 25px;
     height: 22px;
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
 }
-.post_comments::before{
+.post_comments::before,
+.comments::before{
     background-image: url(../imgs/icons/comment.png);
 }
-.post_likes::before{
-    background-image: url(../imgs/icons/like.png);
+.post_likes::before,
+.likes::before{
+    transform: scaleY(-1);
+    background-image: url(../imgs/icons/down.png);
+}
+
+/* post inside and comments */
+.post-inside{
+    padding-top: 50px;
+}
+.post-inside .comment{
+    padding-left: 50px;
+    position: relative;
+}
+.description{
+    width: 90%;
+    margin-top: 20px;
+    font-size: 1.2rem;
+    line-height: 1.2;
+}
+.comment .stats button{
+    cursor: pointer;
+}
+.comment .stats .dislikes::before{
+    top: 4px;
+    background-image: url(../imgs/icons/down.png);
+}
+.dislikes.choosed,
+.likes.choosed{
+    color: var(--font-color-orange);
+}
+.comments_title{
+    margin: 25px 0;
+    width: 100%;
+    text-align: center;
+    color: var(--font-color-grey);
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+.comment:not(.init){
+    margin-top: 30px;
+}
+.message{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 30px;
+    width: 90%;
+    padding: 35px 35px 35px 50px;
+    background-color: var(--back-white-color);
+}
+.message_field{
+    width: 100%;
+    padding: 25px;
+    resize: none;
+}
+.comment:not(.init)::before{
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+}
+.comment:not(.init):nth-child(2n)::before{
+    background-color: var(--btn-main-back-color);
+}
+.comment:not(.init):nth-child(2n+1)::before{
+    background-color: var(--font-color-blue);
+}
+.comment .post-footer{
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 2px solid var(--back-darker-grey);
 }
 
 /* hovers */
@@ -789,5 +886,8 @@ body{
     .main-section>.tags .tags_item:hover{
         background-color: var(--font-color-blue);
         color: var(--font-white-color);
+    }
+    .comment .stats button:hover{
+        color: var(--font-color-orange);
     }
 }
