@@ -11,14 +11,77 @@
   </head>
   <body>
     <header class="header log-out">
-        <img class="logo" src="" alt="logo of forum">
+        <img class="logo" src="./src/static/imgs/logo.png" alt="logo of forum">
         <div class="header-btn">
             <button class="main_btn header_register">Register</button>
             <button class="shadow_btn header_login">Login</button>
         </div>
     </header>
-    <main>
-         
+    <main class="main">
+         <section class="sidebar">
+            <nav class="nav">
+                <h2 class="nav_title">MENU</h2>
+                <ul class="nav-list">
+                    <li class="choosed"><a class="nav-list_item" href="#">Posts</a></li>
+                    <li><a class="nav-list_item" href="#">Categories</a></li>
+                </ul>
+            </nav>
+         </section>
+         <section class="main-section">
+            <article class="tags">
+                <button class="tags_item choosed">New</button>
+                <button class="tags_item">Popular</button>
+                <button class="tags_item">Most comments</button>
+            </article>
+            <article class="posts">
+                <div class="post">
+                    <div class="author">
+                        <div class="image-container">
+                            <img class="author_img" src="./src/static/imgs/photo.jpeg" alt="photo of user">
+                        </div>
+                        <div class="author-info">
+                            <p class="username">PolinaTheBest</p>
+                            <p class="date">2026.09.27</p>
+                        </div>
+                    </div>
+                    <h3 class="post_title">Help me find good book!</h3>
+                    <div class="post-footer">
+                        <div class="tags">
+                            <div class="tags_item">book</div>
+                            <div class="tags_item">new</div>
+                            <div class="tags_item">recommend</div>
+                        </div>
+                        <div class="stats">
+                            <p class="post_comments">20</p>
+                            <p class="post_likes">14</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="post">
+                    <div class="author">
+                        <div class="image-container">
+                            <img class="author_img" src="./src/static/imgs/photo.jpeg" alt="photo of user">
+                        </div>
+                        <div class="author-info">
+                            <p class="username">PolinaTheBest</p>
+                            <p class="date">2026.09.27</p>
+                        </div>
+                    </div>
+                    <h3 class="post_title">Help me find good book!</h3>
+                    <div class="post-footer">
+                        <div class="tags">
+                            <div class="tags_item">book</div>
+                            <div class="tags_item">new</div>
+                            <div class="tags_item">recommend</div>
+                        </div>
+                        <div class="stats">
+                            <p class="post_comments">20</p>
+                            <p class="post_likes">14</p>
+                        </div>
+                    </div>
+                </div>
+            </article>
+         </section>
     </main>
     <script type="module" src="/src/static/scripts/postHandling.js"></script>
   </body>
