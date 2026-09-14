@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"forum_backend/db"
+	"forum_backend/handler"
 	"forum_backend/server"
 	"log"
 	"net/http"
@@ -19,7 +20,10 @@ func main() {
 	}
 	defer database.Close()
 
-	srv, err := server.Server(ctx)
+	//init app
+	app := handler.InitApp(database)
+
+	srv, err := server.Server(ctx, app)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
-func RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/posts", handler.GetLanding)
+func RegisterRoutes(mux *http.ServeMux, app *handler.Application) {
+	mux.HandleFunc("GET /api/posts", app.GetLanding)
+	mux.HandleFunc("GET /api/users", app.GetUser)
 }

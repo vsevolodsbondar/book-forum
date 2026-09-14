@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"forum_backend/handler"
 	"forum_backend/middleware"
 	"log"
 	"net"
@@ -13,7 +14,7 @@ type Config struct {
 	Port string
 }
 
-func Server(ctx context.Context) (*http.Server, error) {
+func Server(ctx context.Context, app *handler.Application) (*http.Server, error) {
 	mux := http.NewServeMux()
 
 	cfg := Config{
@@ -29,7 +30,7 @@ func Server(ctx context.Context) (*http.Server, error) {
 		},
 	}
 
-	RegisterRoutes(mux)
+	RegisterRoutes(mux, app)
 
 	log.Println("Launching server at", srv.Addr)
 	return srv, nil

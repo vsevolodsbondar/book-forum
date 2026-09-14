@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-func GetLanding(w http.ResponseWriter, r *http.Request) {
+func (app *Application) GetLanding(w http.ResponseWriter, r *http.Request) {
 	jsonMock := `[
 		{
 	        "id": 1,
