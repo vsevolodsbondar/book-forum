@@ -905,6 +905,60 @@ body{
     justify-content: flex-end;
 }
 
+/* login and register */
+.main.login{
+    grid-template-columns: 50% 50%;
+    column-gap: 0;
+    grid-template-rows: 1fr;
+}
+.login-image{
+    width: 100%;
+    min-height: 100%;
+    background-image: url(../imgs/Image.jpg);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.form-container{
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    flex-shrink: 0;
+    flex-grow: 0;
+}
+.log-form{
+    width: 100%;
+    min-width: 100%;
+    flex-shrink: 0;
+    padding: 150px 5% 20px 5%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 35px;
+}
+.log-form .input{
+    width: 80%;
+    padding: 10px 15px;
+    border-radius: 8px;
+}
+.file-container{
+    width: 80%;
+}
+.file-field_input{
+ position: absolute;
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  z-index: -1;
+}
+
+
 /* hovers */
 @media (hover: hover) {
     .nav-list li:hover  .nav-list_item{
