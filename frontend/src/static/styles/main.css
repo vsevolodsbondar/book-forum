@@ -14,6 +14,7 @@
     --font-color-grey: #808080;
     --font-color-black: #000000;
     --font-color-orange: #F48023;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 body{
     display: flex;
@@ -49,9 +50,11 @@ body{
 
 /* buttons */
 .main_btn{
+    display: block;
     padding: 12px 20px;
     color: var(--font-white-color);
     font-size: 1.1rem;
+    text-decoration: none;
     background-color: var(--btn-main-back-color);
     border: none;
     border-radius: 5px;
@@ -270,11 +273,12 @@ body{
 
 /* post inside and comments */
 .post-inside{
-    padding-top: 50px;
+    padding: 50px 0;
 }
 .post-inside .comment{
     padding-left: 50px;
     position: relative;
+    box-shadow: var(--shadow);
 }
 .description{
     width: 90%;
@@ -338,6 +342,35 @@ body{
     margin-top: 20px;
     padding-top: 15px;
     border-top: 2px solid var(--back-darker-grey);
+}
+
+/* form to publish post */
+.newPost{
+    margin-top: 50px;
+    width: 90%;
+    padding: 30px 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    gap: 35px;
+    background-color: var(--back-white-color);
+    box-shadow: var(--shadow);
+}
+.newPost .input{
+    width: 80%;
+    padding: 8px 20px;
+}
+.newPost textarea.input{
+    height: 250px;
+}
+.newPost .btn-container{
+    width: 80%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
 }
 
 /* hovers */
