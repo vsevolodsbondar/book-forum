@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"forum_backend/helper"
 	"forum_backend/migrations"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -23,8 +24,11 @@ func Init(seeding bool) (*sql.DB, error) {
 		return nil, err
 	}
 
-	if seeding {
-		SeedDB(data)
+	if helper.IsSeeding() {
+		if err := seedDB(data); err != nil {
+			data.Close()
+			return nil, err
+		}
 	}
 
 	fmt.Println("Connected to SQLite")
