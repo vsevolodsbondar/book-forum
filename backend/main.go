@@ -19,7 +19,7 @@ func main() {
 	}
 	defer database.Close()
 
-	srv, err := server.Server(ctx)
+	srv, err := server.Server(ctx, database)
 	if err != nil {
 		log.Fatal(err)
 	}
