@@ -14,7 +14,13 @@
         <img class="logo" src="./src/static/imgs/logo.png" alt="logo of forum">
         <div class="header-btn">
             <a href="createPost.html" aria-label="link to the page create post" class="main_btn">Write a post</a>
+            <div class="profile">
+                <div class="image-container">
+                    <img class="author_img" src="./src/static/imgs/photo.jpeg" alt="photo of user">
+                </div>
+            </div>
         </div>
+        
     </header>
     <main class="main">
          <section class="sidebar">
@@ -22,8 +28,9 @@
                 <h2 class="nav_title">MENU</h2>
                 <ul class="nav-list">
                     <li class="choosed"><a class="nav-list_item" href="index.html">Posts</a></li>
-                    <li class="choosed"><a class="nav-list_item" href="createPost.html">Create a post</a></li>
+                    <li ><a class="nav-list_item" href="createPost.html">Create a post</a></li>
                     <li><a class="nav-list_item" href="#">Categories</a></li>
+                    <li><a class="nav-list_item" href="users.html">Users</a></li>
                 </ul>
             </nav>
          </section>
@@ -78,7 +85,8 @@
                         <button class="dislikes">15</button>
                     </div>
                     <div class="reply">
-                        <button class="blue_empty_btn">Reply</button>
+                        <button class="blue_empty_btn btn_update">Update</button>
+                        <button class="blue_empty_btn btn_reply">Reply</button>
                     </div>
                 </div>
             </article>
@@ -100,7 +108,7 @@
                         <button class="dislikes">15</button>
                     </div>
                     <div class="reply">
-                        <button class="blue_empty_btn">Reply</button>
+                        <button class="blue_empty_btn btn_reply">Reply</button>
                     </div>
                 </div>
             </article>
@@ -122,12 +130,13 @@
                         <button class="dislikes">15</button>
                     </div>
                     <div class="reply">
-                        <button class="blue_empty_btn">Reply</button>
+                        <button class="blue_empty_btn btn_reply">Reply</button>
                     </div>
                 </div>
             </article>
          </section>
     </main>
+    <script  src="/src/static/scripts/postInside.js"></script>
     <script type="module" src="/src/static/scripts/postHandling.js"></script>
   </body>
 </html>

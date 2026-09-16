@@ -2,6 +2,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    text-decoration: none;
 }
 :root {
     --back-color: #FAFAFA;
@@ -56,18 +57,24 @@ body{
     font-size: 1.1rem;
     text-decoration: none;
     background-color: var(--btn-main-back-color);
+    outline: 1px solid var(--btn-main-back-color);
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    transition: all 0.3s ease;
 }
 .shadow_btn{
+    display: block;
     padding: 12px 20px;
     color: var(--font-color-blue);
     font-size: 1.1rem;
+    text-decoration: none;
     background-color: var(--back-darker-grey);
+    outline: 1px solid var(--back-darker-grey);
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    transition: all 0.3s ease;
 }
 .blue_empty_btn{
     padding: 10px;
@@ -85,6 +92,29 @@ body{
 }
 .input:focus{
     outline: 2px solid var(--btn-main-back-color);
+}
+.btn_reply,
+.btn_update{
+    padding-left: 20px;
+    position: relative;
+}
+.btn_reply::before,
+.btn_update::before{
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 40px;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+.btn_reply::before{
+    background-image: url(../imgs/icons/reply.svg);
+}
+.btn_update::before{
+    background-image: url(../imgs/icons/update.svg);
 }
 
 /* main */
@@ -267,8 +297,7 @@ body{
 }
 .post_likes::before,
 .likes::before{
-    transform: scaleY(-1);
-    background-image: url(../imgs/icons/down.png);
+    background-image: url(../imgs/icons/like_def.svg);
 }
 
 /* post inside and comments */
@@ -290,12 +319,17 @@ body{
     cursor: pointer;
 }
 .comment .stats .dislikes::before{
-    top: 4px;
-    background-image: url(../imgs/icons/down.png);
+    top: 1px;
+    transform: scaleY(-1);
+    background-image: url(../imgs/icons/like_def.svg);
 }
 .dislikes.choosed,
 .likes.choosed{
     color: var(--font-color-orange);
+}
+.dislikes.choosed::before,
+.likes.choosed::before{
+    background-image: url(../imgs/icons/like.svg);
 }
 .comments_title{
     margin: 25px 0;
@@ -343,10 +377,26 @@ body{
     padding-top: 15px;
     border-top: 2px solid var(--back-darker-grey);
 }
+.post-inside .btn-container{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 30px;
+}
+.reply{
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 20px;
+}
 
 /* form to publish post */
 .newPost{
     margin-top: 50px;
+    margin-bottom: 50px;
     width: 90%;
     padding: 30px 25px;
     display: flex;
@@ -371,6 +421,9 @@ body{
     flex-direction: row;
     align-items: center;
     justify-content: flex-end;
+}
+.newPost .main_btn:disabled{
+    opacity: 0.6;
 }
 
 /* login and register */
@@ -414,6 +467,10 @@ body{
     padding: 10px 15px;
     border-radius: 8px;
 }
+.log-form textarea.input{
+    resize: none;
+    height: 150px;
+}
 .file-container{
     width: 80%;
 }
@@ -424,6 +481,69 @@ body{
   opacity: 0;
   overflow: hidden;
   z-index: -1;
+}
+
+/* users page */
+.users{
+    width: 80%;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 25px;
+}
+.user{
+    width: 100%;
+    padding: 20px 25px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 30px;
+    background-color: var(--back-white-color);
+    box-shadow: var(--shadow);
+    border-radius: 5px;
+    transition: all 0.2s ease;
+}
+.user_name{
+    font-size: 1.2rem;
+    line-height: 1;
+    color: var(--font-color-black);
+}
+.user:focus{
+    transform: scale(1.05);
+}
+
+/* profile page */
+.user-profile{
+    width: 70%;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    padding: 40px 35px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 15px;
+    background-color: var(--back-white-color);
+    box-shadow: var(--shadow);
+    border-radius: 5px;
+}
+.user-profile .profile .image-container{
+    width: 200px;
+    height: 200px;
+}
+.user-profile .user_name{
+    color: var(--font-color-grey);
+}
+.user-profile .description{
+    margin-top: 0;
+    width: 100%;
+    text-align: center;
+    opacity: 0.9;
+    line-height: 1;
 }
 
 
@@ -442,5 +562,18 @@ body{
     }
     .comment .stats button:hover{
         color: var(--font-color-orange);
+    }
+    .blue_empty_btn:hover{
+        opacity: 0.6;
+    }
+    .main_btn:hover{
+        background-color: transparent;
+        color: var(--font-color-orange);
+    }
+    .shadow_btn:hover{
+        background-color: transparent;
+    }
+    .user:hover{
+        transform: scale(1.05);
     }
 }
