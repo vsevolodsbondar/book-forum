@@ -29,7 +29,6 @@ body{
 /* header */
 .header{
     width: 100%;
-    max-width: 1440px;
     padding: 23px 30px;
     display: flex;
     flex-direction: row;
