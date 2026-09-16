@@ -18,7 +18,7 @@ func NewSQLiteCommentRepository(db *sql.DB) *SQLiteCommentRepository {
 
 type CommentRepository interface {
 	Create(ctx context.Context, actor *model.CreateCommentRequest) (*model.Comment, error)
-	GetAll(ctx context.Context, pageInt int, sizeInt int, idPost int) (model.AllComments, error)
+	GetAll(ctx context.Context, pageInt int, sizeInt int, idPost int) (*model.AllComments, error)
 	Update(ctx context.Context, comment model.CommentPatchRequest, commentID int) (*model.UpdatedComment, error)
 	Delete(ctx context.Context, commentID int) error
 }
@@ -51,9 +51,10 @@ func (cr *SQLiteCommentRepository) Create(ctx context.Context, comment *model.Cr
 	}
 	return &c, nil
 }
+
 func (cr *SQLiteCommentRepository) GetAll(ctx context.Context, pageInt int, sizeInt int, idPost int) (*model.AllComments, error) {
 	offset := (pageInt - 1) * sizeInt
-	query := `SELECT id, text, created_at, updated_at, parent_comment_id, user_id 
+	query := `SELECT id, text, created_at, updated_at, parent_comment_id, user_id
 	FROM comment
 	WHERE post_id = ?
 	ORDER BY id LIMIT ? OFFSET ?`
@@ -108,8 +109,8 @@ func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.Com
 		return nil, err
 	}
 	defer tx.Rollback()
-	query := `SELECT text, updated_at 
-	FROM comment 
+	query := `SELECT text, updated_at
+	FROM comment
 	WHERE id = ?`
 	row := tx.QueryRow(query, commentID)
 	var text, updated_at string
