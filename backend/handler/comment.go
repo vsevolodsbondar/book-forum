@@ -35,8 +35,13 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	commentRaw.Text = commentBody.Text
 	commentRaw.PostID = int64(idPost)
 	ctx := r.Context()
-	_, err = h.service.Create(ctx, &commentRaw)
-
+	comment, err := h.service.Create(ctx, &commentRaw)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(comment)
 }
 func (h *CommentHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	page := r.URL.Query().Get("page")

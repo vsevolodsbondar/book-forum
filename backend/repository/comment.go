@@ -24,6 +24,14 @@ type CommentRepository interface {
 }
 
 func (cr *SQLiteCommentRepository) Create(ctx context.Context, comment *model.CreateCommentRequest) (*model.Comment, error) {
+	var postExists bool
+	checkQuery := `SELECT EXISTS(SELECT 1 FROM post WHERE id = ?)`
+	if err := cr.db.QueryRowContext(ctx, checkQuery, comment.PostID).Scan(&postExists); err != nil {
+		return nil, err
+	}
+	if !postExists {
+		return nil, fmt.Errorf("post with this id doesn't exist")
+	}
 	tx, err := cr.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
