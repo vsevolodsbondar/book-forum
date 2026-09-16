@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Forum</title>
+    <link rel="stylesheet" href="./src/static/styles/main.css">
+    <link rel="icon" href="./src/static/imgs/icons/books.ico" type="image/x-icon">
+  </head>
+  <body>
+    <header class="header log-out">
+        <img class="logo" src="./src/static/imgs/logo.png" alt="logo of forum">
+        <div class="header-btn">
+            <a href="login.html#reg" class="main_btn header_register">Register</a>
+            <a href="login.html#login" class="shadow_btn header_login">Login</a>
+        </div>
+    </header>
+    <main class="main login">
+        <div class="form-container">
+            <form class="log-form" id="login">
+                <h2 class="form_title">Login</h2>
+                <input class="input" type="email" placeholder="Write your login" required>
+                <input class="input" type="password" placeholder="Write your password" required> 
+                <button class="main_btn">Login</button>
+                <div class="file-container">
+                    <button id="toRegister" type="button" class="blue_empty_btn">*Register if you don't have an account</button>
+                </div>
+            </form>
+            <form class="log-form" id="reg" enctype="multipart/form-data">
+                <h2 class="form_title">Register on our forum</h2>
+                <input class="input" type="email" placeholder="Write your email*" required>
+                <input class="input" type="text" placeholder="Password*" required>
+                <input class="input" type="text" placeholder="Repeat your password*" required>
+                <input class="input" type="text" placeholder="Write your username*" required>
+                <textarea class="input" placeholder="Write about yourself"></textarea>
+                <div class="file-container">
+                    <label for="file-field" class="blue_empty_btn file-field_label">Choose the file</label>
+                    <input id="file-field" class="file-field_input" type="file" accept="image/*">
+                </div>
+                <button class="main_btn">Register</button>
+                <div class="file-container">
+                    <button id="toLogin" type="button" class="blue_empty_btn">*Login if you already have an account</button>
+                </div>
+            </form>
+        </div>
+        <div class="login-image"></div>
+    </main>
+    <script type="module" src="./src/static/scripts/login.js"></script>
+  </body>
+</html>
