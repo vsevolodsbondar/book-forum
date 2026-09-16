@@ -24,7 +24,10 @@ func Init(seeding bool) (*sql.DB, error) {
 	}
 
 	if seeding {
-		SeedDB(data)
+		if err := SeedDB(data); err != nil {
+			data.Close()
+			return nil, err
+		}
 	}
 
 	fmt.Println("Connected to SQLite")
