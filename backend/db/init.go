@@ -9,7 +9,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func Init(seeding bool) (*sql.DB, error) {
+func Init() (*sql.DB, error) {
 	data, err := sql.Open("sqlite3", "./db/forum.db?_foreign_keys=on&_journal_mode=WAL&_busy_timeout=5000")
 	if err != nil {
 		return nil, err
