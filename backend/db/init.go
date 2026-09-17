@@ -24,16 +24,11 @@ func Init(seeding bool) (*sql.DB, error) {
 		return nil, err
 	}
 
-<<<<<<< HEAD
 	if helper.IsSeeding() {
 		if err := SeedDB(data); err != nil {
 			data.Close()
 			return nil, err
 		}
-=======
-	if seeding {
-		SeedDB(data)
->>>>>>> 6e22c57 (now seeding with a flag.)
 	}
 
 	fmt.Println("Connected to SQLite")
