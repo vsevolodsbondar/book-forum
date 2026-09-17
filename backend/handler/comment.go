@@ -7,6 +7,7 @@ import (
 	"forum_backend/service"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type CommentHandler struct {
@@ -30,7 +31,7 @@ func NewHTTPAuthClient(baseURL string) *HTTPAuthClient {
 	return &HTTPAuthClient{
 		baseURL: baseURL,
 		client: &http.Client{
-			Timeout: 2 * time.Seconds,
+			Timeout: 2 * time.Second,
 		},
 	}
 }
