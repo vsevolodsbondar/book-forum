@@ -1,11 +1,12 @@
 package server
 
 import (
-	"context"
+	"database/sql"
 	"forum_backend/handler"
 	"forum_backend/middleware"
+	"forum_backend/repository"
+	"forum_backend/service"
 	"log"
-	"net"
 	"net/http"
 )
 
@@ -14,7 +15,7 @@ type Config struct {
 	Port string
 }
 
-func Server(ctx context.Context, app *handler.Application) (*http.Server, error) {
+func Server(db *sql.DB) (*http.Server, error) {
 	mux := http.NewServeMux()
 
 	cfg := Config{
@@ -25,13 +26,26 @@ func Server(ctx context.Context, app *handler.Application) (*http.Server, error)
 	srv := &http.Server{
 		Addr:    cfg.Host + ":" + cfg.Port,
 		Handler: middleware.Chain(mux),
-		BaseContext: func(_ net.Listener) context.Context {
-			return ctx
-		},
 	}
 
-	RegisterRoutes(mux, app)
+	dependencyWiring(mux, db)
 
 	log.Println("Launching server at", srv.Addr)
 	return srv, nil
+}
+
+func dependencyWiring(mux *http.ServeMux, db *sql.DB) *http.ServeMux {
+	//comments wiring
+	commentsRepo := repository.NewSQLiteCommentRepository(db)
+	commentService := service.NewCommentService(commentsRepo)
+	commentHandler := handler.NewCommentHandler(commentService)
+
+	//users wiring
+	usersRepo := repository.NewSQLiteUserRepository(db)
+	userService := service.NewUserService(usersRepo)
+	userHandler := handler.NewUserHandler(userService)
+
+	RegisterRoutes(mux, commentHandler, userHandler)
+
+	return mux
 }

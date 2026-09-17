@@ -1,17 +1,14 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"forum_backend/db"
-	"forum_backend/handler"
 	"forum_backend/server"
 	"log"
 	"net/http"
 )
 
 func main() {
-	ctx := context.Background()
 
 	//initialize database
 	database, err := db.Init()
@@ -20,10 +17,7 @@ func main() {
 	}
 	defer database.Close()
 
-	//init app
-	app := handler.InitApp(database)
-
-	srv, err := server.Server(ctx, app)
+	srv, err := server.Server(database)
 	if err != nil {
 		log.Fatal(err)
 	}
