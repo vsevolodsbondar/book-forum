@@ -71,7 +71,13 @@ func (h *CommentHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	comments, err := h.service.GetAll(ctx, pageInt, sizeInt, idPost)
+	commentDTO := model.GetAllCommentDTO{
+		Ctx:     ctx,
+		PageInt: pageInt,
+		SizeInt: sizeInt,
+		IDPost:  idPost,
+	}
+	comments, err := h.service.GetAll(commentDTO)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

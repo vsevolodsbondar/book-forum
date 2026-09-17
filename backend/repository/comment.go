@@ -18,7 +18,7 @@ func NewSQLiteCommentRepository(db *sql.DB) *SQLiteCommentRepository {
 
 type CommentRepository interface {
 	Create(comment *model.CreateCommentDTO) (*model.Comment, error)
-	GetAll(ctx context.Context, pageInt int, sizeInt int, idPost int) (*model.AllComments, error)
+	GetAll(comment model.GetAllCommentDTO) (*model.AllComments, error)
 	Update(ctx context.Context, comment model.CommentPatchRequest, commentID int) (*model.UpdatedComment, error)
 	Delete(ctx context.Context, commentID int) error
 }
@@ -60,14 +60,14 @@ func (cr *SQLiteCommentRepository) Create(comment *model.CreateCommentDTO) (*mod
 	return &c, nil
 }
 
-func (cr *SQLiteCommentRepository) GetAll(ctx context.Context, pageInt int, sizeInt int, idPost int) (*model.AllComments, error) {
-	offset := (pageInt - 1) * sizeInt
+func (cr *SQLiteCommentRepository) GetAll(comment model.GetAllCommentDTO) (*model.AllComments, error) {
+	offset := (comment.PageInt - 1) * comment.SizeInt
 	query := `SELECT id, text, created_at, updated_at, parent_comment_id, user_id
 	FROM comment
 	WHERE post_id = ?
 	ORDER BY id LIMIT ? OFFSET ?`
 	queryCount := `SELECT COUNT(*) FROM comment WHERE post_id = ?`
-	rows, err := cr.db.QueryContext(ctx, query, idPost, sizeInt, offset)
+	rows, err := cr.db.QueryContext(comment.Ctx, query, comment.IDPost, comment.SizeInt, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (cr *SQLiteCommentRepository) GetAll(ctx context.Context, pageInt int, size
 		comments.Comments = append(comments.Comments, model.Comment{
 			ID:              int64(id),
 			Text:            text,
-			PostID:          int64(idPost),
+			PostID:          int64(comment.IDPost),
 			UserID:          userID,
 			ParentCommentID: parentCommentID,
 			CreatedAt:       createdDate,
@@ -103,11 +103,11 @@ func (cr *SQLiteCommentRepository) GetAll(ctx context.Context, pageInt int, size
 		return nil, err
 	}
 	countComments := 0
-	if err = cr.db.QueryRowContext(ctx, queryCount, idPost).Scan(&countComments); err != nil {
+	if err = cr.db.QueryRowContext(comment.Ctx, queryCount, comment.IDPost).Scan(&countComments); err != nil {
 		return nil, err
 	}
-	comments.Page = pageInt
-	comments.Size = sizeInt
+	comments.Page = comment.PageInt
+	comments.Size = comment.SizeInt
 	comments.Total = countComments
 	return &comments, nil
 }

@@ -42,3 +42,9 @@ type CreateCommentDTO struct {
 	Ctx     context.Context
 	Comment CreateCommentRequest
 }
+type GetAllCommentDTO struct {
+	Ctx     context.Context
+	PageInt int
+	SizeInt int
+	IDPost  int
+}
