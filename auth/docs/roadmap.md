@@ -24,7 +24,7 @@ AUTH itself is private and is integrated through BACKEND.
 
 - [x] Create AUTH package/service structure.
 - [x] Configure SQLite connection with foreign keys enabled.
-- [ ] Add migration mechanism.
+- [x] Add migration mechanism.
 - [x] Add `0001_init.sql`.
 - [x] Add `users` table.
 - [x] Add `sessions` table.
