@@ -9,10 +9,15 @@ import (
 
 // Config holds the application's runtime settings.
 type Config struct {
-	Port                 string
-	Database             string
-	SessionLifetime      time.Duration
-	SessionIdleTimeout   time.Duration
+	Port     string
+	Database string
+
+	SessionLifetime    time.Duration
+	SessionIdleTimeout time.Duration
+
+	Argon2MemoryKiB      uint32
+	Argon2Iterations     uint32
+	Argon2Parallelism    uint8
 	Argon2MaxConcurrency int
 }
 
@@ -31,6 +36,24 @@ func Load() (cfg Config, err error) {
 	if err != nil {
 		return Config{}, err
 	}
+
+	memory, err := getUint("ARGON2_MEMORY_KIB", "65536", 32, 19456, 262144)
+	if err != nil {
+		return Config{}, err
+	}
+	cfg.Argon2MemoryKiB = uint32(memory)
+
+	iterations, err := getUint("ARGON2_ITERATIONS", "3", 32, 2, 10)
+	if err != nil {
+		return Config{}, err
+	}
+	cfg.Argon2Iterations = uint32(iterations)
+
+	parallelism, err := getUint("ARGON2_PARALLELISM", "1", 8, 1, 4)
+	if err != nil {
+		return Config{}, err
+	}
+	cfg.Argon2Parallelism = uint8(parallelism)
 
 	cfg.Argon2MaxConcurrency, err = getPositiveInt("ARGON2_MAX_CONCURRENCY", "2")
 	if err != nil {
@@ -72,6 +95,20 @@ func getPositiveInt(key, fallback string) (int, error) {
 
 	if value <= 0 {
 		return 0, fmt.Errorf("%s: must be positive", key)
+	}
+
+	return value, nil
+}
+
+// getUint reads an unsigned integer within the given bounds from an environment variable.
+func getUint(key, fallback string, bits int, min, max uint64) (uint64, error) {
+	value, err := strconv.ParseUint(getEnv(key, fallback), 10, bits)
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", key, err)
+	}
+
+	if value < min || value > max {
+		return 0, fmt.Errorf("%s: must be between %d and %d", key, min, max)
 	}
 
 	return value, nil

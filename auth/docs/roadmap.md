@@ -31,7 +31,7 @@ AUTH itself is private and is integrated through BACKEND.
 - [x] Add schema tests / migration startup test.
 - [x] Verify the [schema guarantees](schema.md): automatically assigned user IDs are not reused, email and ASCII case-insensitive username uniqueness are enforced, user deletion cascades to sessions, and required indexes exist.
 - [x] Add configuration for absolute session lifetime (default: 30 days) and idle timeout (default: 7 days).
-- [ ] Add configuration for Argon2id parameters.
+- [x] Add configuration for Argon2id parameters.
 - [x] Reject non-positive session timeout configuration; zero cannot disable either timeout.
 - [x] Add `ARGON2_MAX_CONCURRENCY` configuration (default: 2) and reject non-positive values.
 
