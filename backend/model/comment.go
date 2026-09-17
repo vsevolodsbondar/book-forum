@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type Comment struct {
 	ID              int64     `json:"id"`
@@ -34,4 +37,8 @@ type UpdatedComment struct {
 	ID        int64     `json:"id"`
 	Text      string    `json:"text"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+type CreateCommentDTO struct {
+	Ctx     context.Context
+	Comment CreateCommentRequest
 }

@@ -18,13 +18,13 @@ func NewCommentService(repo repository.CommentRepository) *CommentService {
 	}
 }
 
-func (cs *CommentService) Create(ctx context.Context, comment *model.CreateCommentRequest) (*model.Comment, error) {
+func (cs *CommentService) Create(comment *model.CreateCommentDTO) (*model.Comment, error) {
 	var isValidated bool
-	comment.Text, isValidated = helper.IsEmptyText(comment.Text)
+	comment.Comment.Text, isValidated = helper.IsEmptyText(comment.Comment.Text)
 	if !isValidated {
 		return nil, fmt.Errorf("Your message is empty")
 	}
-	commentWritten, err := cs.repo.Create(ctx, comment)
+	commentWritten, err := cs.repo.Create(comment)
 	if err != nil {
 		return nil, err
 	}

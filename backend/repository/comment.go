@@ -17,22 +17,22 @@ func NewSQLiteCommentRepository(db *sql.DB) *SQLiteCommentRepository {
 }
 
 type CommentRepository interface {
-	Create(ctx context.Context, actor *model.CreateCommentRequest) (*model.Comment, error)
+	Create(comment *model.CreateCommentDTO) (*model.Comment, error)
 	GetAll(ctx context.Context, pageInt int, sizeInt int, idPost int) (*model.AllComments, error)
 	Update(ctx context.Context, comment model.CommentPatchRequest, commentID int) (*model.UpdatedComment, error)
 	Delete(ctx context.Context, commentID int) error
 }
 
-func (cr *SQLiteCommentRepository) Create(ctx context.Context, comment *model.CreateCommentRequest) (*model.Comment, error) {
+func (cr *SQLiteCommentRepository) Create(comment *model.CreateCommentDTO) (*model.Comment, error) {
 	var postExists bool
 	checkQuery := `SELECT EXISTS(SELECT 1 FROM post WHERE id = ?)`
-	if err := cr.db.QueryRowContext(ctx, checkQuery, comment.PostID).Scan(&postExists); err != nil {
+	if err := cr.db.QueryRowContext(comment.Ctx, checkQuery, comment.Comment.PostID).Scan(&postExists); err != nil {
 		return nil, err
 	}
 	if !postExists {
 		return nil, fmt.Errorf("post with this id doesn't exist")
 	}
-	tx, err := cr.db.BeginTx(ctx, nil)
+	tx, err := cr.db.BeginTx(comment.Ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (cr *SQLiteCommentRepository) Create(ctx context.Context, comment *model.Cr
 	query := `INSERT INTO comment (text, post_id, user_id, parent_comment_id) VALUES (?,?,?, ?) RETURNING *;`
 	var c model.Comment
 	strCreated, strUpdated := "", ""
-	err = tx.QueryRowContext(ctx, query, comment.Text, comment.PostID, comment.UserID, comment.ParentCommentID).Scan(&c.ID, &c.Text, &strCreated, &strUpdated, &c.PostID, &c.ParentCommentID, &c.UserID)
+	err = tx.QueryRowContext(comment.Ctx, query, comment.Comment.Text, comment.Comment.PostID, comment.Comment.UserID, comment.Comment.ParentCommentID).Scan(&c.ID, &c.Text, &strCreated, &strUpdated, &c.PostID, &c.ParentCommentID, &c.UserID)
 	if err != nil {
 		return nil, err
 	}

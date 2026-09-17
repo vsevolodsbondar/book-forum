@@ -35,7 +35,11 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	commentRaw.Text = commentBody.Text
 	commentRaw.PostID = int64(idPost)
 	ctx := r.Context()
-	comment, err := h.service.Create(ctx, &commentRaw)
+	commentDTO := model.CreateCommentDTO{
+		Ctx:     ctx,
+		Comment: commentRaw,
+	}
+	comment, err := h.service.Create(&commentDTO)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
