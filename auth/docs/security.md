@@ -50,13 +50,26 @@ output:       32 bytes
 
 These parameters are not immutable. They should be benchmarked in the actual AUTH container and adjusted to keep legitimate authentication practical while making offline password guessing expensive.
 
-Do not go below the current OWASP Argon2id minimum without a documented reason:
+AUTH uses OWASP's 19 MiB / 2 iterations / parallelism 1 baseline as its minimum configuration:
 
 ```text
 memory:       19 MiB
 time/passes:  2
 parallelism:  1
 ```
+
+### Configuration bounds
+
+AUTH accepts these Argon2id cost settings:
+
+| Environment variable | Default | Minimum | Maximum |
+| -------------------- | ------: | ------: | ------: |
+| `ARGON2_MEMORY_KIB`  |   65536 |   19456 |  262144 |
+| `ARGON2_ITERATIONS`  |       3 |       2 |      10 |
+| `ARGON2_PARALLELISM` |       1 |       1 |       4 |
+
+These bounds are project policy. Defaults and upper bounds must be
+benchmarked in the AUTH container before deployment.
 
 ### Password handling
 
