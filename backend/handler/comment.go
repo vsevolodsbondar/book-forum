@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"forum_backend/model"
 	"forum_backend/service"
@@ -14,6 +15,24 @@ type CommentHandler struct {
 
 func NewCommentHandler(service *service.CommentService) *CommentHandler {
 	return &CommentHandler{service: service}
+}
+
+// block for communicating with auth service
+type AuthClient interface {
+	ValidateSession(ctx context.Context, token string) (int64, error)
+}
+type HTTPAuthClient struct {
+	baseURL string
+	client  *http.Client
+}
+
+func NewHTTPAuthClient(baseURL string) *HTTPAuthClient {
+	return &HTTPAuthClient{
+		baseURL: baseURL,
+		client: &http.Client{
+			Timeout: 2 * time.Seconds,
+		},
+	}
 }
 
 // on all hanlders has be a check of userID
