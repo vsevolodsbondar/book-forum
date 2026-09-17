@@ -2,7 +2,7 @@ package config
 
 import "os"
 
-// Holds application's runtime settings.
+// Config holds the application's runtime settings.
 type Config struct {
 	Port     string
 	Database string
