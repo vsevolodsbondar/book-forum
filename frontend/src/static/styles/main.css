@@ -549,38 +549,6 @@ body{
     opacity: 0.9;
     line-height: 1;
 }
-
-
-/* hovers */
-@media (hover: hover) {
-    .nav-list li:hover  .nav-list_item{
-        background-color: var(--back-orange-color);
-        color: var(--font-color-orange);
-    }
-    .nav-list li:hover .nav-list_item::before{
-        opacity: 1;
-    }
-    .main-section>.tags .tags_item:hover{
-        background-color: var(--font-color-blue);
-        color: var(--font-white-color);
-    }
-    .comment .stats button:hover{
-        color: var(--font-color-orange);
-    }
-    .blue_empty_btn:hover{
-        opacity: 0.6;
-    }
-    .main_btn:hover{
-        background-color: transparent;
-        color: var(--font-color-orange);
-    }
-    .shadow_btn:hover{
-        background-color: transparent;
-    }
-    .user:hover{
-        transform: scale(1.05);
-    }
-
 /* buttons */
 .main_btn{
     padding: 12px 20px;
