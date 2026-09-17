@@ -19,7 +19,7 @@ func NewSQLiteCommentRepository(db *sql.DB) *SQLiteCommentRepository {
 type CommentRepository interface {
 	Create(comment *model.CreateCommentDTO) (*model.Comment, error)
 	GetAll(comment model.GetAllCommentDTO) (*model.AllComments, error)
-	Update(ctx context.Context, comment model.CommentPatchRequest, commentID int) (*model.UpdatedComment, error)
+	Update(comment model.UpdateCommentDTO) (*model.UpdatedComment, error)
 	Delete(ctx context.Context, commentID int) error
 }
 
@@ -111,8 +111,8 @@ func (cr *SQLiteCommentRepository) GetAll(comment model.GetAllCommentDTO) (*mode
 	comments.Total = countComments
 	return &comments, nil
 }
-func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.CommentPatchRequest, commentID int) (*model.UpdatedComment, error) {
-	tx, err := cr.db.BeginTx(ctx, nil)
+func (cr *SQLiteCommentRepository) Update(comment model.UpdateCommentDTO) (*model.UpdatedComment, error) {
+	tx, err := cr.db.BeginTx(comment.Ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -120,19 +120,19 @@ func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.Com
 	query := `SELECT text, updated_at
 	FROM comment
 	WHERE id = ?`
-	row := tx.QueryRow(query, commentID)
+	row := tx.QueryRow(query, comment.CommentID)
 	var text, updated_at string
 	err = row.Scan(&text, &updated_at)
 	if err != nil {
 		return nil, err
 	}
-	if text == comment.Text {
+	if text == comment.CommentToUpdate.Text {
 		return nil, fmt.Errorf("comment wasn't changed")
 	}
 	updated := time.Now().UTC()
 	updatedStr := updated.Format("2006-01-02 15:04:05")
 	newQuery := `UPDATE comment SET text = ?, updated_at = ? WHERE id = ?`
-	result, err := tx.ExecContext(ctx, newQuery, comment.Text, updatedStr, commentID)
+	result, err := tx.ExecContext(comment.Ctx, newQuery, comment.CommentToUpdate.Text, updatedStr, comment.CommentID)
 	if err != nil {
 		return nil, err
 	}
@@ -144,8 +144,8 @@ func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.Com
 		return nil, err
 	}
 	updatedComment := model.UpdatedComment{
-		ID:        int64(commentID),
-		Text:      comment.Text,
+		ID:        int64(comment.CommentID),
+		Text:      comment.CommentToUpdate.Text,
 		UpdatedAt: updated,
 	}
 	return &updatedComment, nil

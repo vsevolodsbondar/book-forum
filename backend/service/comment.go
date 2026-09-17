@@ -36,13 +36,13 @@ func (cs *CommentService) GetAll(comment model.GetAllCommentDTO) (*model.AllComm
 	return comments, err
 }
 
-func (cs *CommentService) Update(ctx context.Context, comment model.CommentPatchRequest, commentID int) (*model.UpdatedComment, error) {
+func (cs *CommentService) Update(comment model.UpdateCommentDTO) (*model.UpdatedComment, error) {
 	var isValidated bool
-	comment.Text, isValidated = helper.IsEmptyText(comment.Text)
+	comment.CommentToUpdate.Text, isValidated = helper.IsEmptyText(comment.CommentToUpdate.Text)
 	if !isValidated {
 		return nil, fmt.Errorf("Your message is empty")
 	}
-	updatedComment, err := cs.repo.Update(ctx, comment, commentID)
+	updatedComment, err := cs.repo.Update(comment)
 	return updatedComment, err
 }
 

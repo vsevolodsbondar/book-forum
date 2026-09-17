@@ -98,7 +98,12 @@ func (h *CommentHandler) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	updatedComment, err := h.service.Update(ctx, comentToUpdate, commentID)
+	commentDTO := model.UpdateCommentDTO{
+		Ctx:             ctx,
+		CommentToUpdate: comentToUpdate,
+		CommentID:       commentID,
+	}
+	updatedComment, err := h.service.Update(commentDTO)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

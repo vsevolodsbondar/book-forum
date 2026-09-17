@@ -48,3 +48,8 @@ type GetAllCommentDTO struct {
 	SizeInt int
 	IDPost  int
 }
+type UpdateCommentDTO struct {
+	Ctx             context.Context
+	CommentToUpdate CommentPatchRequest
+	CommentID       int
+}
