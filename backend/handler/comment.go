@@ -118,7 +118,11 @@ func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := r.Context()
-	err = h.service.Delete(ctx, commentID)
+	commentDTO := model.DeleteCommentDTO{
+		Ctx:       ctx,
+		CommentID: commentID,
+	}
+	err = h.service.Delete(commentDTO)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

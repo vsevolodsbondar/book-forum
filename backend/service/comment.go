@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"fmt"
 	"forum_backend/helper"
 	"forum_backend/model"
@@ -46,7 +45,7 @@ func (cs *CommentService) Update(comment model.UpdateCommentDTO) (*model.Updated
 	return updatedComment, err
 }
 
-func (cs *CommentService) Delete(ctx context.Context, commentID int) error {
-	err := cs.repo.Delete(ctx, commentID)
+func (cs *CommentService) Delete(comment model.DeleteCommentDTO) error {
+	err := cs.repo.Delete(comment)
 	return err
 }

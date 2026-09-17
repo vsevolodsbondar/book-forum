@@ -53,3 +53,7 @@ type UpdateCommentDTO struct {
 	CommentToUpdate CommentPatchRequest
 	CommentID       int
 }
+type DeleteCommentDTO struct {
+	Ctx       context.Context
+	CommentID int
+}

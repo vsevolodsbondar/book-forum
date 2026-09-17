@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"forum_backend/model"
@@ -20,7 +19,7 @@ type CommentRepository interface {
 	Create(comment *model.CreateCommentDTO) (*model.Comment, error)
 	GetAll(comment model.GetAllCommentDTO) (*model.AllComments, error)
 	Update(comment model.UpdateCommentDTO) (*model.UpdatedComment, error)
-	Delete(ctx context.Context, commentID int) error
+	Delete(comment model.DeleteCommentDTO) error
 }
 
 func (cr *SQLiteCommentRepository) Create(comment *model.CreateCommentDTO) (*model.Comment, error) {
@@ -150,8 +149,8 @@ func (cr *SQLiteCommentRepository) Update(comment model.UpdateCommentDTO) (*mode
 	}
 	return &updatedComment, nil
 }
-func (cr *SQLiteCommentRepository) Delete(ctx context.Context, commentID int) error {
-	tx, err := cr.db.BeginTx(ctx, nil)
+func (cr *SQLiteCommentRepository) Delete(comment model.DeleteCommentDTO) error {
+	tx, err := cr.db.BeginTx(comment.Ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -160,7 +159,7 @@ func (cr *SQLiteCommentRepository) Delete(ctx context.Context, commentID int) er
 	queryExistsParent := `SELECT EXISTS(SELECT 1 FROM comment WHERE parent_comment_id = ?);`
 	queryReset := `UPDATE comment SET text = ?, updated_at = ?, user_id = ? WHERE id = ?`
 	queryDelete := `DELETE FROM comment WHERE id = ?`
-	row := tx.QueryRow(queryExists, commentID)
+	row := tx.QueryRow(queryExists, comment.CommentID)
 	isExists := 0
 	err = row.Scan(&isExists)
 	if err != nil {
@@ -170,13 +169,13 @@ func (cr *SQLiteCommentRepository) Delete(ctx context.Context, commentID int) er
 		return fmt.Errorf("you not allowed to delete this comment (delete post)")
 	}
 	var isParent int
-	row = tx.QueryRow(queryExistsParent, commentID)
+	row = tx.QueryRow(queryExistsParent, comment.CommentID)
 	err = row.Scan(&isParent)
 	if err != nil {
 		return err
 	}
 	if isParent == 0 {
-		result, err := tx.ExecContext(ctx, queryDelete, commentID)
+		result, err := tx.ExecContext(comment.Ctx, queryDelete, comment.CommentID)
 		if err != nil {
 			return err
 		}
@@ -188,7 +187,7 @@ func (cr *SQLiteCommentRepository) Delete(ctx context.Context, commentID int) er
 		text := "Deleted message"
 		updated := time.Now().UTC().Format("2006-01-02 15:04:05")
 		var userID *int64
-		result, err := tx.ExecContext(ctx, queryReset, text, updated, userID, commentID)
+		result, err := tx.ExecContext(comment.Ctx, queryReset, text, updated, userID, comment.CommentID)
 		if err != nil {
 			return err
 		}
