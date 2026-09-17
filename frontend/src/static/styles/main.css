@@ -2,16 +2,23 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+<<<<<<< HEAD
     text-decoration: none;
+=======
+>>>>>>> 64eea56 (first files)
 }
 :root {
     --back-color: #FAFAFA;
     --back-white-color: #ffffff;
+<<<<<<< HEAD
     --back-orange-color: #FCF5EC;
+=======
+>>>>>>> 64eea56 (first files)
     --btn-main-back-color: #FF8D28;
     --back-darker-grey: #EAEAEA;
     --font-white-color: #ffffff;
     --font-color-blue: #1782FD;
+<<<<<<< HEAD
     --font-color-grey: #808080;
     --font-color-black: #000000;
     --font-color-orange: #F48023;
@@ -24,16 +31,25 @@ body{
     justify-content: flex-start;
     flex-grow: 1;
     min-height: 100vh;
+=======
+}
+body{
+>>>>>>> 64eea56 (first files)
     background-color: var(--back-color);
 }
 /* header */
 .header{
     width: 100%;
+<<<<<<< HEAD
     padding: 23px 30px;
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+=======
+    max-width: 1440px;
+    padding: 23px 30px;
+>>>>>>> 64eea56 (first files)
     background-color: var(--back-white-color);
 }
 .header-btn{
@@ -43,6 +59,7 @@ body{
     justify-content: flex-start;
     gap: 16px;
 }
+<<<<<<< HEAD
 .logo{
     width: 50px;
     height: auto;
@@ -576,4 +593,21 @@ body{
     .user:hover{
         transform: scale(1.05);
     }
+=======
+
+/* buttons */
+.main_btn{
+    padding: 12px 20px;
+    color: var(--font-white-color);
+    font-size: 1.1rem;
+    background-color: var(--btn-main-back-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.shadow_btn{
+    padding: 12px 20px;
+    color: var(--font-color-blue);
+    background-color: var(--back-darker-grey);
+>>>>>>> 64eea56 (first files)
 }
