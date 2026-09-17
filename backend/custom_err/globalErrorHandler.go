@@ -1,4 +1,4 @@
-package err
+package custom_err
 
 import (
 	"encoding/json"
