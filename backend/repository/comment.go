@@ -42,7 +42,7 @@ func (cr *SQLiteCommentRepository) Create(ctx context.Context, comment *model.Cr
 	query := `INSERT INTO comment (text, post_id, user_id, parent_comment_id) VALUES (?,?,?, ?) RETURNING *;`
 	var c model.Comment
 	strCreated, strUpdated := "", ""
-	err = tx.QueryRowContext(ctx, query, comment.Comment.Text, comment.Comment.PostID, comment.Comment.UserID, comment.Comment.ParentCommentID).Scan(&c.ID, &c.Text, &strCreated, &strUpdated, &c.PostID, &c.ParentCommentID, &c.UserID)
+	err = tx.QueryRowContext(ctx, query, comment.Comment.Text, comment.Comment.PostID, comment.UserID, comment.Comment.ParentCommentID).Scan(&c.ID, &c.Text, &strCreated, &strUpdated, &c.PostID, &c.ParentCommentID, &c.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -119,17 +119,22 @@ func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.Upd
 		return nil, err
 	}
 	defer tx.Rollback()
-	query := `SELECT text, updated_at
+	query := `SELECT text, updated_at, user_id
 	FROM comment
 	WHERE id = ?`
-	row := tx.QueryRow(query, comment.CommentID)
+	row := tx.QueryRowContext(ctx, query, comment.CommentID)
 	var text, updated_at string
-	err = row.Scan(&text, &updated_at)
+	// explicitly NULL: author removed on delete
+	var userID *int
+	err = row.Scan(&text, &updated_at, &userID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("The comment with this id doesn't exist: %w", custom_err.ErrCommentNotFound)
 	}
 	if err != nil {
 		return nil, err
+	}
+	if userID == nil || *userID != comment.UserID {
+		return nil, fmt.Errorf("You'r not allowed to update this comment: %w", custom_err.ErrForbidden)
 	}
 	if text == comment.CommentToUpdate.Text {
 		return nil, fmt.Errorf("Comment wasn't changed: %w", custom_err.ErrNoChange)
@@ -163,19 +168,33 @@ func (cr *SQLiteCommentRepository) Delete(ctx context.Context, comment model.Del
 	defer tx.Rollback()
 	queryExists := `SELECT EXISTS(SELECT 1 FROM post WHERE init_comment_id = ?);`
 	queryExistsParent := `SELECT EXISTS(SELECT 1 FROM comment WHERE parent_comment_id = ?);`
+	queryCheckUser := `SELECT user_id FROM comment WHERE id = ?`
 	queryReset := `UPDATE comment SET text = ?, updated_at = ?, user_id = ? WHERE id = ?`
 	queryDelete := `DELETE FROM comment WHERE id = ?`
-	row := tx.QueryRow(queryExists, comment.CommentID)
+	row := tx.QueryRowContext(ctx, queryExists, comment.CommentID)
 	isExists := 0
 	err = row.Scan(&isExists)
 	if err != nil {
 		return err
 	}
 	if isExists == 1 {
-		return fmt.Errorf("You not allowed to delete this comment (delete post): %w", custom_err.ErrForbidden)
+		return fmt.Errorf("You not allowed to delete this comment (you need to delete post): %w", custom_err.ErrForbidden)
+	}
+	//check the rights of user
+	row = tx.QueryRowContext(ctx, queryCheckUser, comment.CommentID)
+	var actualUserID *int
+	err = row.Scan(&actualUserID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("The comment with this id doesn't exist: %w", custom_err.ErrCommentNotFound)
+	}
+	if err != nil {
+		return err
+	}
+	if actualUserID == nil || *actualUserID != comment.UserID {
+		return fmt.Errorf("You don't have a right to delete this comment: %w", custom_err.ErrForbidden)
 	}
 	var isParent int
-	row = tx.QueryRow(queryExistsParent, comment.CommentID)
+	row = tx.QueryRowContext(ctx, queryExistsParent, comment.CommentID)
 	err = row.Scan(&isParent)
 	if err != nil {
 		return err
