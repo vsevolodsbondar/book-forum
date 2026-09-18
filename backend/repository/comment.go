@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"forum_backend/custom_err"
 	"forum_backend/model"
 	"time"
 )
@@ -29,7 +30,7 @@ func (cr *SQLiteCommentRepository) Create(comment *model.CreateCommentDTO) (*mod
 		return nil, err
 	}
 	if !postExists {
-		return nil, fmt.Errorf("post with this id doesn't exist")
+		return nil, fmt.Errorf("%w: post with this id doesn't exist", custom_err.ErrPostNotFound)
 	}
 	tx, err := cr.db.BeginTx(comment.Ctx, nil)
 	if err != nil {

@@ -1,13 +1,11 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"forum_backend/model"
 	"forum_backend/service"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type CommentHandler struct {
@@ -16,24 +14,6 @@ type CommentHandler struct {
 
 func NewCommentHandler(service *service.CommentService) *CommentHandler {
 	return &CommentHandler{service: service}
-}
-
-// block for communicating with auth service
-type AuthClient interface {
-	ValidateSession(ctx context.Context, token string) (int64, error)
-}
-type HTTPAuthClient struct {
-	baseURL string
-	client  *http.Client
-}
-
-func NewHTTPAuthClient(baseURL string) *HTTPAuthClient {
-	return &HTTPAuthClient{
-		baseURL: baseURL,
-		client: &http.Client{
-			Timeout: 2 * time.Second,
-		},
-	}
 }
 
 // on all hanlders has be a check of userID
@@ -55,10 +35,14 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	commentRaw.Text = commentBody.Text
 	commentRaw.PostID = int64(idPost)
 	ctx := r.Context()
+	//dummy user_id
+	userID := 1
 	commentDTO := model.CreateCommentDTO{
 		Ctx:     ctx,
 		Comment: commentRaw,
+		UserID:  userID,
 	}
+
 	comment, err := h.service.Create(&commentDTO)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -91,11 +75,14 @@ func (h *CommentHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	//dummy user_id
+	userID := 1
 	commentDTO := model.GetAllCommentDTO{
 		Ctx:     ctx,
 		PageInt: pageInt,
 		SizeInt: sizeInt,
 		IDPost:  idPost,
+		UserID:  userID,
 	}
 	comments, err := h.service.GetAll(commentDTO)
 	if err != nil {
@@ -118,10 +105,13 @@ func (h *CommentHandler) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	//dummy user_id
+	userID := 1
 	commentDTO := model.UpdateCommentDTO{
 		Ctx:             ctx,
 		CommentToUpdate: comentToUpdate,
 		CommentID:       commentID,
+		UserID:          userID,
 	}
 	updatedComment, err := h.service.Update(commentDTO)
 	if err != nil {
@@ -138,9 +128,12 @@ func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := r.Context()
+	//dummy user_id
+	userID := 1
 	commentDTO := model.DeleteCommentDTO{
 		Ctx:       ctx,
 		CommentID: commentID,
+		UserID:    userID,
 	}
 	err = h.service.Delete(commentDTO)
 	if err != nil {
