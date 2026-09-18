@@ -20,13 +20,20 @@ func main() {
 
 // run owns application startup so deferred cleanup runs before main exits on error.
 func run() error {
-	cfg := config.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("load configuration: %w", err)
+	}
 
 	database, err := db.Open(cfg.Database)
 	if err != nil {
-		return fmt.Errorf("opening database: %w", err)
+		return fmt.Errorf("open database: %w", err)
 	}
 	defer database.Close()
+
+	if err := db.Migrate(database); err != nil {
+		return fmt.Errorf("migrate database: %w", err)
+	}
 
 	addr := ":" + cfg.Port
 	slog.Info("starting server", "addr", addr)

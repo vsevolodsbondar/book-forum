@@ -29,7 +29,7 @@ func Recovery(next http.Handler) http.Handler {
 			if err := recover(); err != nil {
 				slog.ErrorContext(r.Context(), "panic recovered", "panic", err)
 				if err := response.WriteJSON(w, response.InternalServerError("internal server error"), http.StatusInternalServerError); err != nil {
-					slog.ErrorContext(r.Context(), "failed to write response", "err", err)
+					slog.ErrorContext(r.Context(), "write response", "err", err)
 				}
 			}
 		}()
