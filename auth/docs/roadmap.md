@@ -77,18 +77,18 @@ POST /v1/register
 
 ### Deliverables
 
-- [ ] Decode JSON safely.
-- [ ] Enforce an 8192-byte body limit while reading, regardless of `Content-Length`, returning `413 request_too_large` when exceeded.
-- [ ] Validate with `go-playground/validator`.
-- [ ] Enforce the [password requirements](api.md#password-requirements), including length of 15 to 128 Unicode code points.
-- [ ] Preserve passwords exactly as submitted without trimming or normalization.
-- [ ] Validate and normalize email according to the [email requirements](api.md#email-requirements).
-- [ ] Validate and trim username according to the [username requirements](api.md#username-requirements), preserving display casing.
-- [ ] Hash the password with Argon2id.
-- [ ] Insert the user using parameterized SQL.
-- [ ] Handle email and username uniqueness conflicts.
-- [ ] Return only safe user fields.
-- [ ] Add integration tests.
+- [x] Decode JSON safely.
+- [x] Enforce an 8192-byte body limit while reading, regardless of `Content-Length`, returning `413 request_too_large` when exceeded.
+- [x] Validate with `go-playground/validator`.
+- [x] Enforce the [password requirements](api.md#password-requirements), including length of 15 to 128 Unicode code points.
+- [x] Preserve passwords exactly as submitted without trimming or normalization.
+- [x] Validate and normalize email according to the [email requirements](api.md#email-requirements).
+- [x] Validate and trim username according to the [username requirements](api.md#username-requirements), preserving display casing.
+- [x] Hash the password with Argon2id.
+- [x] Insert the user using parameterized SQL.
+- [x] Handle email and username uniqueness conflicts.
+- [x] Return only safe user fields.
+- [x] Add integration tests.
 
 ### Done when
 

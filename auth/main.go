@@ -7,7 +7,8 @@ import (
 	"os"
 
 	"auth/internal/config"
-	"auth/internal/db"
+	"auth/internal/database"
+	"auth/internal/handler"
 	"auth/internal/password"
 	"auth/internal/server"
 )
@@ -36,18 +37,23 @@ func run() error {
 		return fmt.Errorf("create password hasher: %w", err)
 	}
 
-	database, err := db.Open(cfg.Database)
+	validate, err := handler.NewValidator()
+	if err != nil {
+		return fmt.Errorf("create request validator: %w", err)
+	}
+
+	db, err := database.Open(cfg.Database)
 	if err != nil {
 		return fmt.Errorf("open database: %w", err)
 	}
-	defer database.Close()
+	defer db.Close()
 
-	if err := db.Migrate(database); err != nil {
+	if err := database.Migrate(db); err != nil {
 		return fmt.Errorf("migrate database: %w", err)
 	}
 
 	addr := ":" + cfg.Port
 	slog.Info("starting server", "addr", addr)
 
-	return http.ListenAndServe(addr, server.New(database, hasher))
+	return http.ListenAndServe(addr, server.New(db, hasher, validate))
 }

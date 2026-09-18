@@ -13,7 +13,10 @@ import (
 )
 
 var (
-	ErrBusy        = errors.New("password hashing capacity exhausted")
+	// ErrBusy is returned when no password hashing slot is available.
+	ErrBusy = errors.New("password hashing capacity exhausted")
+
+	// ErrInvalidHash is returned when an encoded hash is malformed or unsupported.
 	ErrInvalidHash = errors.New("invalid password hash")
 )
 
