@@ -55,7 +55,7 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		///////REMINDER: make a unified error writer
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
 }
 
@@ -66,4 +66,52 @@ func parseID(idStr string) (int64, error) {
 	}
 
 	return id, nil
+}
+
+func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	id, err := parseID(r.PathValue("id"))
+	if err != nil {
+		///////REMINDER: make a unified error writer
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var input model.UserUpdateInfo
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		///////REMINDER: make a unified error writer
+		http.Error(w, "invalid json body", http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.UpdateUser(ctx, id, input)
+	if err != nil {
+		///////REMINDER: make a unified error writer
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// DELETE
+func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	id, err := parseID(r.PathValue("id"))
+	if err != nil {
+		///////REMINDER: make a unified error writer
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.DeleteUser(ctx, id)
+	if err != nil {
+		///////REMINDER: make a unified error writer
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent) // 204 No Content — стандарт для успешного удаления
 }

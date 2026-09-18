@@ -10,6 +10,9 @@ func RegisterRoutes(mux *http.ServeMux, comments *handler.CommentHandler, users 
 	mux.HandleFunc("POST /posts/{id}/comments", comments.Create)
 	mux.HandleFunc("PATCH /comments/{id}", comments.Update)
 	mux.HandleFunc("DELETE /comments/{id}", comments.Delete)
+	//users
 	mux.HandleFunc("GET /users/{id}", users.GetUser)
 	mux.HandleFunc("POST /users", users.CreateUser)
+	mux.HandleFunc("PATCH /users/{id}", users.UpdateUser)
+	mux.HandleFunc("DELETE /users/{id}", users.DeleteUser)
 }
