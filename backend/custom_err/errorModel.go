@@ -21,4 +21,7 @@ var (
 	ErrUserRegisterError = errors.New("can't register user")
 	ErrWrongCredentials  = errors.New("invalid credentials")
 	ErrBadRequest        = errors.New("failed to process request")
+	// more errors
+	ErrNoChange  = errors.New("the text wasn't changed")
+	ErrForbidden = errors.New("forbidden")
 )
