@@ -1,7 +1,6 @@
 package model
 
 import (
-	"context"
 	"time"
 )
 
@@ -39,25 +38,21 @@ type UpdatedComment struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 type CreateCommentDTO struct {
-	Ctx     context.Context
 	Comment CreateCommentRequest
 	UserID  int
 }
 type GetAllCommentDTO struct {
-	Ctx     context.Context
 	PageInt int
 	SizeInt int
 	IDPost  int
 	UserID  int
 }
 type UpdateCommentDTO struct {
-	Ctx             context.Context
 	CommentToUpdate CommentPatchRequest
 	CommentID       int
 	UserID          int
 }
 type DeleteCommentDTO struct {
-	Ctx       context.Context
 	CommentID int
 	UserID    int
 }

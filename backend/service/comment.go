@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"forum_backend/helper"
 	"forum_backend/model"
@@ -17,35 +18,35 @@ func NewCommentService(repo repository.CommentRepository) *CommentService {
 	}
 }
 
-func (cs *CommentService) Create(comment *model.CreateCommentDTO) (*model.Comment, error) {
+func (cs *CommentService) Create(ctx context.Context, comment *model.CreateCommentDTO) (*model.Comment, error) {
 	var isValidated bool
 	comment.Comment.Text, isValidated = helper.IsEmptyText(comment.Comment.Text)
 	if !isValidated {
 		return nil, fmt.Errorf("Your message is empty")
 	}
-	commentWritten, err := cs.repo.Create(comment)
+	commentWritten, err := cs.repo.Create(ctx, comment)
 	if err != nil {
 		return nil, err
 	}
 	return commentWritten, nil
 }
 
-func (cs *CommentService) GetAll(comment model.GetAllCommentDTO) (*model.AllComments, error) {
-	comments, err := cs.repo.GetAll(comment)
+func (cs *CommentService) GetAll(ctx context.Context, comment model.GetAllCommentDTO) (*model.AllComments, error) {
+	comments, err := cs.repo.GetAll(ctx, comment)
 	return comments, err
 }
 
-func (cs *CommentService) Update(comment model.UpdateCommentDTO) (*model.UpdatedComment, error) {
+func (cs *CommentService) Update(ctx context.Context, comment model.UpdateCommentDTO) (*model.UpdatedComment, error) {
 	var isValidated bool
 	comment.CommentToUpdate.Text, isValidated = helper.IsEmptyText(comment.CommentToUpdate.Text)
 	if !isValidated {
 		return nil, fmt.Errorf("Your message is empty")
 	}
-	updatedComment, err := cs.repo.Update(comment)
+	updatedComment, err := cs.repo.Update(ctx, comment)
 	return updatedComment, err
 }
 
-func (cs *CommentService) Delete(comment model.DeleteCommentDTO) error {
-	err := cs.repo.Delete(comment)
+func (cs *CommentService) Delete(ctx context.Context, comment model.DeleteCommentDTO) error {
+	err := cs.repo.Delete(ctx, comment)
 	return err
 }

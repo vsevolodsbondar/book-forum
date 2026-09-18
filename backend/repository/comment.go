@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"forum_backend/custom_err"
@@ -17,22 +18,22 @@ func NewSQLiteCommentRepository(db *sql.DB) *SQLiteCommentRepository {
 }
 
 type CommentRepository interface {
-	Create(comment *model.CreateCommentDTO) (*model.Comment, error)
-	GetAll(comment model.GetAllCommentDTO) (*model.AllComments, error)
-	Update(comment model.UpdateCommentDTO) (*model.UpdatedComment, error)
-	Delete(comment model.DeleteCommentDTO) error
+	Create(ctx context.Context, comment *model.CreateCommentDTO) (*model.Comment, error)
+	GetAll(ctx context.Context, comment model.GetAllCommentDTO) (*model.AllComments, error)
+	Update(ctx context.Context, comment model.UpdateCommentDTO) (*model.UpdatedComment, error)
+	Delete(ctx context.Context, comment model.DeleteCommentDTO) error
 }
 
-func (cr *SQLiteCommentRepository) Create(comment *model.CreateCommentDTO) (*model.Comment, error) {
+func (cr *SQLiteCommentRepository) Create(ctx context.Context, comment *model.CreateCommentDTO) (*model.Comment, error) {
 	var postExists bool
 	checkQuery := `SELECT EXISTS(SELECT 1 FROM post WHERE id = ?)`
-	if err := cr.db.QueryRowContext(comment.Ctx, checkQuery, comment.Comment.PostID).Scan(&postExists); err != nil {
+	if err := cr.db.QueryRowContext(ctx, checkQuery, comment.Comment.PostID).Scan(&postExists); err != nil {
 		return nil, err
 	}
 	if !postExists {
 		return nil, fmt.Errorf("%w: post with this id doesn't exist", custom_err.ErrPostNotFound)
 	}
-	tx, err := cr.db.BeginTx(comment.Ctx, nil)
+	tx, err := cr.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +41,7 @@ func (cr *SQLiteCommentRepository) Create(comment *model.CreateCommentDTO) (*mod
 	query := `INSERT INTO comment (text, post_id, user_id, parent_comment_id) VALUES (?,?,?, ?) RETURNING *;`
 	var c model.Comment
 	strCreated, strUpdated := "", ""
-	err = tx.QueryRowContext(comment.Ctx, query, comment.Comment.Text, comment.Comment.PostID, comment.Comment.UserID, comment.Comment.ParentCommentID).Scan(&c.ID, &c.Text, &strCreated, &strUpdated, &c.PostID, &c.ParentCommentID, &c.UserID)
+	err = tx.QueryRowContext(ctx, query, comment.Comment.Text, comment.Comment.PostID, comment.Comment.UserID, comment.Comment.ParentCommentID).Scan(&c.ID, &c.Text, &strCreated, &strUpdated, &c.PostID, &c.ParentCommentID, &c.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -60,14 +61,14 @@ func (cr *SQLiteCommentRepository) Create(comment *model.CreateCommentDTO) (*mod
 	return &c, nil
 }
 
-func (cr *SQLiteCommentRepository) GetAll(comment model.GetAllCommentDTO) (*model.AllComments, error) {
+func (cr *SQLiteCommentRepository) GetAll(ctx context.Context, comment model.GetAllCommentDTO) (*model.AllComments, error) {
 	offset := (comment.PageInt - 1) * comment.SizeInt
 	query := `SELECT id, text, created_at, updated_at, parent_comment_id, user_id
 	FROM comment
 	WHERE post_id = ?
 	ORDER BY id LIMIT ? OFFSET ?`
 	queryCount := `SELECT COUNT(*) FROM comment WHERE post_id = ?`
-	rows, err := cr.db.QueryContext(comment.Ctx, query, comment.IDPost, comment.SizeInt, offset)
+	rows, err := cr.db.QueryContext(ctx, query, comment.IDPost, comment.SizeInt, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +104,7 @@ func (cr *SQLiteCommentRepository) GetAll(comment model.GetAllCommentDTO) (*mode
 		return nil, err
 	}
 	countComments := 0
-	if err = cr.db.QueryRowContext(comment.Ctx, queryCount, comment.IDPost).Scan(&countComments); err != nil {
+	if err = cr.db.QueryRowContext(ctx, queryCount, comment.IDPost).Scan(&countComments); err != nil {
 		return nil, err
 	}
 	comments.Page = comment.PageInt
@@ -111,8 +112,8 @@ func (cr *SQLiteCommentRepository) GetAll(comment model.GetAllCommentDTO) (*mode
 	comments.Total = countComments
 	return &comments, nil
 }
-func (cr *SQLiteCommentRepository) Update(comment model.UpdateCommentDTO) (*model.UpdatedComment, error) {
-	tx, err := cr.db.BeginTx(comment.Ctx, nil)
+func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.UpdateCommentDTO) (*model.UpdatedComment, error) {
+	tx, err := cr.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +133,7 @@ func (cr *SQLiteCommentRepository) Update(comment model.UpdateCommentDTO) (*mode
 	updated := time.Now().UTC()
 	updatedStr := updated.Format("2006-01-02 15:04:05")
 	newQuery := `UPDATE comment SET text = ?, updated_at = ? WHERE id = ?`
-	result, err := tx.ExecContext(comment.Ctx, newQuery, comment.CommentToUpdate.Text, updatedStr, comment.CommentID)
+	result, err := tx.ExecContext(ctx, newQuery, comment.CommentToUpdate.Text, updatedStr, comment.CommentID)
 	if err != nil {
 		return nil, err
 	}
@@ -150,8 +151,8 @@ func (cr *SQLiteCommentRepository) Update(comment model.UpdateCommentDTO) (*mode
 	}
 	return &updatedComment, nil
 }
-func (cr *SQLiteCommentRepository) Delete(comment model.DeleteCommentDTO) error {
-	tx, err := cr.db.BeginTx(comment.Ctx, nil)
+func (cr *SQLiteCommentRepository) Delete(ctx context.Context, comment model.DeleteCommentDTO) error {
+	tx, err := cr.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -176,7 +177,7 @@ func (cr *SQLiteCommentRepository) Delete(comment model.DeleteCommentDTO) error 
 		return err
 	}
 	if isParent == 0 {
-		result, err := tx.ExecContext(comment.Ctx, queryDelete, comment.CommentID)
+		result, err := tx.ExecContext(ctx, queryDelete, comment.CommentID)
 		if err != nil {
 			return err
 		}
@@ -188,7 +189,7 @@ func (cr *SQLiteCommentRepository) Delete(comment model.DeleteCommentDTO) error 
 		text := "Deleted message"
 		updated := time.Now().UTC().Format("2006-01-02 15:04:05")
 		var userID *int64
-		result, err := tx.ExecContext(comment.Ctx, queryReset, text, updated, userID, comment.CommentID)
+		result, err := tx.ExecContext(ctx, queryReset, text, updated, userID, comment.CommentID)
 		if err != nil {
 			return err
 		}

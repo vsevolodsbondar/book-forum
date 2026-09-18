@@ -38,12 +38,11 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	//dummy user_id
 	userID := 1
 	commentDTO := model.CreateCommentDTO{
-		Ctx:     ctx,
 		Comment: commentRaw,
 		UserID:  userID,
 	}
 
-	comment, err := h.service.Create(&commentDTO)
+	comment, err := h.service.Create(ctx, &commentDTO)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -78,13 +77,12 @@ func (h *CommentHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	//dummy user_id
 	userID := 1
 	commentDTO := model.GetAllCommentDTO{
-		Ctx:     ctx,
 		PageInt: pageInt,
 		SizeInt: sizeInt,
 		IDPost:  idPost,
 		UserID:  userID,
 	}
-	comments, err := h.service.GetAll(commentDTO)
+	comments, err := h.service.GetAll(ctx, commentDTO)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -108,12 +106,11 @@ func (h *CommentHandler) Update(w http.ResponseWriter, r *http.Request) {
 	//dummy user_id
 	userID := 1
 	commentDTO := model.UpdateCommentDTO{
-		Ctx:             ctx,
 		CommentToUpdate: comentToUpdate,
 		CommentID:       commentID,
 		UserID:          userID,
 	}
-	updatedComment, err := h.service.Update(commentDTO)
+	updatedComment, err := h.service.Update(ctx, commentDTO)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -131,11 +128,10 @@ func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	//dummy user_id
 	userID := 1
 	commentDTO := model.DeleteCommentDTO{
-		Ctx:       ctx,
 		CommentID: commentID,
 		UserID:    userID,
 	}
-	err = h.service.Delete(commentDTO)
+	err = h.service.Delete(ctx, commentDTO)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
