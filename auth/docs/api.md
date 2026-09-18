@@ -46,8 +46,8 @@ Creates a user account.
 
 ```json
 {
-	"email": "Alice@Example.com",
-	"username": "Alice",
+	"email": "User@Example.com",
+	"username": "User",
 	"password": "correct horse battery staple"
 }
 ```
@@ -64,6 +64,7 @@ Creates a user account.
 - Email identities are case-insensitively unique.
 - Internationalized email addresses are outside v0 scope.
 - Syntax validation does not verify mailbox ownership.
+- The domain must contain at least one dot.
 
 ### Username requirements
 
@@ -71,7 +72,7 @@ Creates a user account.
 - Allowed characters: ASCII letters (`A–Z`, `a–z`), digits (`0–9`), and underscores (`_`).
 - Surrounding whitespace is trimmed before validation and storage.
 - Display casing is preserved.
-- Usernames are unique regardless of ASCII letter casing: `Alice` and `alice` conflict.
+- Usernames are unique regardless of ASCII letter casing: `User` and `user` conflict.
 
 ### Password requirements
 
@@ -97,8 +98,8 @@ Creates a user account.
 {
 	"user": {
 		"id": 42,
-		"email": "alice@example.com",
-		"username": "Alice",
+		"email": "user@example.com",
+		"username": "User",
 		"created_at": 1789560000
 	}
 }
@@ -124,7 +125,7 @@ Verifies credentials and creates a login session.
 
 ```json
 {
-	"email": "alice@example.com",
+	"email": "user@example.com",
 	"password": "correct horse battery staple"
 }
 ```
@@ -148,8 +149,8 @@ Verifies credentials and creates a login session.
 {
 	"user": {
 		"id": 42,
-		"email": "alice@example.com",
-		"username": "Alice"
+		"email": "user@example.com",
+		"username": "User"
 	},
 	"session": {
 		"id": "6a79f46f-e3a1-4f22-8b89-13ec5a9dbc31",
@@ -212,7 +213,7 @@ No JSON body is required.
 	},
 	"user": {
 		"id": 42,
-		"username": "Alice"
+		"username": "User"
 	}
 }
 ```
