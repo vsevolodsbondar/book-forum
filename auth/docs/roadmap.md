@@ -45,15 +45,15 @@ A fresh AUTH instance can create or open its database and successfully apply the
 
 ### Deliverables
 
-- [ ] Implement Argon2id hashing through `x/crypto/argon2`.
-- [ ] Generate a fresh random salt per password.
-- [ ] Encode a self-describing password hash string.
-- [ ] Parse encoded hashes.
-- [ ] Validate parsed cost parameters against accepted bounds.
-- [ ] Verify passwords using constant-time comparison.
+- [x] Implement Argon2id hashing through `x/crypto/argon2`.
+- [x] Generate a fresh random salt per password.
+- [x] Encode a self-describing password hash string.
+- [x] Parse encoded hashes.
+- [x] Validate parsed cost parameters against accepted bounds.
+- [x] Verify passwords using constant-time comparison.
 - [ ] Share one non-blocking concurrency limit across registration hashing, login verification, and unknown-email dummy verification.
 - [ ] Return `503 service_busy` when no hashing slot is available, without queuing or starting Argon2id; release slots after completion, including failures.
-- [ ] Unit-test correct, incorrect, malformed, and differently salted passwords.
+- [x] Unit-test correct, incorrect, malformed, and differently salted passwords.
 
 ### Done when
 
