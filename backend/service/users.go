@@ -7,13 +7,19 @@ import (
 )
 
 type UserService struct {
-	UserRepo *repository.UserRepo
+	repo repository.UsersRepository
 }
 
-func (UserService *UserService) GetUser(ctx context.Context, id int64) (model.UserInfo, error) {
+func NewUserService(repo repository.UsersRepository) *UserService {
+	return &UserService{
+		repo: repo,
+	}
+}
+
+func (us *UserService) GetUser(ctx context.Context, id int64) (model.UserInfo, error) {
 	return model.UserInfo{}, nil
 }
 
-func (UserService *UserService) CreateUser(ctx context.Context, sub model.UserSubmission) (model.UserInfo, error) {
+func (us *UserService) CreateUser(ctx context.Context, sub model.UserSubmission) (model.UserInfo, error) {
 	return model.UserInfo{}, nil
 }

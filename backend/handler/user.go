@@ -4,11 +4,45 @@ import (
 	"encoding/json"
 	"fmt"
 	"forum_backend/model"
+	"forum_backend/service"
 	"net/http"
 	"strconv"
 )
 
-func (app *Application) GetUser(w http.ResponseWriter, r *http.Request) {
+type UserHandler struct {
+	service *service.UserService
+}
+
+func NewUserHandler(service *service.UserService) *UserHandler {
+	return &UserHandler{service: service}
+}
+
+func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var sub model.UserSubmission
+
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&sub)
+	if err != nil {
+		///////REMINDER: make a unified error writer
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.service.CreateUser(ctx, sub)
+	if err != nil {
+		//////REMINDER: make a unified error writer
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(user)
+}
+
+func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	id, err := parseID(r.PathValue("id"))
@@ -16,7 +50,7 @@ func (app *Application) GetUser(w http.ResponseWriter, r *http.Request) {
 		///////REMINDER: make a unified error writer
 	}
 
-	user, err := app.UserService.GetUser(ctx, id)
+	user, err := h.service.GetUser(ctx, id)
 	if err != nil {
 		///////REMINDER: make a unified error writer
 	}
@@ -32,23 +66,4 @@ func parseID(idStr string) (int64, error) {
 	}
 
 	return id, nil
-}
-
-func (app *Application) PostUser(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var sub model.UserSubmission
-
-	if err := json.NewDecoder(r.Body).Decode(&sub); err != nil {
-		///////REMINDER: make a unified error writer
-	}
-
-	user, err := app.UserService.CreateUser(ctx, sub)
-	if err != nil {
-		//////REMINDER: make a unified error writer
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(user)
 }

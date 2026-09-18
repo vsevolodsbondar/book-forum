@@ -6,14 +6,25 @@ import (
 	"forum_backend/model"
 )
 
-type UserRepo struct {
-	DB *sql.DB
+type SQLiteUserRepository struct {
+	db *sql.DB
+}
+type UsersRepository interface {
+	GetUser(ctx context.Context, id int64) (*model.UserInfo, error)
+	CreateUser(ctx context.Context, sub *model.UserSubmission) (*model.UserInfo, error)
+	//GetAll(ctx context.Context, pageInt int, sizeInt int) (, error)
+	//Update(ctx context.Context, ...) (..., error)
+	//Delete(ctx context.Context, commentID int) error
 }
 
-func (UserRepo *UserRepo) GetUser(ctx context.Context, id int64) (model.UserInfo, error) {
-	return model.UserInfo{}, nil
+func NewSQLiteUserRepository(db *sql.DB) *SQLiteUserRepository {
+	return &SQLiteUserRepository{db: db}
 }
 
-func (UserRepo *UserRepo) CreateUser(ctx context.Context, sub model.UserSubmission) (model.UserInfo, error) {
-	return model.UserInfo{}, nil
+func (ur *SQLiteUserRepository) GetUser(ctx context.Context, id int64) (*model.UserInfo, error) {
+	return &model.UserInfo{}, nil
+}
+
+func (ur *SQLiteUserRepository) CreateUser(ctx context.Context, sub *model.UserSubmission) (*model.UserInfo, error) {
+	return &model.UserInfo{}, nil
 }
