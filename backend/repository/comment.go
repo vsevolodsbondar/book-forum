@@ -61,43 +61,63 @@ func (cr *SQLiteCommentRepository) Create(ctx context.Context, comment *model.Cr
 	}
 	return &c, nil
 }
-
 func (cr *SQLiteCommentRepository) GetAllByPostID(ctx context.Context, comment model.GetAllCommentDTO) (*model.AllComments, error) {
 	offset := (comment.PageInt - 1) * comment.SizeInt
-	query := `SELECT id, text, created_at, updated_at, parent_comment_id, user_id
-	FROM comment
-	WHERE post_id = ?
-	ORDER BY id LIMIT ? OFFSET ?`
+	query := `SELECT c.id, c.text, c.updated_at, c.parent_comment_id, c.user_id, 
+	COALESCE(u.user_name, 'Deleted user') AS user_name, 
+	COALESCE(u.profile_picture, '') AS profile_picture,
+	(SELECT COUNT(*) FROM likes l WHERE l.comment_id = c.id AND l.type_of_like = 1) AS likes,
+    (SELECT COUNT(*) FROM likes l WHERE l.comment_id = c.id AND l.type_of_like = 0) AS dislikes
+	FROM comment c
+	LEFT JOIN user u ON c.user_id = u.id
+	WHERE c.post_id = ?
+	ORDER BY c.id LIMIT ? OFFSET ?`
 	queryCount := `SELECT COUNT(*) FROM comment WHERE post_id = ?`
+	queryTitleCategory := `SELECT p.title, cat.name FROM post p 
+	LEFT JOIN category cat ON p.category_id = cat.id
+	WHERE p.id = ?`
+	//first check title and category
+	row := cr.db.QueryRowContext(ctx, queryTitleCategory, comment.IDPost)
+	var title, category string
+	err := row.Scan(&title, &category)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("The post with this id doesn't exist: %w", custom_err.ErrPostNotFound)
+	}
+	if err != nil {
+		return nil, err
+	}
+	comments := model.AllComments{}
+	comments.Category = category
+	comments.Title = title
 	rows, err := cr.db.QueryContext(ctx, query, comment.IDPost, comment.SizeInt, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	comments := model.AllComments{}
 	for rows.Next() {
-		var id int
+		var id, likes, dislikes int
 		var parentCommentID, userID *int64
-		var text, createdStr, updatedStr string
-		if err = rows.Scan(&id, &text, &createdStr, &updatedStr, &parentCommentID, &userID); err != nil {
-			return nil, err
-		}
-		createdDate, err := parseSQLiteTime(createdStr)
-		if err != nil {
+		var text, updatedStr, userName, image string
+		if err = rows.Scan(&id, &text, &updatedStr, &parentCommentID, &userID, &userName, &image, &likes, &dislikes); err != nil {
 			return nil, err
 		}
 		updatedDate, err := parseSQLiteTime(updatedStr)
 		if err != nil {
 			return nil, err
 		}
-		comments.Comments = append(comments.Comments, model.Comment{
+		comments.Comments = append(comments.Comments, model.FullComments{
 			ID:              int64(id),
 			Text:            text,
 			PostID:          int64(comment.IDPost),
 			UserID:          userID,
 			ParentCommentID: parentCommentID,
-			CreatedAt:       createdDate,
 			UpdatedAt:       updatedDate,
+			Likes:           likes,
+			Dislikes:        dislikes,
+			User: model.UserForComment{
+				UserName: userName,
+				Image:    image,
+			},
 		})
 	}
 	err = rows.Err()
