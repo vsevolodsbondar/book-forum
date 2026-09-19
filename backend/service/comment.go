@@ -21,7 +21,7 @@ func NewCommentService(repo repository.CommentRepository) *CommentService {
 func (cs *CommentService) Create(ctx context.Context, comment *model.CreateCommentDTO) (*model.Comment, error) {
 	var isValidated bool
 	comment.Comment.Text, isValidated = helper.IsEmptyText(comment.Comment.Text)
-	if !isValidated {
+	if isValidated {
 		return nil, fmt.Errorf("Your message is empty")
 	}
 	commentWritten, err := cs.repo.Create(ctx, comment)
@@ -39,7 +39,7 @@ func (cs *CommentService) GetAllByPostID(ctx context.Context, comment model.GetA
 func (cs *CommentService) Update(ctx context.Context, comment model.UpdateCommentDTO) (*model.UpdatedComment, error) {
 	var isValidated bool
 	comment.CommentToUpdate.Text, isValidated = helper.IsEmptyText(comment.CommentToUpdate.Text)
-	if !isValidated {
+	if isValidated {
 		return nil, fmt.Errorf("Your message is empty")
 	}
 	updatedComment, err := cs.repo.Update(ctx, comment)
