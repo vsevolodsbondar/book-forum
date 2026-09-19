@@ -31,8 +31,8 @@ func (cs *CommentService) Create(ctx context.Context, comment *model.CreateComme
 	return commentWritten, nil
 }
 
-func (cs *CommentService) GetAll(ctx context.Context, comment model.GetAllCommentDTO) (*model.AllComments, error) {
-	comments, err := cs.repo.GetAll(ctx, comment)
+func (cs *CommentService) GetAllByPostID(ctx context.Context, comment model.GetAllCommentDTO) (*model.AllComments, error) {
+	comments, err := cs.repo.GetAllByPostID(ctx, comment)
 	return comments, err
 }
 

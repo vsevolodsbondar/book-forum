@@ -50,7 +50,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(comment)
 }
-func (h *CommentHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+func (h *CommentHandler) GetAllByPostID(w http.ResponseWriter, r *http.Request) {
 	page := r.URL.Query().Get("page")
 	size := r.URL.Query().Get("size")
 	ctx := r.Context()
@@ -82,7 +82,7 @@ func (h *CommentHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		IDPost:  idPost,
 		UserID:  userID,
 	}
-	comments, err := h.service.GetAll(ctx, commentDTO)
+	comments, err := h.service.GetAllByPostID(ctx, commentDTO)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

@@ -20,7 +20,7 @@ func NewSQLiteCommentRepository(db *sql.DB) *SQLiteCommentRepository {
 
 type CommentRepository interface {
 	Create(ctx context.Context, comment *model.CreateCommentDTO) (*model.Comment, error)
-	GetAll(ctx context.Context, comment model.GetAllCommentDTO) (*model.AllComments, error)
+	GetAllByPostID(ctx context.Context, comment model.GetAllCommentDTO) (*model.AllComments, error)
 	Update(ctx context.Context, comment model.UpdateCommentDTO) (*model.UpdatedComment, error)
 	Delete(ctx context.Context, comment model.DeleteCommentDTO) error
 }
@@ -62,7 +62,7 @@ func (cr *SQLiteCommentRepository) Create(ctx context.Context, comment *model.Cr
 	return &c, nil
 }
 
-func (cr *SQLiteCommentRepository) GetAll(ctx context.Context, comment model.GetAllCommentDTO) (*model.AllComments, error) {
+func (cr *SQLiteCommentRepository) GetAllByPostID(ctx context.Context, comment model.GetAllCommentDTO) (*model.AllComments, error) {
 	offset := (comment.PageInt - 1) * comment.SizeInt
 	query := `SELECT id, text, created_at, updated_at, parent_comment_id, user_id
 	FROM comment
