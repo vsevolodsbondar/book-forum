@@ -2,11 +2,21 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"forum_backend/helper"
 	"forum_backend/model"
 	"forum_backend/repository"
+	"math"
 	"math/rand/v2"
+	"strings"
 )
+
+// errors for input validation
+var ErrInvalidID = errors.New("id must be a positive integer")
+var ErrEmptyUsername = errors.New("username cannot be empty")
+var ErrUsernameTooLong = errors.New("username must be at most 32 characters")
+var ErrDescTooLong = errors.New("description must be at most 500 characters")
 
 type UserService struct {
 	repo repository.UsersRepository
@@ -18,7 +28,12 @@ func NewUserService(repo repository.UsersRepository) *UserService {
 	}
 }
 
+// GET
 func (us *UserService) GetUser(ctx context.Context, id int64) (*model.UserInfo, error) {
+	if id < 1 {
+		return nil, ErrInvalidID
+	}
+
 	user, err := us.repo.GetUser(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("user service: %w", err)
@@ -27,16 +42,20 @@ func (us *UserService) GetUser(ctx context.Context, id int64) (*model.UserInfo, 
 	return user, nil
 }
 
+// CREATE
 func (us *UserService) CreateUser(ctx context.Context, sub model.UserSubmission) (*model.UserInfo, error) {
-	//HERE WILL BE A REQUEST TO AUTH. MOCK FOR NOW
-	authID := rand.Int64()
+	if err := validateSubmission(sub); err != nil {
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
+
+	authID := rand.Int64N(math.MaxInt64) + 1
 
 	info := &model.UserInfo{
 		ID:             authID,
-		UserName:       sub.UserName,
-		ProfilePicture: sub.ProfilePicture,
-		Name:           sub.Name,
-		Description:    sub.Description,
+		UserName:       strings.TrimSpace(sub.UserName),
+		ProfilePicture: strings.TrimSpace(sub.ProfilePicture),
+		Name:           strings.TrimSpace(sub.Name),
+		Description:    strings.TrimSpace(sub.Description),
 	}
 
 	created, err := us.repo.CreateUser(ctx, info)
@@ -47,10 +66,14 @@ func (us *UserService) CreateUser(ctx context.Context, sub model.UserSubmission)
 	return created, nil
 }
 
-// UPD
+// UPDATE
 func (us *UserService) UpdateUser(ctx context.Context, id int64, input model.UserUpdateInfo) error {
 	if id < 1 {
-		return fmt.Errorf("invalid user id")
+		return ErrInvalidID
+	}
+
+	if err := validateUpdateInput(input); err != nil {
+		return fmt.Errorf("validation failed: %w", err)
 	}
 
 	err := us.repo.UpdateUser(ctx, id, input)
@@ -64,7 +87,7 @@ func (us *UserService) UpdateUser(ctx context.Context, id int64, input model.Use
 // DELETE
 func (us *UserService) DeleteUser(ctx context.Context, id int64) error {
 	if id < 1 {
-		return fmt.Errorf("invalid user id")
+		return ErrInvalidID
 	}
 
 	err := us.repo.DeleteUser(ctx, id)
@@ -72,5 +95,35 @@ func (us *UserService) DeleteUser(ctx context.Context, id int64) error {
 		return fmt.Errorf("user service delete: %w", err)
 	}
 
+	return nil
+}
+
+func validateSubmission(sub model.UserSubmission) error {
+	username, empty := helper.IsEmptyText(sub.UserName)
+	if empty {
+		return ErrEmptyUsername
+	}
+	if len(username) > 32 {
+		return ErrUsernameTooLong
+	}
+	if len(sub.Description) > 500 {
+		return ErrDescTooLong
+	}
+	return nil
+}
+
+func validateUpdateInput(input model.UserUpdateInfo) error {
+	if input.UserName != nil {
+		username, empty := helper.IsEmptyText(*input.UserName)
+		if empty {
+			return ErrEmptyUsername
+		}
+		if len(username) > 32 {
+			return ErrUsernameTooLong
+		}
+	}
+	if input.Description != nil && len(*input.Description) > 500 {
+		return ErrDescTooLong
+	}
 	return nil
 }
