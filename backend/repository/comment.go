@@ -67,11 +67,13 @@ func (cr *SQLiteCommentRepository) GetAllByPostID(ctx context.Context, comment m
 	COALESCE(u.user_name, 'Deleted user') AS user_name, 
 	COALESCE(u.profile_picture, '') AS profile_picture,
 	(SELECT COUNT(*) FROM likes l WHERE l.comment_id = c.id AND l.type_of_like = 1) AS likes,
-    (SELECT COUNT(*) FROM likes l WHERE l.comment_id = c.id AND l.type_of_like = 0) AS dislikes
+    (SELECT COUNT(*) FROM likes l WHERE l.comment_id = c.id AND l.type_of_like = 0) AS dislikes,
+	EXISTS( SELECT 1 FROM likes l WHERE l.comment_id = c.id AND l.user_id = $1 AND l.type_of_like = 1) AS is_liked,
+	EXISTS(SELECT 1 FROM likes l WHERE l.comment_id = c.id AND l.user_id = $1 AND l.type_of_like = 0) AS is_disliked
 	FROM comment c
 	LEFT JOIN user u ON c.user_id = u.id
-	WHERE c.post_id = ?
-	ORDER BY c.id LIMIT ? OFFSET ?`
+	WHERE c.post_id = $2
+	ORDER BY c.id LIMIT $3 OFFSET $4`
 	queryCount := `SELECT COUNT(*) FROM comment WHERE post_id = ?`
 	queryTitleCategory := `SELECT p.title, cat.name FROM post p 
 	LEFT JOIN category cat ON p.category_id = cat.id
@@ -89,7 +91,7 @@ func (cr *SQLiteCommentRepository) GetAllByPostID(ctx context.Context, comment m
 	comments := model.AllComments{}
 	comments.Category = category
 	comments.Title = title
-	rows, err := cr.db.QueryContext(ctx, query, comment.IDPost, comment.SizeInt, offset)
+	rows, err := cr.db.QueryContext(ctx, query, comment.UserID, comment.IDPost, comment.SizeInt, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +100,8 @@ func (cr *SQLiteCommentRepository) GetAllByPostID(ctx context.Context, comment m
 		var id, likes, dislikes int
 		var parentCommentID, userID *int64
 		var text, updatedStr, userName, image string
-		if err = rows.Scan(&id, &text, &updatedStr, &parentCommentID, &userID, &userName, &image, &likes, &dislikes); err != nil {
+		var isLiked, isDisliked bool
+		if err = rows.Scan(&id, &text, &updatedStr, &parentCommentID, &userID, &userName, &image, &likes, &dislikes, &isLiked, &isDisliked); err != nil {
 			return nil, err
 		}
 		updatedDate, err := parseSQLiteTime(updatedStr)
@@ -118,6 +121,8 @@ func (cr *SQLiteCommentRepository) GetAllByPostID(ctx context.Context, comment m
 				UserName: userName,
 				Image:    image,
 			},
+			IsLiked:    isLiked,
+			IsDisliked: isDisliked,
 		})
 	}
 	err = rows.Err()

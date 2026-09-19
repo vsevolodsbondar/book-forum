@@ -72,4 +72,6 @@ type FullComments struct {
 	Likes           int            `json:"likes"`
 	Dislikes        int            `json:"dislikes"`
 	User            UserForComment `json:"user_for_comment"`
+	IsLiked         bool           `json:"is_liked"`
+	IsDisliked      bool           `json:"is_disliked"`
 }
