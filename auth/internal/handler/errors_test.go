@@ -8,6 +8,7 @@ import (
 
 	"auth/internal/password"
 	"auth/internal/repository"
+	"auth/internal/service"
 )
 
 func TestMapError(t *testing.T) {
@@ -19,6 +20,7 @@ func TestMapError(t *testing.T) {
 		message string
 	}{
 		{"invalid_request", ErrInvalidRequest, http.StatusBadRequest, "invalid_request", "invalid request data"},
+		{"invalid_credentials", service.ErrInvalidCredentials, http.StatusUnauthorized, "invalid_credentials", "invalid email or password"},
 		{"identity_conflict", repository.ErrIdentityConflict, http.StatusConflict, "identity_conflict", "email or username already in use"},
 		{"busy", password.ErrBusy, http.StatusServiceUnavailable, "service_busy", "service temporarily busy"},
 		{"body_limit", &http.MaxBytesError{Limit: 8192}, http.StatusRequestEntityTooLarge, "request_too_large", "request body exceeds 8192 bytes"},

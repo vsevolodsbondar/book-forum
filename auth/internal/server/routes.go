@@ -2,7 +2,9 @@ package server
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
+	"time"
 
 	"auth/internal/handler"
 	"auth/internal/password"
@@ -13,13 +15,28 @@ import (
 )
 
 // New returns the router wrapped with request logging and panic recovery.
-func New(db *sql.DB, hasher *password.Hasher, validate *validator.Validate) http.Handler {
+func New(db *sql.DB, hasher *password.Hasher, validate *validator.Validate, sessionLifetime time.Duration) (http.Handler, error) {
+	// Repositories
 	userRepo := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepo, hasher)
+	sessionRepo := repository.NewSessionRepository(db)
 
+	// Services
+	userService := service.NewUserService(userRepo, hasher)
+	sessionService, err := service.NewSessionService(userRepo, sessionRepo, hasher, sessionLifetime)
+	if err != nil {
+		return nil, fmt.Errorf("create session service: %w", err)
+	}
+
+	// Handlers
+	userHandler := handler.NewUserHandler(userService, validate)
+	sessionHandler := handler.NewSessionHandler(sessionService, validate)
+
+	// Routes
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /heartbeat", handler.Heartbeat)
-	mux.HandleFunc("POST /v1/register", handler.Register(userService, validate))
+	mux.HandleFunc("POST /v1/register", userHandler.Register)
+	mux.HandleFunc("POST /v1/login", sessionHandler.Login)
 
-	return Recovery(Logger(mux))
+	// Middleware
+	return Recovery(Logger(mux)), nil
 }
