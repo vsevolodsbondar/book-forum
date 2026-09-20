@@ -15,14 +15,14 @@ import (
 )
 
 // New returns the router wrapped with request logging and panic recovery.
-func New(db *sql.DB, hasher *password.Hasher, validate *validator.Validate, sessionLifetime time.Duration) (http.Handler, error) {
+func New(db *sql.DB, hasher *password.Hasher, validate *validator.Validate, sessionLifetime, sessionIdleTimeout time.Duration) (http.Handler, error) {
 	// Repositories
 	userRepo := repository.NewUserRepository(db)
 	sessionRepo := repository.NewSessionRepository(db)
 
 	// Services
 	userService := service.NewUserService(userRepo, hasher)
-	sessionService, err := service.NewSessionService(userRepo, sessionRepo, hasher, sessionLifetime)
+	sessionService, err := service.NewSessionService(userRepo, sessionRepo, hasher, sessionLifetime, sessionIdleTimeout)
 	if err != nil {
 		return nil, fmt.Errorf("create session service: %w", err)
 	}
@@ -36,6 +36,7 @@ func New(db *sql.DB, hasher *password.Hasher, validate *validator.Validate, sess
 	mux.HandleFunc("GET /heartbeat", handler.Heartbeat)
 	mux.HandleFunc("POST /v1/register", userHandler.Register)
 	mux.HandleFunc("POST /v1/login", sessionHandler.Login)
+	mux.HandleFunc("POST /v1/session/validate", sessionHandler.Validate)
 
 	// Middleware
 	return Recovery(Logger(mux)), nil
