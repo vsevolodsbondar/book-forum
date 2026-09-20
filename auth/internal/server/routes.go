@@ -37,6 +37,7 @@ func New(db *sql.DB, hasher *password.Hasher, validate *validator.Validate, sess
 	mux.HandleFunc("POST /v1/register", userHandler.Register)
 	mux.HandleFunc("POST /v1/login", sessionHandler.Login)
 	mux.HandleFunc("POST /v1/session/validate", sessionHandler.Validate)
+	mux.HandleFunc("POST /v1/logout", sessionHandler.Logout)
 
 	// Middleware
 	return Recovery(Logger(mux)), nil

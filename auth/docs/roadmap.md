@@ -167,14 +167,14 @@ POST /v1/logout
 
 ### Deliverables
 
-- [ ] Read and Base64URL-decode the presented session token.
-- [ ] Compute SHA-256 over the decoded raw session secret.
-- [ ] Delete the matching session.
-- [ ] Make repeated logout safe and idempotent at the public layer.
-- [ ] Verify that a deleted session token can no longer validate.
-- [ ] Return `204 No Content` without revealing token state for missing, malformed, unknown, expired, and active tokens.
-- [ ] Delete matching active or expired session rows when possible; return `500 internal_error` only for database or unexpected internal failures.
-- [ ] Test each logout token outcome, repeated logout, expired-row cleanup, and database-failure handling.
+- [x] Read and Base64URL-decode the presented session token.
+- [x] Compute SHA-256 over the decoded raw session secret.
+- [x] Delete the matching session.
+- [x] Make repeated logout safe and idempotent at the public layer.
+- [x] Verify that a deleted session token can no longer validate.
+- [x] Return `204 No Content` without revealing token state for missing, malformed, unknown, expired, and active tokens.
+- [x] Delete matching active or expired session rows when possible; return `500 internal_error` only for database or unexpected internal failures.
+- [x] Test each logout token outcome, repeated logout, expired-row cleanup, and database-failure handling.
 
 ### Done when
 

@@ -128,6 +128,17 @@ func (s *SessionService) Login(ctx context.Context, email, passwordValue string)
 	}, nil
 }
 
+// Logout revokes the session identified by token.
+func (s *SessionService) Logout(ctx context.Context, token string) error {
+	secret, err := base64.RawURLEncoding.Strict().DecodeString(token)
+	if err != nil || len(secret) != 32 {
+		return nil
+	}
+
+	tokenHash := sha256.Sum256(secret)
+	return s.sessionRepo.Delete(ctx, tokenHash[:])
+}
+
 // Validate resolves an active session token and records its latest activity.
 func (s *SessionService) Validate(ctx context.Context, token string) (ValidationResult, error) {
 	secret, err := base64.RawURLEncoding.Strict().DecodeString(token)

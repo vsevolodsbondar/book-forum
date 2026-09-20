@@ -61,6 +61,15 @@ func (r *SessionRepository) Create(ctx context.Context, session Session) error {
 	return nil
 }
 
+// Delete removes the session matching tokenHash.
+func (r *SessionRepository) Delete(ctx context.Context, tokenHash []byte) error {
+	if _, err := r.db.ExecContext(ctx, "DELETE FROM sessions WHERE token_hash = ?", tokenHash); err != nil {
+		return fmt.Errorf("delete session: %w", err)
+	}
+
+	return nil
+}
+
 // Validate records activity and returns the identity for a session that has not expired.
 func (r *SessionRepository) Validate(ctx context.Context, tokenHash []byte, now, idleCutoff int64) (session ValidatedSession, err error) {
 	tx, err := r.db.BeginTx(ctx, nil)

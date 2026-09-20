@@ -331,8 +331,8 @@ BACKEND handles revocation and cookie deletion.
 - [x] `/v1/register` implemented and documented.
 - [x] `/v1/login` implemented and documented.
 - [x] `/v1/session/validate` implemented and documented.
-- [ ] `/v1/logout` implemented and documented.
-- [ ] Error codes/status codes finalized.
+- [x] `/v1/logout` implemented and documented.
+- [x] Error codes/status codes finalized.
 - [x] Session expiry duration finalized/configurable.
 - [x] Example requests available.
 

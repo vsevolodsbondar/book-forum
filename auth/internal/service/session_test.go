@@ -77,6 +77,48 @@ func TestValidateSessionUnknownToken(t *testing.T) {
 	}
 }
 
+func TestLogoutDeletesExpiredSession(t *testing.T) {
+	tests := []struct {
+		name       string
+		lastSeenAt int64
+		expiresAt  int64
+	}{
+		{"absolute_expiry", 1_999_990, 2_000_000},
+		{"idle_expiry", 1_999_940, 2_000_100},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			service, db, token := newValidationTestService(t, 2_000_000, tt.lastSeenAt, tt.expiresAt)
+
+			if err := service.Logout(t.Context(), token); err != nil {
+				t.Fatalf("logout: %v", err)
+			}
+
+			var sessions int
+			if err := db.QueryRow("SELECT COUNT(*) FROM sessions").Scan(&sessions); err != nil {
+				t.Fatalf("count sessions: %v", err)
+			}
+			if sessions != 0 {
+				t.Fatalf("got %d sessions, want 0", sessions)
+			}
+		})
+	}
+}
+
+func TestLogoutInvalidTokenSkipsDatabase(t *testing.T) {
+	service, db, _ := newValidationTestService(t, 2_000_000, 1_999_990, 2_000_100)
+	if err := db.Close(); err != nil {
+		t.Fatalf("close database: %v", err)
+	}
+
+	for _, token := range []string{"malformed", "YWJjZA==", "YWJjZA"} {
+		if err := service.Logout(t.Context(), token); err != nil {
+			t.Fatalf("logout token %q: %v", token, err)
+		}
+	}
+}
+
 func newValidationTestService(t *testing.T, now, lastSeenAt, expiresAt int64) (*SessionService, *sql.DB, string) {
 	t.Helper()
 
