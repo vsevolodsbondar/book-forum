@@ -2,6 +2,8 @@ package handler
 
 import (
 	"encoding/json"
+	"forum_backend/client"
+	"forum_backend/helper"
 	"forum_backend/model"
 	"forum_backend/service"
 	"net/http"
@@ -10,10 +12,11 @@ import (
 
 type CommentHandler struct {
 	service *service.CommentService
+	auth    client.AuthInterface
 }
 
-func NewCommentHandler(service *service.CommentService) *CommentHandler {
-	return &CommentHandler{service: service}
+func NewCommentHandler(service *service.CommentService, authService client.AuthInterface) *CommentHandler {
+	return &CommentHandler{service: service, auth: authService}
 }
 
 // on all hanlders has be a check of userID
@@ -35,11 +38,14 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	commentRaw.Text = commentBody.Text
 	commentRaw.PostID = int64(idPost)
 	ctx := r.Context()
-	//dummy user_id
-	userID := 1
+
+	sessionCookie, err := helper.ExtractSessionCookie(r)
+
+	response, err := h.auth.ValidateSession(ctx, sessionCookie)
+
 	commentDTO := model.CreateCommentDTO{
 		Comment: commentRaw,
-		UserID:  userID,
+		UserID:  int(response.User.ID),
 	}
 
 	comment, err := h.service.Create(ctx, &commentDTO)
@@ -50,6 +56,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(comment)
 }
+
 func (h *CommentHandler) GetAllByPostID(w http.ResponseWriter, r *http.Request) {
 	page := r.URL.Query().Get("page")
 	size := r.URL.Query().Get("size")

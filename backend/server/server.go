@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"database/sql"
+	"forum_backend/client"
 	"forum_backend/handler"
 	"forum_backend/middleware"
 	"forum_backend/repository"
@@ -33,16 +34,26 @@ func Server(ctx context.Context, db *sql.DB) (*http.Server, error) {
 		},
 	}
 
-	dependencyWiring(mux, db)
+	// later will inject true client
+	// authClient := &client.AuthHTTPClient{
+	// 	BaseURL: "http://auth:8081",
+	// 	Client: &http.Client{
+	// 		Timeout: 3 * time.Second,
+	// 	},
+	// }
+
+	mockAuthClient := &client.MockAuthClient{}
+
+	dependencyWiring(mux, db, mockAuthClient)
 
 	log.Println("Launching server at", srv.Addr)
 	return srv, nil
 }
 
-func dependencyWiring(mux *http.ServeMux, db *sql.DB) *http.ServeMux {
+func dependencyWiring(mux *http.ServeMux, db *sql.DB, auth client.AuthInterface) *http.ServeMux {
 	commentsRepo := repository.NewSQLiteCommentRepository(db)
 	commentService := service.NewCommentService(commentsRepo)
-	commentHandler := handler.NewCommentHandler(commentService)
+	commentHandler := handler.NewCommentHandler(commentService, auth)
 
 	RegisterRoutes(mux, commentHandler)
 
