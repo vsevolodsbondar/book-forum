@@ -51,8 +51,8 @@ A fresh AUTH instance can create or open its database and successfully apply the
 - [x] Parse encoded hashes.
 - [x] Validate parsed cost parameters against accepted bounds.
 - [x] Verify passwords using constant-time comparison.
-- [ ] Share one non-blocking concurrency limit across registration hashing, login verification, and unknown-email dummy verification.
-- [ ] Return `503 service_busy` when no hashing slot is available, without queuing or starting Argon2id; release slots after completion, including failures.
+- [x] Share one non-blocking concurrency limit across registration hashing, login verification, and unknown-email dummy verification.
+- [x] Return `503 service_busy` when no hashing slot is available, without queuing or starting Argon2id; release slots after completion, including failures.
 - [x] Unit-test correct, incorrect, malformed, and differently salted passwords.
 
 ### Done when
@@ -108,19 +108,19 @@ POST /v1/login
 
 ### Deliverables
 
-- [ ] Look up the user by normalized email.
-- [ ] Enforce the same 8192-byte body limit and `413 request_too_large` response as registration.
-- [ ] Verify the Argon2id password hash.
-- [ ] Return generic invalid-credentials errors.
-- [ ] Prepare one reusable dummy Argon2id hash using current hashing parameters and verify against it for unknown emails before returning `invalid_credentials`.
-- [ ] Generate a UUIDv4 session ID.
-- [ ] Generate a separate 32-byte random session secret.
-- [ ] Compute SHA-256 over the raw session secret.
-- [ ] Store only the resulting 32-byte hash as a BLOB.
-- [ ] Base64URL-encode the raw session secret to produce the opaque session token.
-- [ ] Initialize `last_seen_at` at creation and store fixed absolute `expires_at` using the configured lifetime (default: 30 days).
-- [ ] Return the encoded session token and expiry to BACKEND only.
-- [ ] Add tests proving that neither the raw session secret nor the encoded session token is persisted.
+- [x] Look up the user by normalized email.
+- [x] Enforce the same 8192-byte body limit and `413 request_too_large` response as registration.
+- [x] Verify the Argon2id password hash.
+- [x] Return generic invalid-credentials errors.
+- [x] Prepare one reusable dummy Argon2id hash using current hashing parameters and verify against it for unknown emails before returning `invalid_credentials`.
+- [x] Generate a UUIDv4 session ID.
+- [x] Generate a separate 32-byte random session secret.
+- [x] Compute SHA-256 over the raw session secret.
+- [x] Store only the resulting 32-byte hash as a BLOB.
+- [x] Base64URL-encode the raw session secret to produce the opaque session token.
+- [x] Initialize `last_seen_at` at creation and store fixed absolute `expires_at` using the configured lifetime (default: 30 days).
+- [x] Return the encoded session token and expiry to BACKEND only.
+- [x] Add tests proving that neither the raw session secret nor the encoded session token is persisted.
 
 ### Done when
 

@@ -25,6 +25,12 @@ type User struct {
 	CreatedAt int64
 }
 
+// Credentials contains the user data required to verify a login.
+type Credentials struct {
+	User
+	PasswordHash string
+}
+
 // NewUserRepository creates a user repository backed by db.
 func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
@@ -54,4 +60,24 @@ func (r *UserRepository) Create(ctx context.Context, email, username, passwordHa
 	}
 
 	return user, nil
+}
+
+// GetByEmail retrieves login credentials using a normalized email.
+func (r *UserRepository) GetByEmail(ctx context.Context, email string) (credentials Credentials, err error) {
+	err = r.db.QueryRowContext(ctx, `
+		SELECT id, email, username, created_at, password_hash
+		FROM users
+		WHERE email = ?
+	`, email).Scan(
+		&credentials.ID,
+		&credentials.Email,
+		&credentials.Username,
+		&credentials.CreatedAt,
+		&credentials.PasswordHash,
+	)
+	if err != nil {
+		return Credentials{}, fmt.Errorf("find user by email: %w", err)
+	}
+
+	return credentials, nil
 }

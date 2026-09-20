@@ -108,7 +108,7 @@ func TestRegisterIdentityConflict(t *testing.T) {
 			}
 
 			recorder := sendRegistration(handler, registrationBody(t, tt.email, tt.username, registerTestPassword))
-			assertRegistrationError(t, recorder, http.StatusConflict, "identity_conflict")
+			assertErrorResponse(t, recorder, http.StatusConflict, "identity_conflict")
 
 			var count int
 			if err := db.QueryRow("SELECT COUNT(*) FROM users").Scan(&count); err != nil {
@@ -192,7 +192,7 @@ func TestRegisterInvalidRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			recorder := sendRegistration(handler, tt.body)
-			assertRegistrationError(t, recorder, http.StatusBadRequest, "invalid_request")
+			assertErrorResponse(t, recorder, http.StatusBadRequest, "invalid_request")
 		})
 	}
 
@@ -247,7 +247,7 @@ func TestRegisterBodyLimit(t *testing.T) {
 
 			recorder := sendRegistration(handler, body)
 			if tt.status == http.StatusRequestEntityTooLarge {
-				assertRegistrationError(t, recorder, tt.status, "request_too_large")
+				assertErrorResponse(t, recorder, tt.status, "request_too_large")
 				return
 			}
 
@@ -266,7 +266,7 @@ func TestRegisterDatabaseFailure(t *testing.T) {
 	}
 
 	recorder := sendRegistration(handler, registrationBody(t, "user@example.com", "User", registerTestPassword))
-	assertRegistrationError(t, recorder, http.StatusInternalServerError, "internal_error")
+	assertErrorResponse(t, recorder, http.StatusInternalServerError, "internal_error")
 
 	var data response.ErrorResponse
 	if err := json.Unmarshal(recorder.Body.Bytes(), &data); err != nil {
@@ -302,8 +302,9 @@ func newTestRegisterHandler(t *testing.T) (http.HandlerFunc, *sql.DB, *password.
 
 	userRepo := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepo, hasher)
+	userHandler := NewUserHandler(userService, validate)
 
-	return Register(userService, validate), db, hasher
+	return userHandler.Register, db, hasher
 }
 
 func registrationBody(t *testing.T, email, username, password string) string {
@@ -332,7 +333,7 @@ func sendRegistration(handler http.Handler, body string) *httptest.ResponseRecor
 	return recorder
 }
 
-func assertRegistrationError(t *testing.T, recorder *httptest.ResponseRecorder, status int, code string) {
+func assertErrorResponse(t *testing.T, recorder *httptest.ResponseRecorder, status int, code string) {
 	t.Helper()
 
 	if recorder.Code != status {

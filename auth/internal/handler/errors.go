@@ -8,6 +8,7 @@ import (
 	"auth/internal/password"
 	"auth/internal/repository"
 	"auth/internal/response"
+	"auth/internal/service"
 )
 
 // ErrInvalidRequest is returned when request data is malformed or invalid.
@@ -21,6 +22,8 @@ func mapError(err error) (int, response.ErrorResponse) {
 		return http.StatusRequestEntityTooLarge, response.NewError("request_too_large", "request body exceeds 8192 bytes")
 	case errors.Is(err, ErrInvalidRequest):
 		return http.StatusBadRequest, response.NewError("invalid_request", "invalid request data")
+	case errors.Is(err, service.ErrInvalidCredentials):
+		return http.StatusUnauthorized, response.NewError("invalid_credentials", "invalid email or password")
 	case errors.Is(err, repository.ErrIdentityConflict):
 		return http.StatusConflict, response.NewError("identity_conflict", "email or username already in use")
 	case errors.Is(err, password.ErrBusy):

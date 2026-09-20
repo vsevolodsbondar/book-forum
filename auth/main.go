@@ -52,8 +52,13 @@ func run() error {
 		return fmt.Errorf("migrate database: %w", err)
 	}
 
+	router, err := server.New(db, hasher, validate, cfg.SessionLifetime)
+	if err != nil {
+		return fmt.Errorf("create server: %w", err)
+	}
+
 	addr := ":" + cfg.Port
 	slog.Info("starting server", "addr", addr)
 
-	return http.ListenAndServe(addr, server.New(db, hasher, validate))
+	return http.ListenAndServe(addr, router)
 }

@@ -7,9 +7,6 @@ import (
 
 	"auth/internal/repository"
 	"auth/internal/response"
-	"auth/internal/service"
-
-	"github.com/go-playground/validator/v10"
 )
 
 // RegisterRequest is the JSON body for account registration.
@@ -32,32 +29,35 @@ type RegisterResponse struct {
 	User RegisteredUser `json:"user"`
 }
 
-// Register returns a handler that creates user accounts.
-func Register(userService *service.UserService, validate *validator.Validate) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var request RegisterRequest
-		if err := decodeRequest(w, r, &request); err != nil {
-			writeError(w, r, err)
-			return
-		}
+// Register creates a user account.
+func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
+	var request RegisterRequest
+	if err := decodeRequest(w, r, &request); err != nil {
+		writeError(w, r, err)
+		return
+	}
 
-		request.Email = strings.ToLower(strings.TrimSpace(request.Email))
-		request.Username = strings.TrimSpace(request.Username)
+	request.Email = strings.ToLower(strings.TrimSpace(request.Email))
+	request.Username = strings.TrimSpace(request.Username)
 
-		if err := validate.Struct(&request); err != nil {
-			writeError(w, r, ErrInvalidRequest)
-			return
-		}
+	if err := h.validate.Struct(&request); err != nil {
+		writeError(w, r, ErrInvalidRequest)
+		return
+	}
 
-		user, err := userService.Register(r.Context(), request.Email, request.Username, request.Password)
-		if err != nil {
-			writeError(w, r, err)
-			return
-		}
+	user, err := h.userService.Register(
+		r.Context(),
+		request.Email,
+		request.Username,
+		request.Password,
+	)
+	if err != nil {
+		writeError(w, r, err)
+		return
+	}
 
-		if err := response.WriteJSON(w, toRegisterResponse(user), http.StatusCreated); err != nil {
-			slog.ErrorContext(r.Context(), "write registration response", "err", err)
-		}
+	if err := response.WriteJSON(w, toRegisterResponse(user), http.StatusCreated); err != nil {
+		slog.ErrorContext(r.Context(), "write registration response", "err", err)
 	}
 }
 
