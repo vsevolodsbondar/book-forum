@@ -2,13 +2,6 @@ package client
 
 import "context"
 
-type MockAuthInterface interface {
-	RegisterUser(context.Context, RegisterUserRequestDTO) (RegisterUserResponseDTO, error)
-	LoginUser(context.Context, LoginUserRequestDTO) (LoginUserResponseDTO, error)
-	ValidateSession(context.Context, string) (ValidateSessionResponseDTO, error)
-	LogoutUser(context.Context, string) error
-}
-
 type MockAuthClient struct{}
 
 func (m *MockAuthClient) RegisterUser(ctx context.Context, dto RegisterUserRequestDTO) (RegisterUserResponseDTO, error) {
