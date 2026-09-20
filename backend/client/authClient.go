@@ -5,82 +5,138 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	e "forum_backend/custom_err"
+	"io"
 	"net/http"
 )
 
 type AuthInterface interface {
 	RegisterUser(context.Context, RegisterUserRequestDTO) (RegisterUserResponseDTO, error)
-	LoginUser(context.Context, LoginUserRequestDTO) (LoginUserResponsetDTO, error)
+	LoginUser(context.Context, LoginUserRequestDTO) (LoginUserResponseDTO, error)
 	ValidateSession(context.Context, string) (ValidateSessionResponseDTO, error)
-	LogoutUser(context.Context) error
-}
-
-type MockAuthInterface interface {
-	RegisterUser(context.Context, RegisterUserRequestDTO) (RegisterUserResponseDTO, error)
-	LoginUser(context.Context, LoginUserRequestDTO) (LoginUserResponsetDTO, error)
-	ValidateSession(context.Context, string) (ValidateSessionResponseDTO, error)
-	LogoutUser(context.Context) error
+	LogoutUser(context.Context, string) error
 }
 
 type AuthHTTPClient struct {
-	BaseUrl string
+	BaseURL string
 	Client  *http.Client
 }
 
-func (c *AuthHTTPClient) RegisterUser(ctx context.Context, dto RegisterUserRequestDTO) (RegisterUserResponseDTO, error) {
-	body, err := json.Marshal(dto)
-	if err != nil {
-		return RegisterUserResponseDTO{}, err
-	}
-
-	//where
-	req, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodPost,
-		c.BaseUrl+"/v1/register",
-		bytes.NewReader(body), //here dto
-	)
-	if err != nil {
-		return RegisterUserResponseDTO{}, err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	//execute and reaction on response
-	resp, err := c.Client.Do(req)
-	if err != nil {
-		return RegisterUserResponseDTO{}, err
-	}
-	defer resp.Body.Close()
-
-	var responseError ResponseError
-	var userData RegisterUserResponseDTO
-
-	if resp.StatusCode != http.StatusCreated {
-		if err := json.NewDecoder(resp.Body).Decode(&responseError); err != nil {
-			return RegisterUserResponseDTO{}, fmt.Errorf("error in auth %s", responseError.Message)
-		}
-	} else {
-		if err := json.NewDecoder(resp.Body).Decode(&userData); err != nil {
-			return RegisterUserResponseDTO{}, err
-		}
-	}
-
-	return userData, nil
+type AuthClientRequestParams struct {
+	Method         string
+	Path           string
+	RequestBody    any
+	ExpectedStatus int
+	RequestResult  any
+	RequestHeaders map[string]string
 }
 
-func (c *AuthHTTPClient) ValidateSession(ctx context.Context, token string) error {
-	req, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodPost,
-		c.BaseUrl+"/v1/session/validate",
-		nil,
-	)
+func (c *AuthHTTPClient) RegisterUser(ctx context.Context, dto RegisterUserRequestDTO) (RegisterUserResponseDTO, error) {
+	var result RegisterUserResponseDTO
+
+	params := AuthClientRequestParams{
+		Method:         http.MethodPost,
+		Path:           "/v1/register",
+		RequestBody:    dto,
+		ExpectedStatus: http.StatusCreated,
+		RequestResult:  &result,
+	}
+
+	err := c.doRequest(ctx, params)
+
+	if err != nil {
+		return RegisterUserResponseDTO{}, err
+	}
+
+	return result, nil
+}
+
+func (c *AuthHTTPClient) LoginUser(ctx context.Context, dto LoginUserRequestDTO) (LoginUserResponseDTO, error) {
+	var result LoginUserResponseDTO
+
+	params := AuthClientRequestParams{
+		Method:         http.MethodPost,
+		Path:           "/v1/login",
+		RequestBody:    dto,
+		ExpectedStatus: http.StatusOK,
+		RequestResult:  &result,
+	}
+
+	err := c.doRequest(ctx, params)
+	if err != nil {
+		return LoginUserResponseDTO{}, err
+	}
+
+	return result, nil
+}
+
+func (c *AuthHTTPClient) ValidateSession(ctx context.Context, token string) (ValidateSessionResponseDTO, error) {
+	var result ValidateSessionResponseDTO
+
+	headers := map[string]string{
+		"Authorization": "Bearer " + token,
+	}
+
+	params := AuthClientRequestParams{
+		Method:         http.MethodPost,
+		Path:           "/v1/session/validate",
+		ExpectedStatus: http.StatusOK,
+		RequestResult:  &result,
+		RequestHeaders: headers,
+	}
+
+	err := c.doRequest(ctx, params)
+	if err != nil {
+		return ValidateSessionResponseDTO{}, err
+	}
+
+	return result, nil
+}
+
+func (c *AuthHTTPClient) LogoutUser(ctx context.Context, token string) error {
+	headers := map[string]string{
+		"Authorization": "Bearer " + token,
+	}
+
+	params := AuthClientRequestParams{
+		Method:         http.MethodPost,
+		Path:           "/v1/logout",
+		ExpectedStatus: http.StatusNoContent,
+		RequestHeaders: headers,
+	}
+
+	err := c.doRequest(ctx, params)
 	if err != nil {
 		return err
 	}
 
-	req.Header.Set("Authorization", "Bearer "+token)
+	return nil
+}
+
+func (c *AuthHTTPClient) doRequest(ctx context.Context, params AuthClientRequestParams) error {
+	var reader io.Reader
+
+	if params.RequestBody != nil {
+		jsonBody, err := json.Marshal(params.RequestBody)
+		if err != nil {
+			return err
+		}
+
+		reader = bytes.NewReader(jsonBody)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, params.Method, c.BaseURL+params.Path, reader)
+	if err != nil {
+		return err
+	}
+
+	if params.RequestBody != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
+	for key, value := range params.RequestHeaders {
+		req.Header.Set(key, value)
+	}
 
 	resp, err := c.Client.Do(req)
 	if err != nil {
@@ -88,8 +144,33 @@ func (c *AuthHTTPClient) ValidateSession(ctx context.Context, token string) erro
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("token is invalid")
+	if resp.StatusCode != params.ExpectedStatus {
+		var responseError ResponseError
+
+		if err := json.NewDecoder(resp.Body).Decode(&responseError); err != nil {
+			return fmt.Errorf(
+				"auth service returned status %d. %w: %w",
+				resp.StatusCode,
+				e.ErrJSONDecodeFailed,
+				err,
+			)
+		}
+
+		return fmt.Errorf(
+			"%w: %s",
+			e.ErrAuthService,
+			responseError.Message,
+		)
+	}
+
+	if params.RequestResult != nil {
+		if err := json.NewDecoder(resp.Body).Decode(params.RequestResult); err != nil {
+			return fmt.Errorf(
+				"%w: %w",
+				e.ErrJSONDecodeFailed,
+				err,
+			)
+		}
 	}
 
 	return nil

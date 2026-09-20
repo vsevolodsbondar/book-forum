@@ -28,7 +28,7 @@ type LoginUserRequestDTO struct {
 	Password string `json:"password"`
 }
 
-type LoginUserResponsetDTO struct {
+type LoginUserResponseDTO struct {
 	User    UserDTO    `json:"user"`
 	Session SessionDTO `json:"session"`
 }

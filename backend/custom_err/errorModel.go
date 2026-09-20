@@ -18,7 +18,11 @@ var (
 	ErrInvalidInput     = errors.New("invalid input")
 	ErrExpiredSession   = errors.New("session expired")
 	//probably should be more specific, but atm do not know it yet
+	ErrAuthService       = errors.New("error occured on auth side")
+	ErrJSONDecodeFailed  = errors.New("can't decode JSON")
 	ErrUserRegisterError = errors.New("can't register user")
 	ErrWrongCredentials  = errors.New("invalid credentials")
+	ErrInvalidToken      = errors.New("invalid token")
+	ErrInvalidSession    = errors.New("invalid session")
 	ErrBadRequest        = errors.New("failed to process request")
 )
