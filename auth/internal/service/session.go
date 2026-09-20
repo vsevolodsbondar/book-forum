@@ -15,16 +15,23 @@ import (
 	"auth/internal/repository"
 )
 
-// ErrInvalidCredentials is returned when login credentials do not match a user.
-var ErrInvalidCredentials = errors.New("invalid credentials")
+var (
+	// ErrInvalidCredentials is returned when login credentials do not match a user.
+	ErrInvalidCredentials = errors.New("invalid credentials")
+
+	// ErrInvalidSession is returned when a session token is invalid or expired.
+	ErrInvalidSession = errors.New("invalid session")
+)
 
 // SessionService handles login and session lifecycle operations.
 type SessionService struct {
-	userRepo        *repository.UserRepository
-	sessionRepo     *repository.SessionRepository
-	hasher          *password.Hasher
-	sessionLifetime time.Duration
-	dummyHash       string
+	userRepo           *repository.UserRepository
+	sessionRepo        *repository.SessionRepository
+	hasher             *password.Hasher
+	sessionLifetime    time.Duration
+	sessionIdleTimeout time.Duration
+	dummyHash          string
+	now                func() time.Time
 }
 
 // LoginSession contains the session data returned after login.
@@ -40,19 +47,29 @@ type LoginResult struct {
 	Session LoginSession
 }
 
+// ValidationResult contains the identity associated with a valid session.
+type ValidationResult struct {
+	UserID    int64
+	Username  string
+	SessionID string
+	ExpiresAt int64
+}
+
 // NewSessionService creates a session service and prepares its reusable dummy hash.
-func NewSessionService(userRepo *repository.UserRepository, sessionRepo *repository.SessionRepository, hasher *password.Hasher, sessionLifetime time.Duration) (*SessionService, error) {
+func NewSessionService(userRepo *repository.UserRepository, sessionRepo *repository.SessionRepository, hasher *password.Hasher, sessionLifetime, sessionIdleTimeout time.Duration) (*SessionService, error) {
 	dummyHash, err := hasher.Hash("dummy password")
 	if err != nil {
 		return nil, fmt.Errorf("create dummy password hash: %w", err)
 	}
 
 	return &SessionService{
-		userRepo:        userRepo,
-		sessionRepo:     sessionRepo,
-		hasher:          hasher,
-		sessionLifetime: sessionLifetime,
-		dummyHash:       dummyHash,
+		userRepo:           userRepo,
+		sessionRepo:        sessionRepo,
+		hasher:             hasher,
+		sessionLifetime:    sessionLifetime,
+		sessionIdleTimeout: sessionIdleTimeout,
+		dummyHash:          dummyHash,
+		now:                time.Now,
 	}, nil
 }
 
@@ -84,7 +101,7 @@ func (s *SessionService) Login(ctx context.Context, email, passwordValue string)
 		return LoginResult{}, fmt.Errorf("generate session secret: %w", err)
 	}
 
-	now := time.Now()
+	now := s.now()
 	expiresAt := now.Add(s.sessionLifetime).Unix()
 	tokenHash := sha256.Sum256(secret)
 
@@ -108,5 +125,32 @@ func (s *SessionService) Login(ctx context.Context, email, passwordValue string)
 			Token:     base64.RawURLEncoding.EncodeToString(secret),
 			ExpiresAt: expiresAt,
 		},
+	}, nil
+}
+
+// Validate resolves an active session token and records its latest activity.
+func (s *SessionService) Validate(ctx context.Context, token string) (ValidationResult, error) {
+	secret, err := base64.RawURLEncoding.Strict().DecodeString(token)
+	if err != nil || len(secret) != 32 {
+		return ValidationResult{}, ErrInvalidSession
+	}
+
+	tokenHash := sha256.Sum256(secret)
+	now := s.now().Unix()
+	idleCutoff := now - int64(s.sessionIdleTimeout/time.Second)
+
+	session, err := s.sessionRepo.Validate(ctx, tokenHash[:], now, idleCutoff)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ValidationResult{}, ErrInvalidSession
+		}
+		return ValidationResult{}, err
+	}
+
+	return ValidationResult{
+		UserID:    session.UserID,
+		Username:  session.Username,
+		SessionID: session.ID,
+		ExpiresAt: session.ExpiresAt,
 	}, nil
 }

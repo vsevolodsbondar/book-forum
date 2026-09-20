@@ -280,6 +280,13 @@ func TestLoginInvalidStoredHash(t *testing.T) {
 func newTestLoginHandler(t *testing.T) (http.HandlerFunc, *sql.DB) {
 	t.Helper()
 
+	sessionHandler, db := newTestSessionHandler(t)
+	return sessionHandler.Login, db
+}
+
+func newTestSessionHandler(t *testing.T) (*SessionHandler, *sql.DB) {
+	t.Helper()
+
 	db, err := database.Open(filepath.Join(t.TempDir(), "auth.db"))
 	if err != nil {
 		t.Fatalf("open database: %v", err)
@@ -308,14 +315,14 @@ func newTestLoginHandler(t *testing.T) (http.HandlerFunc, *sql.DB) {
 	}
 
 	sessionRepo := repository.NewSessionRepository(db)
-	sessionService, err := service.NewSessionService(userRepo, sessionRepo, hasher, time.Hour)
+	sessionService, err := service.NewSessionService(userRepo, sessionRepo, hasher, time.Hour, 30*time.Minute)
 	if err != nil {
 		t.Fatalf("create session service: %v", err)
 	}
 
 	sessionHandler := NewSessionHandler(sessionService, validate)
 
-	return sessionHandler.Login, db
+	return sessionHandler, db
 }
 
 func loginBody(t *testing.T, email, password string) string {

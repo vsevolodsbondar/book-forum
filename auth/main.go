@@ -52,7 +52,7 @@ func run() error {
 		return fmt.Errorf("migrate database: %w", err)
 	}
 
-	router, err := server.New(db, hasher, validate, cfg.SessionLifetime)
+	router, err := server.New(db, hasher, validate, cfg.SessionLifetime, cfg.SessionIdleTimeout)
 	if err != nil {
 		return fmt.Errorf("create server: %w", err)
 	}

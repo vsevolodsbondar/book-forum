@@ -138,18 +138,18 @@ POST /v1/session/validate
 
 ### Deliverables
 
-- [ ] Read the opaque session token from the internal `Authorization` header.
-- [ ] Base64URL-decode the token.
-- [ ] Reject malformed tokens or tokens whose decoded value is not exactly 32 bytes.
-- [ ] Compute SHA-256 over the decoded raw session secret.
-- [ ] Look up the indexed `token_hash`.
-- [ ] Reject sessions reaching absolute expiry or the configured idle timeout (default: 7 days), using server-side time.
-- [ ] Update `last_seen_at` on every successful validation without extending `expires_at`.
-- [ ] Return minimal identity information: user ID, username, session ID, and expiry.
-- [ ] Add tests for valid, random, malformed, and expired tokens.
-- [ ] Test acceptance just before and rejection exactly at both timeout boundaries.
-- [ ] Test successful activity updates and unchanged absolute expiry.
-- [ ] Verify that expired sessions are rejected before activity updates and cannot be revived.
+- [x] Read the opaque session token from the internal `Authorization` header.
+- [x] Base64URL-decode the token.
+- [x] Reject malformed tokens or tokens whose decoded value is not exactly 32 bytes.
+- [x] Compute SHA-256 over the decoded raw session secret.
+- [x] Look up the indexed `token_hash`.
+- [x] Reject sessions reaching absolute expiry or the configured idle timeout (default: 7 days), using server-side time.
+- [x] Update `last_seen_at` on every successful validation without extending `expires_at`.
+- [x] Return minimal identity information: user ID, username, session ID, and expiry.
+- [x] Add tests for valid, random, malformed, and expired tokens.
+- [x] Test acceptance just before and rejection exactly at both timeout boundaries.
+- [x] Test successful activity updates and unchanged absolute expiry.
+- [x] Verify that expired sessions are rejected before activity updates and cannot be revived.
 
 ### Done when
 

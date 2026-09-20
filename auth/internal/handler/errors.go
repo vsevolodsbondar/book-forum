@@ -24,6 +24,8 @@ func mapError(err error) (int, response.ErrorResponse) {
 		return http.StatusBadRequest, response.NewError("invalid_request", "invalid request data")
 	case errors.Is(err, service.ErrInvalidCredentials):
 		return http.StatusUnauthorized, response.NewError("invalid_credentials", "invalid email or password")
+	case errors.Is(err, service.ErrInvalidSession):
+		return http.StatusUnauthorized, response.NewError("invalid_session", "invalid or expired session")
 	case errors.Is(err, repository.ErrIdentityConflict):
 		return http.StatusConflict, response.NewError("identity_conflict", "email or username already in use")
 	case errors.Is(err, password.ErrBusy):
