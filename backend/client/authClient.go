@@ -10,25 +10,9 @@ import (
 	"net/http"
 )
 
-type AuthInterface interface {
-	RegisterUser(context.Context, RegisterUserRequestDTO) (RegisterUserResponseDTO, error)
-	LoginUser(context.Context, LoginUserRequestDTO) (LoginUserResponseDTO, error)
-	ValidateSession(context.Context, string) (ValidateSessionResponseDTO, error)
-	LogoutUser(context.Context, string) error
-}
-
 type AuthHTTPClient struct {
 	BaseURL string
 	Client  *http.Client
-}
-
-type AuthClientRequestParams struct {
-	Method         string
-	Path           string
-	RequestBody    any
-	ExpectedStatus int
-	RequestResult  any
-	RequestHeaders map[string]string
 }
 
 func (c *AuthHTTPClient) RegisterUser(ctx context.Context, dto RegisterUserRequestDTO) (RegisterUserResponseDTO, error) {
