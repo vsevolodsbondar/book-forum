@@ -25,4 +25,7 @@ var (
 	ErrInvalidToken      = errors.New("invalid token")
 	ErrInvalidSession    = errors.New("invalid session")
 	ErrBadRequest        = errors.New("failed to process request")
+	// more errors
+	ErrNoChange  = errors.New("the text wasn't changed")
+	ErrForbidden = errors.New("forbidden")
 )

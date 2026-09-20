@@ -9,7 +9,7 @@ import (
 //go:embed seed.sql
 var seedQuery string
 
-func SeedDB(db *sql.DB) error {
+func seedDB(db *sql.DB) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin seed transaction: %w", err)
