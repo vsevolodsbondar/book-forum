@@ -7,8 +7,20 @@ import (
 
 // ErrorResponse is the shared JSON error body.
 type ErrorResponse struct {
+	Error ErrorDetail `json:"error"`
+}
+
+// ErrorDetail contains the public error code and message.
+type ErrorDetail struct {
+	Code    string `json:"code"`
 	Message string `json:"message"`
-	Code    int    `json:"code"`
+}
+
+// NewError creates the shared JSON error body.
+func NewError(code, message string) ErrorResponse {
+	return ErrorResponse{
+		Error: ErrorDetail{Code: code, Message: message},
+	}
 }
 
 // WriteJSON writes the status and JSON body, returning encoding or write errors.
@@ -18,12 +30,4 @@ func WriteJSON(w http.ResponseWriter, data any, status int) error {
 	w.WriteHeader(status)
 
 	return json.NewEncoder(w).Encode(data)
-}
-
-// InternalServerError builds a status-500 error body; it does not send a response.
-func InternalServerError(message string) *ErrorResponse {
-	return &ErrorResponse{
-		Message: message,
-		Code:    http.StatusInternalServerError,
-	}
 }

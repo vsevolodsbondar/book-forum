@@ -1,11 +1,11 @@
-package db
+package database
 
 import "testing"
 
 func TestUniqueEmail(t *testing.T) {
-	database := newTestDB(t)
+	db := newTestDB(t)
 
-	_, err := database.Exec(
+	_, err := db.Exec(
 		"INSERT INTO users (email, username, password_hash) VALUES (?, ?, ?)",
 		"user@example.com", "first", "test-hash",
 	)
@@ -13,7 +13,7 @@ func TestUniqueEmail(t *testing.T) {
 		t.Fatalf("insert user: %v", err)
 	}
 
-	_, err = database.Exec(
+	_, err = db.Exec(
 		"INSERT INTO users (email, username, password_hash) VALUES (?, ?, ?)",
 		"user@example.com", "second", "test-hash",
 	)
@@ -23,9 +23,9 @@ func TestUniqueEmail(t *testing.T) {
 }
 
 func TestUniqueUsername(t *testing.T) {
-	database := newTestDB(t)
+	db := newTestDB(t)
 
-	_, err := database.Exec(
+	_, err := db.Exec(
 		"INSERT INTO users (email, username, password_hash) VALUES (?, ?, ?)",
 		"first@example.com", "User", "test-hash",
 	)
@@ -33,7 +33,7 @@ func TestUniqueUsername(t *testing.T) {
 		t.Fatalf("insert user: %v", err)
 	}
 
-	_, err = database.Exec(
+	_, err = db.Exec(
 		"INSERT INTO users (email, username, password_hash) VALUES (?, ?, ?)",
 		"second@example.com", "user", "test-hash",
 	)
@@ -43,10 +43,10 @@ func TestUniqueUsername(t *testing.T) {
 }
 
 func TestIDNotReused(t *testing.T) {
-	database := newTestDB(t)
+	db := newTestDB(t)
 	query := "INSERT INTO users (email, username, password_hash) VALUES (?, ?, ?)"
 
-	result, err := database.Exec(query, "first@example.com", "first", "test-hash")
+	result, err := db.Exec(query, "first@example.com", "first", "test-hash")
 	if err != nil {
 		t.Fatalf("insert first user: %v", err)
 	}
@@ -55,11 +55,11 @@ func TestIDNotReused(t *testing.T) {
 		t.Fatalf("read first user ID: %v", err)
 	}
 
-	if _, err := database.Exec("DELETE FROM users WHERE id = ?", firstID); err != nil {
+	if _, err := db.Exec("DELETE FROM users WHERE id = ?", firstID); err != nil {
 		t.Fatalf("delete first user: %v", err)
 	}
 
-	result, err = database.Exec(query, "second@example.com", "second", "test-hash")
+	result, err = db.Exec(query, "second@example.com", "second", "test-hash")
 	if err != nil {
 		t.Fatalf("insert second user: %v", err)
 	}
@@ -74,9 +74,9 @@ func TestIDNotReused(t *testing.T) {
 }
 
 func TestSessionCascadeDelete(t *testing.T) {
-	database := newTestDB(t)
+	db := newTestDB(t)
 
-	result, err := database.Exec(
+	result, err := db.Exec(
 		"INSERT INTO users (email, username, password_hash) VALUES (?, ?, ?)",
 		"user@example.com", "User", "test-hash",
 	)
@@ -88,7 +88,7 @@ func TestSessionCascadeDelete(t *testing.T) {
 		t.Fatalf("read user ID: %v", err)
 	}
 
-	_, err = database.Exec(`
+	_, err = db.Exec(`
 		INSERT INTO sessions (id, user_id, token_hash, expires_at)
 		VALUES (?, ?, ?, unixepoch() + 3600)
 	`, "test-session", userID, make([]byte, 32))
@@ -96,12 +96,12 @@ func TestSessionCascadeDelete(t *testing.T) {
 		t.Fatalf("insert session: %v", err)
 	}
 
-	if _, err := database.Exec("DELETE FROM users WHERE id = ?", userID); err != nil {
+	if _, err := db.Exec("DELETE FROM users WHERE id = ?", userID); err != nil {
 		t.Fatalf("delete user: %v", err)
 	}
 
 	var count int
-	if err := database.QueryRow(
+	if err := db.QueryRow(
 		"SELECT COUNT(*) FROM sessions WHERE user_id = ?", userID,
 	).Scan(&count); err != nil {
 		t.Fatalf("count sessions: %v", err)
@@ -113,14 +113,14 @@ func TestSessionCascadeDelete(t *testing.T) {
 }
 
 func TestSessionIndexes(t *testing.T) {
-	database := newTestDB(t)
+	db := newTestDB(t)
 
 	for _, name := range []string{
 		"idx_sessions_user_id",
 		"idx_sessions_expires_at",
 	} {
 		var count int
-		err := database.QueryRow(
+		err := db.QueryRow(
 			`SELECT COUNT(*) FROM sqlite_master
 			 WHERE type = 'index' AND tbl_name = 'sessions' AND name = ?`,
 			name,
