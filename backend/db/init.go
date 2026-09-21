@@ -3,13 +3,12 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"forum_backend/helper"
 	"forum_backend/migrations"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func Init() (*sql.DB, error) {
+func Init(seeding bool) (*sql.DB, error) {
 	data, err := sql.Open("sqlite3", "./db/forum.db?_foreign_keys=on&_journal_mode=WAL&_busy_timeout=5000")
 	if err != nil {
 		return nil, err
@@ -24,7 +23,11 @@ func Init() (*sql.DB, error) {
 		return nil, err
 	}
 
+<<<<<<< HEAD
 	if helper.IsSeeding() {
+=======
+	if seeding {
+>>>>>>> back-auth-connection
 		if err := seedDB(data); err != nil {
 			data.Close()
 			return nil, err
