@@ -32,7 +32,7 @@ func (cr *SQLiteCommentRepository) Create(ctx context.Context, comment *model.Cr
 		return nil, err
 	}
 	if !postExists {
-		return nil, fmt.Errorf("Post with this id doesn't exist: %w", custom_err.ErrPostNotFound)
+		return nil, fmt.Errorf("post with this id doesn't exist: %w", custom_err.ErrPostNotFound)
 	}
 	tx, err := cr.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -83,7 +83,7 @@ func (cr *SQLiteCommentRepository) GetAllByPostID(ctx context.Context, comment m
 	var title, category string
 	err := row.Scan(&title, &category)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, fmt.Errorf("The post with this id doesn't exist: %w", custom_err.ErrPostNotFound)
+		return nil, fmt.Errorf("the post with this id doesn't exist: %w", custom_err.ErrPostNotFound)
 	}
 	if err != nil {
 		return nil, err
@@ -153,7 +153,7 @@ func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.Upd
 	var userID *int
 	err = row.Scan(&text, &updated_at, &userID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, fmt.Errorf("The comment with this id doesn't exist: %w", custom_err.ErrCommentNotFound)
+		return nil, fmt.Errorf("the comment with this id doesn't exist: %w", custom_err.ErrCommentNotFound)
 	}
 	if err != nil {
 		return nil, err
@@ -173,7 +173,7 @@ func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.Upd
 	}
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		return nil, fmt.Errorf("Comment with this id doesn't exist: %w", custom_err.ErrCommentNotFound)
+		return nil, fmt.Errorf("comment with this id doesn't exist: %w", custom_err.ErrCommentNotFound)
 	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
@@ -203,20 +203,20 @@ func (cr *SQLiteCommentRepository) Delete(ctx context.Context, comment model.Del
 		return err
 	}
 	if isExists == 1 {
-		return fmt.Errorf("You not allowed to delete this comment (you need to delete post): %w", custom_err.ErrForbidden)
+		return fmt.Errorf("you not allowed to delete this comment (you need to delete post): %w", custom_err.ErrForbidden)
 	}
 	//check the rights of user
 	row = tx.QueryRowContext(ctx, queryCheckUser, comment.CommentID)
 	var actualUserID *int
 	err = row.Scan(&actualUserID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("The comment with this id doesn't exist: %w", custom_err.ErrCommentNotFound)
+		return fmt.Errorf("the comment with this id doesn't exist: %w", custom_err.ErrCommentNotFound)
 	}
 	if err != nil {
 		return err
 	}
 	if actualUserID == nil || *actualUserID != comment.UserID {
-		return fmt.Errorf("You don't have a right to delete this comment: %w", custom_err.ErrForbidden)
+		return fmt.Errorf("you don't have a right to delete this comment: %w", custom_err.ErrForbidden)
 	}
 	var isParent int
 	row = tx.QueryRowContext(ctx, queryExistsParent, comment.CommentID)
@@ -231,7 +231,7 @@ func (cr *SQLiteCommentRepository) Delete(ctx context.Context, comment model.Del
 		}
 		rowsAffected, err := result.RowsAffected()
 		if rowsAffected == 0 {
-			return fmt.Errorf("Comment with this id doesn't exist: %w", custom_err.ErrCommentNotFound)
+			return fmt.Errorf("comment with this id doesn't exist: %w", custom_err.ErrCommentNotFound)
 		}
 	} else {
 		text := "Deleted message"
@@ -243,7 +243,7 @@ func (cr *SQLiteCommentRepository) Delete(ctx context.Context, comment model.Del
 		}
 		rowsAffected, err := result.RowsAffected()
 		if rowsAffected == 0 {
-			return fmt.Errorf("Comment with this id doesn't exist: %w", custom_err.ErrCommentNotFound)
+			return fmt.Errorf("comment with this id doesn't exist: %w", custom_err.ErrCommentNotFound)
 		}
 	}
 	if err := tx.Commit(); err != nil {
