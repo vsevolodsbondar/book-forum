@@ -49,6 +49,7 @@ func Server(ctx context.Context, db *sql.DB) (*http.Server, error) {
 }
 
 func dependencyWiring(mux *http.ServeMux, db *sql.DB, auth client.AuthInterface) *http.ServeMux {
+	mux.HandleFunc("GET /api/posts", handler.GetLanding)
 	commentsRepo := repository.NewSQLiteCommentRepository(db)
 	commentService := service.NewCommentService(commentsRepo)
 	commentHandler := handler.NewCommentHandler(commentService, auth)
