@@ -18,10 +18,10 @@ func NewCommentService(repo repository.CommentRepository) *CommentService {
 	}
 }
 
-func (cs *CommentService) Create(ctx context.Context, comment *model.CreateCommentRequest) (*model.Comment, error) {
+func (cs *CommentService) Create(ctx context.Context, comment *model.CreateCommentDTO) (*model.Comment, error) {
 	var isValidated bool
-	comment.Text, isValidated = helper.IsEmptyText(comment.Text)
-	if !isValidated {
+	comment.Comment.Text, isValidated = helper.IsEmptyText(comment.Comment.Text)
+	if isValidated {
 		return nil, fmt.Errorf("Your message is empty")
 	}
 	commentWritten, err := cs.repo.Create(ctx, comment)
@@ -31,22 +31,22 @@ func (cs *CommentService) Create(ctx context.Context, comment *model.CreateComme
 	return commentWritten, nil
 }
 
-func (cs *CommentService) GetAll(ctx context.Context, pageInt int, sizeInt int, idPost int) (*model.AllComments, error) {
-	comments, err := cs.repo.GetAll(ctx, pageInt, sizeInt, idPost)
+func (cs *CommentService) GetAllByPostID(ctx context.Context, comment model.GetAllCommentDTO) (*model.AllComments, error) {
+	comments, err := cs.repo.GetAllByPostID(ctx, comment)
 	return comments, err
 }
 
-func (cs *CommentService) Update(ctx context.Context, comment model.CommentPatchRequest, commentID int) (*model.UpdatedComment, error) {
+func (cs *CommentService) Update(ctx context.Context, comment model.UpdateCommentDTO) (*model.UpdatedComment, error) {
 	var isValidated bool
-	comment.Text, isValidated = helper.IsEmptyText(comment.Text)
-	if !isValidated {
+	comment.CommentToUpdate.Text, isValidated = helper.IsEmptyText(comment.CommentToUpdate.Text)
+	if isValidated {
 		return nil, fmt.Errorf("Your message is empty")
 	}
-	updatedComment, err := cs.repo.Update(ctx, comment, commentID)
+	updatedComment, err := cs.repo.Update(ctx, comment)
 	return updatedComment, err
 }
 
-func (cs *CommentService) Delete(ctx context.Context, commentID int) error {
-	err := cs.repo.Delete(ctx, commentID)
+func (cs *CommentService) Delete(ctx context.Context, comment model.DeleteCommentDTO) error {
+	err := cs.repo.Delete(ctx, comment)
 	return err
 }

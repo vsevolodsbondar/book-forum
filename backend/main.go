@@ -9,6 +9,9 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
+
+	seeding := helper.IsSeeding()
 
 	//initialize database
 	database, err := db.Init()
@@ -17,7 +20,7 @@ func main() {
 	}
 	defer database.Close()
 
-	srv, err := server.Server(database)
+	srv, err := server.Server(ctx, database)
 	if err != nil {
 		log.Fatal(err)
 	}

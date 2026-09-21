@@ -24,7 +24,7 @@ func Init() (*sql.DB, error) {
 		return nil, err
 	}
 
-	if helper.IsSeeding() {
+	if seeding {
 		if err := seedDB(data); err != nil {
 			data.Close()
 			return nil, err

@@ -28,8 +28,8 @@ func Recovery(next http.Handler) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				slog.ErrorContext(r.Context(), "panic recovered", "panic", err)
-				if err := response.WriteJSON(w, response.InternalServerError("internal server error"), http.StatusInternalServerError); err != nil {
-					slog.ErrorContext(r.Context(), "failed to write response", "err", err)
+				if err := response.WriteJSON(w, response.NewError("internal_error", "internal server error"), http.StatusInternalServerError); err != nil {
+					slog.ErrorContext(r.Context(), "write response", "err", err)
 				}
 			}
 		}()
