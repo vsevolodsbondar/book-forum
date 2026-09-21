@@ -1,12 +1,8 @@
 package model
 
-<<<<<<< HEAD
-import "time"
-=======
 import (
 	"time"
 )
->>>>>>> back-auth-connection
 
 type Comment struct {
 	ID              int64     `json:"id"`
@@ -28,19 +24,12 @@ type CreateCommentBody struct {
 	ParentCommentID *int64 `json:"parent_comment_id"`
 }
 type AllComments struct {
-<<<<<<< HEAD
-	Comments []Comment
-	Page     int `json:"page"`
-	Size     int `json:"size"`
-	Total    int `json:"total"`
-=======
 	Comments []FullComments `json:"comments"`
 	Title    string         `json:"title"`
 	Category string         `json:"category"`
 	Page     int            `json:"page"`
 	Size     int            `json:"size"`
 	Total    int            `json:"total"`
->>>>>>> back-auth-connection
 }
 type CommentPatchRequest struct {
 	Text string `json:"text"`
@@ -50,8 +39,6 @@ type UpdatedComment struct {
 	Text      string    `json:"text"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
-<<<<<<< HEAD
-=======
 type CreateCommentDTO struct {
 	Comment CreateCommentRequest
 	UserID  int
@@ -88,4 +75,3 @@ type FullComments struct {
 	IsLiked         bool           `json:"is_liked"`
 	IsDisliked      bool           `json:"is_disliked"`
 }
->>>>>>> back-auth-connection

@@ -23,11 +23,7 @@ func Init(seeding bool) (*sql.DB, error) {
 		return nil, err
 	}
 
-<<<<<<< HEAD
-	if helper.IsSeeding() {
-=======
 	if seeding {
->>>>>>> back-auth-connection
 		if err := seedDB(data); err != nil {
 			data.Close()
 			return nil, err

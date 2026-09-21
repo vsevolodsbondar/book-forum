@@ -2,11 +2,8 @@ package handler
 
 import (
 	"encoding/json"
-<<<<<<< HEAD
-=======
 	"forum_backend/client"
 	"forum_backend/helper"
->>>>>>> back-auth-connection
 	"forum_backend/model"
 	"forum_backend/service"
 	"net/http"
@@ -15,18 +12,11 @@ import (
 
 type CommentHandler struct {
 	service *service.CommentService
-<<<<<<< HEAD
-}
-
-func NewCommentHandler(service *service.CommentService) *CommentHandler {
-	return &CommentHandler{service: service}
-=======
 	auth    client.AuthInterface
 }
 
 func NewCommentHandler(service *service.CommentService, authService client.AuthInterface) *CommentHandler {
 	return &CommentHandler{service: service, auth: authService}
->>>>>>> back-auth-connection
 }
 
 // on all hanlders has be a check of userID
@@ -48,9 +38,6 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	commentRaw.Text = commentBody.Text
 	commentRaw.PostID = int64(idPost)
 	ctx := r.Context()
-<<<<<<< HEAD
-	comment, err := h.service.Create(ctx, &commentRaw)
-=======
 
 	sessionCookie, err := helper.ExtractSessionCookie(r)
 
@@ -62,7 +49,6 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	comment, err := h.service.Create(ctx, &commentDTO)
->>>>>>> back-auth-connection
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -70,12 +56,8 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(comment)
 }
-<<<<<<< HEAD
-func (h *CommentHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-=======
 
 func (h *CommentHandler) GetAllByPostID(w http.ResponseWriter, r *http.Request) {
->>>>>>> back-auth-connection
 	page := r.URL.Query().Get("page")
 	size := r.URL.Query().Get("size")
 	ctx := r.Context()
@@ -99,9 +81,6 @@ func (h *CommentHandler) GetAllByPostID(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 	}
-<<<<<<< HEAD
-	comments, err := h.service.GetAll(ctx, pageInt, sizeInt, idPost)
-=======
 	//dummy user_id
 	userID := 1
 	commentDTO := model.GetAllCommentDTO{
@@ -111,7 +90,6 @@ func (h *CommentHandler) GetAllByPostID(w http.ResponseWriter, r *http.Request) 
 		UserID:  userID,
 	}
 	comments, err := h.service.GetAllByPostID(ctx, commentDTO)
->>>>>>> back-auth-connection
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -132,9 +110,6 @@ func (h *CommentHandler) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-<<<<<<< HEAD
-	updatedComment, err := h.service.Update(ctx, comentToUpdate, commentID)
-=======
 	//dummy user_id
 	userID := 1
 	commentDTO := model.UpdateCommentDTO{
@@ -143,7 +118,6 @@ func (h *CommentHandler) Update(w http.ResponseWriter, r *http.Request) {
 		UserID:          userID,
 	}
 	updatedComment, err := h.service.Update(ctx, commentDTO)
->>>>>>> back-auth-connection
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -158,9 +132,6 @@ func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := r.Context()
-<<<<<<< HEAD
-	err = h.service.Delete(ctx, commentID)
-=======
 	//dummy user_id
 	userID := 1
 	commentDTO := model.DeleteCommentDTO{
@@ -168,7 +139,6 @@ func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		UserID:    userID,
 	}
 	err = h.service.Delete(ctx, commentDTO)
->>>>>>> back-auth-connection
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
