@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"forum_backend/client"
+	"forum_backend/helper"
 	"forum_backend/model"
 	"forum_backend/service"
 	"net/http"
@@ -15,15 +17,19 @@ const maxReqBodySize = 1024 * 1024
 
 type UserHandler struct {
 	service *service.UserService
+	auth    client.AuthInterface
 }
 
-func NewUserHandler(service *service.UserService) *UserHandler {
-	return &UserHandler{service: service}
+func NewUserHandler(service *service.UserService, auth client.AuthInterface) *UserHandler {
+	return &UserHandler{
+		service: service,
+		auth:    auth,
+	}
 }
 
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var sub model.UserSubmission
+	var sub model.UserDTO
 
 	r.Body = http.MaxBytesReader(w, r.Body, maxReqBodySize)
 
@@ -82,8 +88,24 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	id, err := parseID(r.PathValue("id"))
 	if err != nil {
-		///////REMINDER: make a unified error writer
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	sessionCookie, err := helper.ExtractSessionCookie(r)
+	if err != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	session, err := h.auth.ValidateSession(ctx, sessionCookie)
+	if err != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if session.User.ID != id {
+		http.Error(w, "forbidden: cannot update another user's profile", http.StatusForbidden)
 		return
 	}
 
@@ -98,15 +120,12 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "request body too large", http.StatusRequestEntityTooLarge)
 			return
 		}
-
-		///////REMINDER: make a unified error writer
 		http.Error(w, "invalid json body", http.StatusBadRequest)
 		return
 	}
 
 	err = h.service.UpdateUser(ctx, id, input)
 	if err != nil {
-		///////REMINDER: make a unified error writer
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -114,20 +133,34 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// DELETE
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	id, err := parseID(r.PathValue("id"))
 	if err != nil {
-		///////REMINDER: make a unified error writer
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	sessionCookie, err := helper.ExtractSessionCookie(r)
+	if err != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	session, err := h.auth.ValidateSession(ctx, sessionCookie)
+	if err != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if session.User.ID != id {
+		http.Error(w, "forbidden: cannot delete another user's profile", http.StatusForbidden)
 		return
 	}
 
 	err = h.service.DeleteUser(ctx, id)
 	if err != nil {
-		///////REMINDER: make a unified error writer
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

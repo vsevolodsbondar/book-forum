@@ -9,6 +9,7 @@ import (
 	"forum_backend/repository"
 	"forum_backend/service"
 	"log"
+	"net"
 	"net/http"
 )
 
@@ -19,15 +20,16 @@ type Config struct {
 
 func Server(ctx context.Context, db *sql.DB) (*http.Server, error) {
 	mux := http.NewServeMux()
-
 	cfg := Config{
 		Host: "0.0.0.0",
 		Port: "8080",
 	}
-
 	srv := &http.Server{
 		Addr:    cfg.Host + ":" + cfg.Port,
 		Handler: middleware.Chain(mux),
+		BaseContext: func(_ net.Listener) context.Context {
+			return ctx
+		},
 	}
 
 	// later will inject true client
@@ -52,8 +54,8 @@ func dependencyWiring(mux *http.ServeMux, db *sql.DB, auth client.AuthInterface)
 	commentHandler := handler.NewCommentHandler(commentService, auth)
 	//users wiring
 	usersRepo := repository.NewSQLiteUserRepository(db)
-	userService := service.NewUserService(usersRepo)
-	userHandler := handler.NewUserHandler(userService)
+	userService := service.NewUserService(usersRepo, auth)
+	userHandler := handler.NewUserHandler(userService, auth)
 
 	RegisterRoutes(mux, commentHandler, userHandler)
 

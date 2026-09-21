@@ -11,7 +11,9 @@ type UserInfo struct {
 }
 
 // DTO for creating a user (for handler and service layers)
-type UserSubmission struct {
+type UserDTO struct {
+	Email          string `json:"email"`
+	Password       string `json:"password"`
 	UserName       string `json:"username"`
 	ProfilePicture string `json:"profilepic"`
 	Name           string `json:"name"`
