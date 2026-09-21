@@ -1,6 +1,7 @@
 package server
 
 import (
+	"forum_backend/custom_err"
 	"forum_backend/handler"
 	"net/http"
 )
@@ -12,8 +13,8 @@ func RegisterRoutes(mux *http.ServeMux, comments *handler.CommentHandler, users 
 	mux.HandleFunc("PATCH /comments/{id}", comments.Update)
 	mux.HandleFunc("DELETE /comments/{id}", comments.Delete)
 	//users
-	mux.HandleFunc("GET /users/{id}", users.GetUser)
-	mux.HandleFunc("POST /users", users.CreateUser)
-	mux.HandleFunc("PATCH /users/{id}", users.UpdateUser)
-	mux.HandleFunc("DELETE /users/{id}", users.DeleteUser)
+	mux.HandleFunc("GET /users/{id}", custom_err.GlobalErrorHandler(users.GetUser))
+	mux.HandleFunc("POST /users", custom_err.GlobalErrorHandler(users.CreateUser))
+	mux.HandleFunc("PATCH /users/{id}", custom_err.GlobalErrorHandler(users.UpdateUser))
+	mux.HandleFunc("DELETE /users/{id}", custom_err.GlobalErrorHandler(users.DeleteUser))
 }

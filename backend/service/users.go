@@ -2,18 +2,11 @@ package service
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"forum_backend/client"
+	"forum_backend/custom_err"
 	"forum_backend/model"
 	"forum_backend/repository"
 )
-
-// errors for input validation
-var ErrInvalidID = errors.New("id must be a positive integer")
-var ErrEmptyUsername = errors.New("username cannot be empty")
-var ErrUsernameTooLong = errors.New("username must be at most 32 characters")
-var ErrDescTooLong = errors.New("description must be at most 500 characters")
 
 type UserService struct {
 	Repo repository.UsersRepository
@@ -30,12 +23,12 @@ func NewUserService(repo repository.UsersRepository, auth client.AuthInterface) 
 // GET
 func (us *UserService) GetUser(ctx context.Context, id int64) (*model.UserInfo, error) {
 	if id < 1 {
-		return nil, ErrInvalidID
+		return nil, custom_err.ErrInvalidID
 	}
 
 	user, err := us.Repo.GetUser(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("user service: %w", err)
+		return nil, err
 	}
 
 	return user, nil
@@ -49,7 +42,7 @@ func (us *UserService) CreateUser(ctx context.Context, sub model.UserDTO) (*mode
 		Password: sub.Password,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("register user: %w", err)
+		return nil, err
 	}
 
 	info := &model.UserInfo{
@@ -62,7 +55,7 @@ func (us *UserService) CreateUser(ctx context.Context, sub model.UserDTO) (*mode
 
 	created, err := us.Repo.CreateUser(ctx, info)
 	if err != nil {
-		return nil, fmt.Errorf("create user: %w", err)
+		return nil, err
 	}
 
 	return created, nil
@@ -71,7 +64,7 @@ func (us *UserService) CreateUser(ctx context.Context, sub model.UserDTO) (*mode
 // UPDATE
 func (us *UserService) UpdateUser(ctx context.Context, id int64, input model.UserUpdateInfo) error {
 	if id < 1 {
-		return ErrInvalidID
+		return custom_err.ErrInvalidID
 	}
 
 	// if err := validateUpdateInput(input); err != nil {
@@ -80,7 +73,7 @@ func (us *UserService) UpdateUser(ctx context.Context, id int64, input model.Use
 
 	err := us.Repo.UpdateUser(ctx, id, input)
 	if err != nil {
-		return fmt.Errorf("user service update: %w", err)
+		return err
 	}
 
 	return nil
@@ -89,12 +82,12 @@ func (us *UserService) UpdateUser(ctx context.Context, id int64, input model.Use
 // DELETE
 func (us *UserService) DeleteUser(ctx context.Context, id int64) error {
 	if id < 1 {
-		return ErrInvalidID
+		return custom_err.ErrInvalidID
 	}
 
 	err := us.Repo.DeleteUser(ctx, id)
 	if err != nil {
-		return fmt.Errorf("user service delete: %w", err)
+		return err
 	}
 
 	return nil

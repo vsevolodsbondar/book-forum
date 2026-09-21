@@ -3,8 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"forum_backend/client"
+	"forum_backend/custom_err"
 	"forum_backend/helper"
 	"forum_backend/model"
 	"forum_backend/service"
@@ -27,7 +27,7 @@ func NewUserHandler(service *service.UserService, auth client.AuthInterface) *Us
 	}
 }
 
-func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	var sub model.UserDTO
 
@@ -35,78 +35,62 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
-	err := decoder.Decode(&sub)
-	if err != nil {
+	if err := decoder.Decode(&sub); err != nil {
 		var maxBytesErr *http.MaxBytesError
 		if errors.As(err, &maxBytesErr) {
-			///////REMINDER: make a unified error writer
-			http.Error(w, "request body too large", http.StatusRequestEntityTooLarge)
-			return
+			return custom_err.ErrBadRequest
 		}
-
-		///////REMINDER: make a unified error writer
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return custom_err.ErrInvalidInput
 	}
 
 	user, err := h.service.CreateUser(ctx, sub)
 	if err != nil {
-		///////REMINDER: make a unified error writer
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return err
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(user)
+	return json.NewEncoder(w).Encode(user)
 }
 
-func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	id, err := parseID(r.PathValue("id"))
 	if err != nil {
-		///////REMINDER: make a unified error writer
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return custom_err.ErrInvalidInput
 	}
 
 	user, err := h.service.GetUser(ctx, id)
 	if err != nil {
-		///////REMINDER: make a unified error writer
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
+		return err
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
+	return json.NewEncoder(w).Encode(user)
 }
 
-func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	id, err := parseID(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return custom_err.ErrInvalidInput
 	}
 
 	sessionCookie, err := helper.ExtractSessionCookie(r)
 	if err != nil {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
-		return
+		return custom_err.ErrExpiredSession
 	}
 
 	session, err := h.auth.ValidateSession(ctx, sessionCookie)
 	if err != nil {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
-		return
+		return custom_err.ErrExpiredSession
 	}
 
 	if session.User.ID != id {
-		http.Error(w, "forbidden: cannot update another user's profile", http.StatusForbidden)
-		return
+		return custom_err.ErrForbidden
 	}
 
 	r.Body = http.MaxBytesReader(w, r.Body, maxReqBodySize)
@@ -117,62 +101,53 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&input); err != nil {
 		var maxBytesErr *http.MaxBytesError
 		if errors.As(err, &maxBytesErr) {
-			http.Error(w, "request body too large", http.StatusRequestEntityTooLarge)
-			return
+			return custom_err.ErrBadRequest
 		}
-		http.Error(w, "invalid json body", http.StatusBadRequest)
-		return
+		return custom_err.ErrInvalidInput
 	}
 
-	err = h.service.UpdateUser(ctx, id, input)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	if err := h.service.UpdateUser(ctx, id, input); err != nil {
+		return err
 	}
 
 	w.WriteHeader(http.StatusOK)
+	return nil
 }
 
-func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	id, err := parseID(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return custom_err.ErrInvalidInput
 	}
 
 	sessionCookie, err := helper.ExtractSessionCookie(r)
 	if err != nil {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
-		return
+		return custom_err.ErrExpiredSession
 	}
 
 	session, err := h.auth.ValidateSession(ctx, sessionCookie)
 	if err != nil {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
-		return
+		return custom_err.ErrExpiredSession
 	}
 
 	if session.User.ID != id {
-		http.Error(w, "forbidden: cannot delete another user's profile", http.StatusForbidden)
-		return
+		return custom_err.ErrForbidden
 	}
 
-	err = h.service.DeleteUser(ctx, id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	if err := h.service.DeleteUser(ctx, id); err != nil {
+		return err
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+	return nil
 }
 
 func parseID(idStr string) (int64, error) {
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil || id < 1 {
-		return 0, fmt.Errorf("id must be positive integer")
+		return 0, custom_err.ErrInvalidInput
 	}
-
 	return id, nil
 }

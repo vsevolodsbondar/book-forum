@@ -11,13 +11,24 @@ type ErrorResponse struct {
 // return fmt.Errorf("%w: %w", ErrInvalidInput, err) OR
 // return just base error without context "return error.ErrInvalidInput"
 var (
+	//input validation related
+	ErrInvalidID       = errors.New("id must be a positive integer")
+	ErrEmptyUsername   = errors.New("username cannot be empty")
+	ErrUsernameTooLong = errors.New("username must be at most 32 characters")
+	ErrDescTooLong     = errors.New("description must be at most 500 characters")
+	//db related
+	ErrGetRowsAffected  = errors.New("failed to get rows affected")
+	ErrGetUser          = errors.New("failed to get user")
+	ErrCreateUser       = errors.New("failed to create user")
+	ErrUpdateUser       = errors.New("failed to update user")
+	ErrDeleteUser       = errors.New("failed to delete user")
 	ErrPostNotFound     = errors.New("post not found")
 	ErrCommentNotFound  = errors.New("comment not found")
 	ErrCategoryNotFound = errors.New("category not found")
 	ErrUserNotFound     = errors.New("user not found")
-	ErrInvalidInput     = errors.New("invalid input")
-	ErrExpiredSession   = errors.New("session expired")
 	//probably should be more specific, but atm do not know it yet
+	ErrInvalidInput      = errors.New("invalid input")
+	ErrExpiredSession    = errors.New("session expired")
 	ErrAuthService       = errors.New("error occured on auth side")
 	ErrJSONDecodeFailed  = errors.New("can't decode JSON")
 	ErrUserRegisterError = errors.New("can't register user")

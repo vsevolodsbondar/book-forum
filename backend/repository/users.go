@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
+	"forum_backend/custom_err"
 	"forum_backend/model"
 	"time"
 )
@@ -46,9 +46,9 @@ func (ur *SQLiteUserRepository) GetUser(ctx context.Context, id int64) (*model.U
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("user with id %d not found: %w", id, err)
+			return nil, custom_err.ErrUserNotFound
 		}
-		return nil, fmt.Errorf("get user: %w", err)
+		return nil, custom_err.ErrGetUser
 	}
 
 	return &user, nil
@@ -73,7 +73,7 @@ func (ur *SQLiteUserRepository) CreateUser(ctx context.Context, user *model.User
 		user.LastSeen,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("create user: %w", err)
+		return nil, custom_err.ErrCreateUser
 	}
 
 	return user, nil
@@ -99,16 +99,16 @@ func (ur *SQLiteUserRepository) UpdateUser(ctx context.Context, id int64, input 
 		id,
 	)
 	if err != nil {
-		return fmt.Errorf("update user: %w", err)
+		return custom_err.ErrUpdateUser
 	}
 
 	rowsAffected, err := res.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("get rows affected: %w", err)
+		return custom_err.ErrGetRowsAffected
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("user with id %d not found", id)
+		return custom_err.ErrUserNotFound
 	}
 
 	return nil
@@ -120,16 +120,16 @@ func (ur *SQLiteUserRepository) DeleteUser(ctx context.Context, id int64) error 
 
 	res, err := ur.db.ExecContext(ctx, query, id)
 	if err != nil {
-		return fmt.Errorf("delete user: %w", err)
+		return custom_err.ErrDeleteUser
 	}
 
 	rowsAffected, err := res.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("get rows affected: %w", err)
+		return custom_err.ErrGetRowsAffected
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("user with id %d not found", id)
+		return custom_err.ErrUserNotFound
 	}
 
 	return nil
