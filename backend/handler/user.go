@@ -95,7 +95,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) error {
 
 	r.Body = http.MaxBytesReader(w, r.Body, maxReqBodySize)
 
-	var input model.UserUpdateInfo
+	var input model.UserUpdateDTO
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&input); err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"forum_backend/client"
 	"forum_backend/custom_err"
+	"forum_backend/helper"
 	"forum_backend/model"
 	"forum_backend/repository"
 )
@@ -35,11 +36,11 @@ func (us *UserService) GetUser(ctx context.Context, id int64) (*model.UserInfo, 
 }
 
 // CREATE
-func (us *UserService) CreateUser(ctx context.Context, sub model.UserDTO) (*model.UserInfo, error) {
+func (us *UserService) CreateUser(ctx context.Context, input model.UserDTO) (*model.UserInfo, error) {
 	authResp, err := us.Auth.RegisterUser(ctx, client.RegisterUserRequestDTO{
-		Email:    sub.Email,
-		Username: sub.UserName,
-		Password: sub.Password,
+		Email:    input.Email,
+		Username: input.UserName,
+		Password: input.Password,
 	})
 	if err != nil {
 		return nil, err
@@ -47,10 +48,10 @@ func (us *UserService) CreateUser(ctx context.Context, sub model.UserDTO) (*mode
 
 	info := &model.UserInfo{
 		ID:             authResp.User.ID,
-		UserName:       sub.UserName,
-		ProfilePicture: sub.ProfilePicture,
-		Name:           sub.Name,
-		Description:    sub.Description,
+		UserName:       input.UserName,
+		ProfilePicture: input.ProfilePicture,
+		Name:           input.Name,
+		Description:    input.Description,
 	}
 
 	created, err := us.Repo.CreateUser(ctx, info)
@@ -62,14 +63,14 @@ func (us *UserService) CreateUser(ctx context.Context, sub model.UserDTO) (*mode
 }
 
 // UPDATE
-func (us *UserService) UpdateUser(ctx context.Context, id int64, input model.UserUpdateInfo) error {
+func (us *UserService) UpdateUser(ctx context.Context, id int64, input model.UserUpdateDTO) error {
 	if id < 1 {
 		return custom_err.ErrInvalidID
 	}
 
-	// if err := validateUpdateInput(input); err != nil {
-	// 	return fmt.Errorf("validation failed: %w", err)
-	// }
+	if err := validateUpdateInput(input); err != nil {
+		return err
+	}
 
 	err := us.Repo.UpdateUser(ctx, id, input)
 	if err != nil {
@@ -93,32 +94,32 @@ func (us *UserService) DeleteUser(ctx context.Context, id int64) error {
 	return nil
 }
 
-// func validateSubmission(sub model.UserDTO) error {
-// 	username, empty := helper.IsEmptyText(sub.UserName)
-// 	if empty {
-// 		return ErrEmptyUsername
-// 	}
-// 	if len(username) > 32 {
-// 		return ErrUsernameTooLong
-// 	}
-// 	if len(sub.Description) > 500 {
-// 		return ErrDescTooLong
-// 	}
-// 	return nil
-// }
+func validateSubmission(input model.UserDTO) error {
+	username, empty := helper.IsEmptyText(input.UserName)
+	if empty {
+		return custom_err.ErrEmptyUsername
+	}
+	if len(username) > 32 {
+		return custom_err.ErrUsernameTooLong
+	}
+	if len(input.Description) > 500 {
+		return custom_err.ErrDescTooLong
+	}
+	return nil
+}
 
-// func validateUpdateInput(input model.UserUpdateInfo) error {
-// 	if input.UserName != nil {
-// 		username, empty := helper.IsEmptyText(*input.UserName)
-// 		if empty {
-// 			return ErrEmptyUsername
-// 		}
-// 		if len(username) > 32 {
-// 			return ErrUsernameTooLong
-// 		}
-// 	}
-// 	if input.Description != nil && len(*input.Description) > 500 {
-// 		return ErrDescTooLong
-// 	}
-// 	return nil
-// }
+func validateUpdateInput(input model.UserUpdateDTO) error {
+	if input.UserName != nil {
+		username, empty := helper.IsEmptyText(*input.UserName)
+		if empty {
+			return custom_err.ErrEmptyUsername
+		}
+		if len(username) > 32 {
+			return custom_err.ErrUsernameTooLong
+		}
+	}
+	if input.Description != nil && len(*input.Description) > 500 {
+		return custom_err.ErrDescTooLong
+	}
+	return nil
+}

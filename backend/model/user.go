@@ -21,7 +21,7 @@ type UserDTO struct {
 }
 
 // for PATCH requests
-type UserUpdateInfo struct {
+type UserUpdateDTO struct {
 	UserName       *string `json:"username"`
 	ProfilePicture *string `json:"profilepic"`
 	Name           *string `json:"name"`

@@ -72,7 +72,7 @@ func (ur *SQLiteUserRepository) CreateUser(ctx context.Context, user *model.User
 }
 
 // UPDATE
-func (ur *SQLiteUserRepository) UpdateUser(ctx context.Context, id int64, input model.UserUpdateInfo) error {
+func (ur *SQLiteUserRepository) UpdateUser(ctx context.Context, id int64, input model.UserUpdateDTO) error {
 	query := `
 		UPDATE user
 		SET
