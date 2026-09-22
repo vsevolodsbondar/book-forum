@@ -45,15 +45,15 @@ A fresh AUTH instance can create or open its database and successfully apply the
 
 ### Deliverables
 
-- [ ] Implement Argon2id hashing through `x/crypto/argon2`.
-- [ ] Generate a fresh random salt per password.
-- [ ] Encode a self-describing password hash string.
-- [ ] Parse encoded hashes.
-- [ ] Validate parsed cost parameters against accepted bounds.
-- [ ] Verify passwords using constant-time comparison.
-- [ ] Share one non-blocking concurrency limit across registration hashing, login verification, and unknown-email dummy verification.
-- [ ] Return `503 service_busy` when no hashing slot is available, without queuing or starting Argon2id; release slots after completion, including failures.
-- [ ] Unit-test correct, incorrect, malformed, and differently salted passwords.
+- [x] Implement Argon2id hashing through `x/crypto/argon2`.
+- [x] Generate a fresh random salt per password.
+- [x] Encode a self-describing password hash string.
+- [x] Parse encoded hashes.
+- [x] Validate parsed cost parameters against accepted bounds.
+- [x] Verify passwords using constant-time comparison.
+- [x] Share one non-blocking concurrency limit across registration hashing, login verification, and unknown-email dummy verification.
+- [x] Return `503 service_busy` when no hashing slot is available, without queuing or starting Argon2id; release slots after completion, including failures.
+- [x] Unit-test correct, incorrect, malformed, and differently salted passwords.
 
 ### Done when
 
@@ -77,18 +77,18 @@ POST /v1/register
 
 ### Deliverables
 
-- [ ] Decode JSON safely.
-- [ ] Enforce an 8192-byte body limit while reading, regardless of `Content-Length`, returning `413 request_too_large` when exceeded.
-- [ ] Validate with `go-playground/validator`.
-- [ ] Enforce the [password requirements](api.md#password-requirements), including length of 15 to 128 Unicode code points.
-- [ ] Preserve passwords exactly as submitted without trimming or normalization.
-- [ ] Validate and normalize email according to the [email requirements](api.md#email-requirements).
-- [ ] Validate and trim username according to the [username requirements](api.md#username-requirements), preserving display casing.
-- [ ] Hash the password with Argon2id.
-- [ ] Insert the user using parameterized SQL.
-- [ ] Handle email and username uniqueness conflicts.
-- [ ] Return only safe user fields.
-- [ ] Add integration tests.
+- [x] Decode JSON safely.
+- [x] Enforce an 8192-byte body limit while reading, regardless of `Content-Length`, returning `413 request_too_large` when exceeded.
+- [x] Validate with `go-playground/validator`.
+- [x] Enforce the [password requirements](api.md#password-requirements), including length of 15 to 128 Unicode code points.
+- [x] Preserve passwords exactly as submitted without trimming or normalization.
+- [x] Validate and normalize email according to the [email requirements](api.md#email-requirements).
+- [x] Validate and trim username according to the [username requirements](api.md#username-requirements), preserving display casing.
+- [x] Hash the password with Argon2id.
+- [x] Insert the user using parameterized SQL.
+- [x] Handle email and username uniqueness conflicts.
+- [x] Return only safe user fields.
+- [x] Add integration tests.
 
 ### Done when
 
@@ -108,19 +108,19 @@ POST /v1/login
 
 ### Deliverables
 
-- [ ] Look up the user by normalized email.
-- [ ] Enforce the same 8192-byte body limit and `413 request_too_large` response as registration.
-- [ ] Verify the Argon2id password hash.
-- [ ] Return generic invalid-credentials errors.
-- [ ] Prepare one reusable dummy Argon2id hash using current hashing parameters and verify against it for unknown emails before returning `invalid_credentials`.
-- [ ] Generate a UUIDv4 session ID.
-- [ ] Generate a separate 32-byte random session secret.
-- [ ] Compute SHA-256 over the raw session secret.
-- [ ] Store only the resulting 32-byte hash as a BLOB.
-- [ ] Base64URL-encode the raw session secret to produce the opaque session token.
-- [ ] Initialize `last_seen_at` at creation and store fixed absolute `expires_at` using the configured lifetime (default: 30 days).
-- [ ] Return the encoded session token and expiry to BACKEND only.
-- [ ] Add tests proving that neither the raw session secret nor the encoded session token is persisted.
+- [x] Look up the user by normalized email.
+- [x] Enforce the same 8192-byte body limit and `413 request_too_large` response as registration.
+- [x] Verify the Argon2id password hash.
+- [x] Return generic invalid-credentials errors.
+- [x] Prepare one reusable dummy Argon2id hash using current hashing parameters and verify against it for unknown emails before returning `invalid_credentials`.
+- [x] Generate a UUIDv4 session ID.
+- [x] Generate a separate 32-byte random session secret.
+- [x] Compute SHA-256 over the raw session secret.
+- [x] Store only the resulting 32-byte hash as a BLOB.
+- [x] Base64URL-encode the raw session secret to produce the opaque session token.
+- [x] Initialize `last_seen_at` at creation and store fixed absolute `expires_at` using the configured lifetime (default: 30 days).
+- [x] Return the encoded session token and expiry to BACKEND only.
+- [x] Add tests proving that neither the raw session secret nor the encoded session token is persisted.
 
 ### Done when
 
@@ -138,18 +138,18 @@ POST /v1/session/validate
 
 ### Deliverables
 
-- [ ] Read the opaque session token from the internal `Authorization` header.
-- [ ] Base64URL-decode the token.
-- [ ] Reject malformed tokens or tokens whose decoded value is not exactly 32 bytes.
-- [ ] Compute SHA-256 over the decoded raw session secret.
-- [ ] Look up the indexed `token_hash`.
-- [ ] Reject sessions reaching absolute expiry or the configured idle timeout (default: 7 days), using server-side time.
-- [ ] Update `last_seen_at` on every successful validation without extending `expires_at`.
-- [ ] Return minimal identity information: user ID, username, session ID, and expiry.
-- [ ] Add tests for valid, random, malformed, and expired tokens.
-- [ ] Test acceptance just before and rejection exactly at both timeout boundaries.
-- [ ] Test successful activity updates and unchanged absolute expiry.
-- [ ] Verify that expired sessions are rejected before activity updates and cannot be revived.
+- [x] Read the opaque session token from the internal `Authorization` header.
+- [x] Base64URL-decode the token.
+- [x] Reject malformed tokens or tokens whose decoded value is not exactly 32 bytes.
+- [x] Compute SHA-256 over the decoded raw session secret.
+- [x] Look up the indexed `token_hash`.
+- [x] Reject sessions reaching absolute expiry or the configured idle timeout (default: 7 days), using server-side time.
+- [x] Update `last_seen_at` on every successful validation without extending `expires_at`.
+- [x] Return minimal identity information: user ID, username, session ID, and expiry.
+- [x] Add tests for valid, random, malformed, and expired tokens.
+- [x] Test acceptance just before and rejection exactly at both timeout boundaries.
+- [x] Test successful activity updates and unchanged absolute expiry.
+- [x] Verify that expired sessions are rejected before activity updates and cannot be revived.
 
 ### Done when
 
@@ -167,14 +167,14 @@ POST /v1/logout
 
 ### Deliverables
 
-- [ ] Read and Base64URL-decode the presented session token.
-- [ ] Compute SHA-256 over the decoded raw session secret.
-- [ ] Delete the matching session.
-- [ ] Make repeated logout safe and idempotent at the public layer.
-- [ ] Verify that a deleted session token can no longer validate.
-- [ ] Return `204 No Content` without revealing token state for missing, malformed, unknown, expired, and active tokens.
-- [ ] Delete matching active or expired session rows when possible; return `500 internal_error` only for database or unexpected internal failures.
-- [ ] Test each logout token outcome, repeated logout, expired-row cleanup, and database-failure handling.
+- [x] Read and Base64URL-decode the presented session token.
+- [x] Compute SHA-256 over the decoded raw session secret.
+- [x] Delete the matching session.
+- [x] Make repeated logout safe and idempotent at the public layer.
+- [x] Verify that a deleted session token can no longer validate.
+- [x] Return `204 No Content` without revealing token state for missing, malformed, unknown, expired, and active tokens.
+- [x] Delete matching active or expired session rows when possible; return `500 internal_error` only for database or unexpected internal failures.
+- [x] Test each logout token outcome, repeated logout, expired-row cleanup, and database-failure handling.
 
 ### Done when
 

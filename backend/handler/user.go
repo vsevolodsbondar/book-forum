@@ -29,13 +29,13 @@ func NewUserHandler(service *service.UserService, auth client.AuthInterface) *Us
 
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	var sub model.UserDTO
+	var input model.UserDTO
 
 	r.Body = http.MaxBytesReader(w, r.Body, maxReqBodySize)
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(&sub); err != nil {
+	if err := decoder.Decode(&input); err != nil {
 		var maxBytesErr *http.MaxBytesError
 		if errors.As(err, &maxBytesErr) {
 			return custom_err.ErrBadRequest
@@ -43,7 +43,17 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) error {
 		return custom_err.ErrInvalidInput
 	}
 
-	user, err := h.service.CreateUser(ctx, sub)
+	authResp, err := h.auth.RegisterUser(ctx, client.RegisterUserRequestDTO{
+		Email:    input.Email,
+		Username: input.UserName,
+		Password: input.Password,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	user, err := h.service.CreateUser(ctx, input, authResp)
 	if err != nil {
 		return err
 	}

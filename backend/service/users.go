@@ -36,16 +36,7 @@ func (us *UserService) GetUser(ctx context.Context, id int64) (*model.UserInfo, 
 }
 
 // CREATE
-func (us *UserService) CreateUser(ctx context.Context, input model.UserDTO) (*model.UserInfo, error) {
-	authResp, err := us.Auth.RegisterUser(ctx, client.RegisterUserRequestDTO{
-		Email:    input.Email,
-		Username: input.UserName,
-		Password: input.Password,
-	})
-	if err != nil {
-		return nil, err
-	}
-
+func (us *UserService) CreateUser(ctx context.Context, input model.UserDTO, authResp client.RegisterUserResponseDTO) (*model.UserInfo, error) {
 	info := &model.UserInfo{
 		ID:             authResp.User.ID,
 		UserName:       input.UserName,
