@@ -1,3 +1,20 @@
+//api to post by id
+const params = new URLSearchParams(window.location.search);
+const postID = params.get("id");
+async function GetPostData(){
+    try{
+        const response = await fetch(`http://localhost:8080/posts/${postID}/comments`);
+        if (!response.ok){
+            throw new Error(`Error HTTP: ${response.status}`); 
+        };
+        const postData = await response.json();
+        console.log(postData);
+    } catch(error){
+        console.log("the error was catched", error);
+    }
+};
+GetPostData();
+
 // click events on update button
 const postInside = document.querySelector(".post-inside");
 postInside.addEventListener("click",  (event)=>{
