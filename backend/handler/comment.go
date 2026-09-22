@@ -33,7 +33,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) error {
 	}
 	idPost, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		return fmt.Errorf("invalid id: %w", custom_err.ErrInvalidInput)
+		return fmt.Errorf("%w: invalid id", custom_err.ErrInvalidInput)
 	}
 	commentRaw.Text = commentBody.Text
 	commentRaw.PostID = int64(idPost)
@@ -69,13 +69,13 @@ func (h *CommentHandler) GetAllByPostID(w http.ResponseWriter, r *http.Request) 
 	if page != "" {
 		pageInt, err = strconv.Atoi(page)
 		if err != nil || pageInt < 1 {
-			return fmt.Errorf("invalid id: %w", custom_err.ErrInvalidInput)
+			return fmt.Errorf("%w: invalid id", custom_err.ErrInvalidInput)
 		}
 	}
 	if size != "" {
 		sizeInt, err = strconv.Atoi(size)
 		if err != nil || sizeInt <= 0 {
-			return fmt.Errorf("invalid size number: %w", custom_err.ErrInvalidInput)
+			return fmt.Errorf("%w: invalid size number", custom_err.ErrInvalidInput)
 		}
 	}
 	sessionCookie, err := helper.ExtractSessionCookie(r)
@@ -104,7 +104,7 @@ func (h *CommentHandler) Update(w http.ResponseWriter, r *http.Request) error {
 	comentToUpdate := model.CommentPatchRequest{}
 	err = json.NewDecoder(r.Body).Decode(&comentToUpdate)
 	if err != nil {
-		return fmt.Errorf("invalid json format: %w", custom_err.ErrInvalidInput)
+		return fmt.Errorf("%w: invalid json format", custom_err.ErrInvalidInput)
 	}
 	sessionCookie, err := helper.ExtractSessionCookie(r)
 
@@ -125,7 +125,7 @@ func (h *CommentHandler) Update(w http.ResponseWriter, r *http.Request) error {
 func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 	commentID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		return fmt.Errorf("invalid id: %w", custom_err.ErrInvalidInput)
+		return fmt.Errorf("%w: invalid id", custom_err.ErrInvalidInput)
 	}
 	ctx := r.Context()
 	sessionCookie, err := helper.ExtractSessionCookie(r)
