@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"forum_backend/db"
+	"forum_backend/helper"
 	"forum_backend/server"
 	"log"
 	"net/http"
@@ -14,7 +16,7 @@ func main() {
 	seeding := helper.IsSeeding()
 
 	//initialize database
-	database, err := db.Init()
+	database, err := db.Init(seeding)
 	if err != nil {
 		log.Fatal(err)
 	}
