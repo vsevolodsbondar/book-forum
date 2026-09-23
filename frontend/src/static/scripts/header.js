@@ -1,3 +1,13 @@
+//
+function getCookies(name){
+    const cookies = document.cookie.split("; ");
+    for (const cookie of cookies) {
+        const [key, value] = cookie.split("=");
+        if (key === name) return value;
+    };
+    return null;
+};
+//render of header
 const header = document.querySelector("header.header");
 const container = document.querySelector(".header .header-btn");
 function renderLoggedOutHeader(){
