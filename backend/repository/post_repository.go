@@ -6,5 +6,5 @@ import (
 )
 
 type PostRepository interface {
-	GetAll(context.Context, model.SearchPostsDTO) (*[]model.Post, error)
+	GetAll(context.Context, model.SearchPostsDTO) (*model.PostsPaginated, error)
 }

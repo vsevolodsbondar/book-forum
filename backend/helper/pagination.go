@@ -13,7 +13,7 @@ func GetPaginationParams(r *http.Request) (int, int, error) {
 	if pageStr := r.URL.Query().Get("page"); pageStr != "" {
 		value, err := strconv.Atoi(pageStr)
 		if err != nil || value < 1 {
-			return 0, 0, fmt.Errorf("Invalid page")
+			return 0, 0, fmt.Errorf("invalid page")
 		}
 		page = value
 	}
@@ -21,7 +21,7 @@ func GetPaginationParams(r *http.Request) (int, int, error) {
 	if limitStr := r.URL.Query().Get("size"); limitStr != "" {
 		value, err := strconv.Atoi(limitStr)
 		if err != nil || value < 1 {
-			return 0, 0, fmt.Errorf("Invalid limit")
+			return 0, 0, fmt.Errorf("invalid page size")
 		}
 		limit = value
 	}

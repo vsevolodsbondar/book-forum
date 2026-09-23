@@ -23,16 +23,12 @@ func NewPostHandler(service *service.PostService, authService client.AuthInterfa
 
 func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-
 	page, limit, err := helper.GetPaginationParams(r)
 	if err != nil {
 		return fmt.Errorf("%w: invalid pagination", custom_err.ErrInvalidInput)
 	}
 
-	dto, err := parseSearchPostsDTO(r.URL.Query(), page, limit)
-	if err != nil {
-		return err
-	}
+	dto := parseSearchPostsDTO(r.URL.Query(), page, limit)
 
 	posts, err := h.Service.GetAllPosts(ctx, dto)
 	if err != nil {
@@ -43,7 +39,7 @@ func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) error {
 	return json.NewEncoder(w).Encode(posts)
 }
 
-func parseSearchPostsDTO(query url.Values, page int, limit int) (model.SearchPostsDTO, error) {
+func parseSearchPostsDTO(query url.Values, page int, limit int) model.SearchPostsDTO {
 	dto := model.SearchPostsDTO{
 		Limit:  limit,
 		Offset: (page - 1) * limit,
@@ -56,10 +52,14 @@ func parseSearchPostsDTO(query url.Values, page int, limit int) (model.SearchPos
 	}
 
 	// Search field
-	dto.SearchField = query.Get("field")
+	if field := query.Get("field"); field != "" {
+		dto.SearchField = &field
+	}
 
 	// Search value
-	dto.SearchValue = query.Get("value")
+	if value := query.Get("value"); value != "" {
+		dto.SearchValue = &value
+	}
 
 	// Ordering
 	byLatest := query.Get("byLatest")
@@ -75,9 +75,5 @@ func parseSearchPostsDTO(query url.Values, page int, limit int) (model.SearchPos
 		dto.IsLatestPostsFirst = true
 	}
 
-	if err := dto.Validate(); err != nil {
-		return model.SearchPostsDTO{}, err
-	}
-
-	return dto, nil
+	return dto
 }

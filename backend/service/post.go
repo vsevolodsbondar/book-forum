@@ -16,7 +16,7 @@ func NewPostService(repo repository.PostRepository) *PostService {
 	}
 }
 
-func (ps *PostService) GetAllPosts(ctx context.Context, dto model.SearchPostsDTO) (*[]model.Post, error) {
+func (ps *PostService) GetAllPosts(ctx context.Context, dto model.SearchPostsDTO) (*model.PostsPaginated, error) {
 	err := dto.Validate()
 	if err != nil {
 		return nil, err
