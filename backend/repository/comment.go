@@ -18,13 +18,6 @@ func NewSQLiteCommentRepository(db *sql.DB) *SQLiteCommentRepository {
 	return &SQLiteCommentRepository{db: db}
 }
 
-type CommentRepository interface {
-	Create(ctx context.Context, comment *model.CreateCommentDTO) (*model.Comment, error)
-	GetAllByPostID(ctx context.Context, comment model.GetAllCommentDTO) (*model.AllComments, error)
-	Update(ctx context.Context, comment model.UpdateCommentDTO) (*model.UpdatedComment, error)
-	Delete(ctx context.Context, comment model.DeleteCommentDTO) error
-}
-
 func (cr *SQLiteCommentRepository) Create(ctx context.Context, comment *model.CreateCommentDTO) (*model.Comment, error) {
 	var postExists bool
 	checkQuery := `SELECT EXISTS(SELECT 1 FROM post WHERE id = ?)`
@@ -61,6 +54,7 @@ func (cr *SQLiteCommentRepository) Create(ctx context.Context, comment *model.Cr
 	}
 	return &c, nil
 }
+
 func (cr *SQLiteCommentRepository) GetAllByPostID(ctx context.Context, comment model.GetAllCommentDTO) (*model.AllComments, error) {
 	offset := (comment.PageInt - 1) * comment.SizeInt
 	query := `SELECT c.id, c.text, c.updated_at, c.parent_comment_id, c.user_id, 
@@ -108,7 +102,7 @@ func (cr *SQLiteCommentRepository) GetAllByPostID(ctx context.Context, comment m
 		if err != nil {
 			return nil, err
 		}
-		comments.Comments = append(comments.Comments, model.FullComments{
+		comments.Comments = append(comments.Comments, model.FullComment{
 			ID:              int64(id),
 			Text:            text,
 			PostID:          int64(comment.IDPost),
@@ -138,6 +132,7 @@ func (cr *SQLiteCommentRepository) GetAllByPostID(ctx context.Context, comment m
 	comments.Total = countComments
 	return &comments, nil
 }
+
 func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.UpdateCommentDTO) (*model.UpdatedComment, error) {
 	tx, err := cr.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -185,6 +180,7 @@ func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.Upd
 	}
 	return &updatedComment, nil
 }
+
 func (cr *SQLiteCommentRepository) Delete(ctx context.Context, comment model.DeleteCommentDTO) error {
 	tx, err := cr.db.BeginTx(ctx, nil)
 	if err != nil {
