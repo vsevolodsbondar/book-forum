@@ -37,6 +37,10 @@ func handleError(w http.ResponseWriter, err error) {
 	case errors.Is(err, ErrInvalidInput),
 		errors.Is(err, ErrUserRegisterError),
 		errors.Is(err, ErrNoChange),
+		errors.Is(err, ErrInvalidID),
+		errors.Is(err, ErrEmptyUsername),
+		errors.Is(err, ErrUsernameTooLong),
+		errors.Is(err, ErrDescTooLong),
 		errors.Is(err, ErrBadRequest):
 		errResp.Status = http.StatusBadRequest
 		errResp.Message = err.Error()
@@ -47,6 +51,15 @@ func handleError(w http.ResponseWriter, err error) {
 	case errors.Is(err, ErrForbidden):
 		errResp.Status = http.StatusForbidden
 		errResp.Message = err.Error()
+
+	case errors.Is(err, ErrGetRowsAffected),
+		errors.Is(err, ErrGetUser),
+		errors.Is(err, ErrCreateUser),
+		errors.Is(err, ErrUpdateUser),
+		errors.Is(err, ErrDeleteUser):
+		errResp.Status = http.StatusInternalServerError
+		errResp.Message = err.Error()
+
 	default:
 		log.Printf("internal error: %v", err)
 		errResp.Status = http.StatusInternalServerError
