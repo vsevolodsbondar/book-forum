@@ -63,8 +63,8 @@ func (cr *SQLiteCommentRepository) Create(ctx context.Context, comment *model.Cr
 }
 func (cr *SQLiteCommentRepository) GetAllByPostID(ctx context.Context, comment model.GetAllCommentDTO) (*model.AllComments, error) {
 	offset := (comment.PageInt - 1) * comment.SizeInt
-	query := `SELECT c.id, c.text, c.updated_at, c.parent_comment_id, c.user_id, 
-	COALESCE(u.user_name, 'Deleted user') AS user_name, 
+	query := `SELECT c.id, c.text, c.updated_at, c.parent_comment_id, c.user_id,
+	COALESCE(u.user_name, 'Deleted user') AS user_name,
 	COALESCE(u.profile_picture, '') AS profile_picture,
 	(SELECT COUNT(*) FROM likes l WHERE l.comment_id = c.id AND l.type_of_like = 1) AS likes,
     (SELECT COUNT(*) FROM likes l WHERE l.comment_id = c.id AND l.type_of_like = 0) AS dislikes,
@@ -75,7 +75,7 @@ func (cr *SQLiteCommentRepository) GetAllByPostID(ctx context.Context, comment m
 	WHERE c.post_id = $2
 	ORDER BY c.id LIMIT $3 OFFSET $4`
 	queryCount := `SELECT COUNT(*) FROM comment WHERE post_id = ?`
-	queryTitleCategory := `SELECT p.title, cat.name FROM post p 
+	queryTitleCategory := `SELECT p.title, cat.name FROM post p
 	LEFT JOIN category cat ON p.category_id = cat.id
 	WHERE p.id = ?`
 	//first check title and category

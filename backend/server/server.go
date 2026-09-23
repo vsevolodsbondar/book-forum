@@ -20,12 +20,10 @@ type Config struct {
 
 func Server(ctx context.Context, db *sql.DB) (*http.Server, error) {
 	mux := http.NewServeMux()
-
 	cfg := Config{
 		Host: "0.0.0.0",
 		Port: "8080",
 	}
-
 	srv := &http.Server{
 		Addr:    cfg.Host + ":" + cfg.Port,
 		Handler: middleware.Chain(mux),
@@ -51,11 +49,16 @@ func Server(ctx context.Context, db *sql.DB) (*http.Server, error) {
 }
 
 func dependencyWiring(mux *http.ServeMux, db *sql.DB, auth client.AuthInterface) *http.ServeMux {
+	mux.HandleFunc("GET /api/posts", handler.GetLanding)
 	commentsRepo := repository.NewSQLiteCommentRepository(db)
 	commentService := service.NewCommentService(commentsRepo)
 	commentHandler := handler.NewCommentHandler(commentService, auth)
+	//users wiring
+	usersRepo := repository.NewSQLiteUserRepository(db)
+	userService := service.NewUserService(usersRepo, auth)
+	userHandler := handler.NewUserHandler(userService, auth)
 
-	RegisterRoutes(mux, commentHandler)
+	RegisterRoutes(mux, commentHandler, userHandler)
 
 	return mux
 }
