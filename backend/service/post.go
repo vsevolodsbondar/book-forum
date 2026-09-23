@@ -7,12 +7,12 @@ import (
 )
 
 type PostService struct {
-	repo repository.PostRepository
+	Repo repository.PostRepository
 }
 
 func NewPostService(repo repository.PostRepository) *PostService {
 	return &PostService{
-		repo: repo,
+		Repo: repo,
 	}
 }
 
@@ -22,6 +22,6 @@ func (ps *PostService) GetAllPosts(ctx context.Context, dto model.SearchPostsDTO
 		return nil, err
 	}
 
-	posts, err := ps.repo.GetAll(ctx, dto)
+	posts, err := ps.Repo.GetAll(ctx, dto)
 	return posts, err
 }

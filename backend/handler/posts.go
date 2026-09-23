@@ -13,12 +13,12 @@ import (
 )
 
 type PostHandler struct {
-	service *service.PostService
-	auth    client.AuthInterface
+	Service *service.PostService
+	Auth    client.AuthInterface
 }
 
 func NewPostHandler(service *service.PostService, authService client.AuthInterface) *PostHandler {
-	return &PostHandler{service: service, auth: authService}
+	return &PostHandler{Service: service, Auth: authService}
 }
 
 func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) error {
@@ -34,7 +34,7 @@ func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	posts, err := h.service.GetAllPosts(ctx, dto)
+	posts, err := h.Service.GetAllPosts(ctx, dto)
 	if err != nil {
 		return err
 	}
