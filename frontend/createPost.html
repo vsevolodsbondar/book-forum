@@ -11,13 +11,8 @@
   </head>
   <body>
     <header class="header">
-        <img class="logo" src="./src/static/imgs/logo.png" alt="logo of forum">
-        <div class="header-btn">
-            <a href="createPost.html" aria-label="link to the page create post" class="main_btn">Write a post</a>
-            <div class="image-container">
-                <img class="author_img" src="./src/static/imgs/photo.jpeg" alt="photo of user">
-            </div>
-        </div>
+        <a href="index.html" class="logo" aria-label="logo of forum"></a>
+        <div class="header-btn"></div>
     </header>
     <main class="main">
          <section class="sidebar">
@@ -25,8 +20,9 @@
                 <h2 class="nav_title">MENU</h2>
                 <ul class="nav-list">
                     <li><a class="nav-list_item" href="index.html">Posts</a></li>
-                    <li class="choosed"><a class="nav-list_item" href="createPost.html">Create a post</a></li>
                     <li><a class="nav-list_item" href="users.html">Users</a></li>
+                    <li class="choosed"><a class="nav-list_item" href="createPost.html">Create a post</a></li>
+                    <li><a class="nav-list_item" href="myPosts?id=${user.id}.html">My posts</a></li>
                 </ul>
             </nav>
          </section>
@@ -44,6 +40,7 @@
             </form>
          </section>
     </main>
-    <script type="module" src="/src/static/scripts/postHandling.js"></script>
+    <script type="module" src="/src/static/scripts/header.js"></script>
+    <script type="module" src="/src/static/scripts/createPost.js"></script>
   </body>
 </html>

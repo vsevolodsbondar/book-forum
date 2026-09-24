@@ -10,11 +10,8 @@
   </head>
   <body>
     <header class="header log-out">
-        <img class="logo" src="./src/static/imgs/logo.png" alt="logo of forum">
-        <div class="header-btn">
-            <a href="login.html#reg" class="main_btn header_register">Register</a>
-            <a href="login.html#login" class="shadow_btn header_login">Login</a>
-        </div>
+        <a href="index.html" class="logo" aria-label="logo of forum"></a>
+        <div class="header-btn"></div>
     </header>
     <main class="main">
          <section class="sidebar">
@@ -37,7 +34,7 @@
                 </select>
             </article>
             <article class="posts">
-                <a href="postInside.html" aria-label="link to the post" class="post">
+                <a href="postInside.html?id=1" aria-label="link to the post" class="post">
                     <div class="author">
                         <div class="image-container">
                             <img class="author_img" src="./src/static/imgs/photo.jpeg" alt="photo of user">
@@ -60,7 +57,7 @@
                         </div>
                     </div>
                 </a>
-                <a href="postInside.html" aria-label="link to the post" class="post">
+                <a href="postInside.html?id=2" aria-label="link to the post" class="post">
                     <div class="author">
                         <div class="image-container">
                             <img class="author_img" src="./src/static/imgs/photo.jpeg" alt="photo of user">
@@ -86,6 +83,7 @@
             </article>
          </section>
     </main>
-    <script type="module" src="/src/static/scripts/postHandling.js"></script>
+    <script type="module" src="/src/static/scripts/header.js"></script>
+    <script type="module" src="/src/static/scripts/allPosts.js"></script>
   </body>
 </html>
