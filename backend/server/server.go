@@ -62,7 +62,8 @@ func dependencyWiring(mux *http.ServeMux, db *sql.DB, auth client.AuthInterface)
 	postsService := service.NewPostService(postsRepo)
 	postsHandler := handler.NewPostHandler(postsService, auth)
 
-	RegisterRoutes(mux, commentHandler, userHandler, postsHandler)
+	authSession := handler.NewAuthHandler(auth)
+	RegisterRoutes(mux, commentHandler, userHandler, authSession, postsHandler)
 
 	return mux
 }

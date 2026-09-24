@@ -17,11 +17,12 @@ var (
 	ErrUsernameTooLong = errors.New("username must be at most 32 characters")
 	ErrDescTooLong     = errors.New("description must be at most 500 characters")
 	//db malfunction related status 500
-	ErrGetRowsAffected = errors.New("failed to get rows affected")
-	ErrGetUser         = errors.New("failed to get user")
-	ErrCreateUser      = errors.New("failed to create user")
-	ErrUpdateUser      = errors.New("failed to update user")
-	ErrDeleteUser      = errors.New("failed to delete user")
+	ErrGetRowsAffected       = errors.New("failed to get rows affected")
+	ErrGetUser               = errors.New("failed to get user")
+	ErrCreateUser            = errors.New("failed to create user")
+	ErrUpdateUser            = errors.New("failed to update user")
+	ErrDeleteUser            = errors.New("failed to delete user")
+	ErrSessionValidationFail = errors.New("failed session validation")
 	//not found status 404
 	ErrPostNotFound     = errors.New("post not found")
 	ErrCommentNotFound  = errors.New("comment not found")

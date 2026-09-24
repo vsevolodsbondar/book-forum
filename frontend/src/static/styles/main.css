@@ -48,8 +48,14 @@ body{
     gap: 16px;
 }
 .logo{
+    display: block;
     width: 50px;
-    height: auto;
+    height: 50px;
+    background-size: contain;
+    background-image: url(../imgs/logo.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
 }
 
 /* buttons */
