@@ -39,7 +39,7 @@ type PostResultDTO struct {
 	ID            int64         `json:"id"`
 	Title         string        `json:"title"`
 	AuthorID      *int64        `json:"author_id"`
-	CategoryID    *int64        `json:"parent_comment_id"`
+	CategoryID    *int64        `json:"category_id"`
 	InitCommentID *int64        `json:"initial_comment_id"`
 	CreatedAt     time.Time     `json:"created_at"`
 	CommentIDs    []int64       `json:"commentIDs"`
@@ -61,7 +61,7 @@ func (dto *SearchPostsDTO) Validate() error {
 	}
 
 	switch *dto.SearchField {
-	case "author":
+	case "authorId":
 		if dto.SearchValue == nil {
 			return fmt.Errorf(
 				"%w: author search value cannot be empty",
@@ -69,7 +69,7 @@ func (dto *SearchPostsDTO) Validate() error {
 			)
 		}
 
-	case "category_id":
+	case "categoryId":
 		if dto.SearchValue == nil {
 			return fmt.Errorf(
 				"%w: category_id search value cannot be empty",

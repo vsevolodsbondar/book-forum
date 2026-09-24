@@ -73,11 +73,11 @@ func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.Se
 
 	if dto.IsSearch {
 		switch *dto.SearchField {
-		case "author":
+		case "authorId":
 			query += `WHERE author_id = ? `
 			args = append(args, dto.SearchValue)
 
-		case "category_id":
+		case "categoryId":
 			query += `WHERE category_id = ? `
 			args = append(args, dto.SearchValue)
 		}
