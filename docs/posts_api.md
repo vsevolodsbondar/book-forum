@@ -15,7 +15,7 @@ GET /posts
 | `page`     | integer |       No | `1`     | Page number. Must be greater than or equal to 1.                                          |
 | `limit`    | integer |       No | `10`    | Number of posts per page. Must be greater than 0.                                         |
 | `search`   | string  |       No | —       | Enables search mode when a non-empty value is provided.                                   |
-| `field`    | string  |       No | —       | Field used for filtering. Supported values: `author`, `category_id`.                      |
+| `field`    | string  |       No | —       | Field used for filtering. Supported values: `authorId`, `categoryId`.                      |
 | `value`    | string  |       No | —       | Value used to filter the selected field.                                                  |
 | `byLatest` | boolean |       No | `true`  | Controls ordering. `true` returns newest posts first; `false` returns oldest posts first. |
 
@@ -39,7 +39,7 @@ returns posts 11–20.
 
 Search is controlled by the `field` and `value` parameters.
 
-### Search by author
+### Search by author id
 
 ```http
 GET /posts?search=true&field=author&value=42
@@ -51,7 +51,7 @@ Returns posts where:
 author_id = 42
 ```
 
-### Search by category
+### Search by category id
 
 ```http
 GET /posts?search=true&field=category_id&value=3
