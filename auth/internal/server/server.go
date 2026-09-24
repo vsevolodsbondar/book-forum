@@ -16,20 +16,23 @@ import (
 
 // New returns the router wrapped with request logging and panic recovery.
 func New(db *sql.DB, hasher *password.Hasher, validate *validator.Validate, sessionLifetime, sessionIdleTimeout time.Duration) (http.Handler, error) {
+	healthRepo := repository.NewHealthRepository(db)
 	userRepo := repository.NewUserRepository(db)
 	sessionRepo := repository.NewSessionRepository(db)
 
+	healthService := service.NewHealthService(healthRepo)
 	userService := service.NewUserService(userRepo, hasher)
 	sessionService, err := service.NewSessionService(userRepo, sessionRepo, hasher, sessionLifetime, sessionIdleTimeout)
 	if err != nil {
 		return nil, fmt.Errorf("create session service: %w", err)
 	}
 
+	healthHandler := handler.NewHealthHandler(healthService)
 	userHandler := handler.NewUserHandler(userService, validate)
 	sessionHandler := handler.NewSessionHandler(sessionService, validate)
 
 	mux := http.NewServeMux()
-	registerRoutes(mux, userHandler, sessionHandler)
+	registerRoutes(mux, healthHandler, userHandler, sessionHandler)
 
 	return Recovery(Logger(mux)), nil
 }
