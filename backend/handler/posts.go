@@ -41,6 +41,7 @@ func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) error {
 
 func parseSearchPostsDTO(query url.Values, page int, limit int) model.SearchPostsDTO {
 	dto := model.SearchPostsDTO{
+		Page:   page,
 		Limit:  limit,
 		Offset: (page - 1) * limit,
 	}

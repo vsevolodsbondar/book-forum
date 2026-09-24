@@ -1,13 +1,11 @@
 package repository
 
 import (
-	"cmp"
 	"context"
 	"database/sql"
 	"fmt"
 	"forum_backend/custom_err"
 	"forum_backend/model"
-	"slices"
 	"strings"
 	"time"
 )
@@ -21,21 +19,19 @@ func NewSQLitePostRepository(db *sql.DB) *SQLitePostRepository {
 }
 
 func (repo *SQLitePostRepository) GetAll(ctx context.Context, dto model.SearchPostsDTO) (*model.PostsPaginated, error) {
-	postMap, err := repo.findAllPosts(ctx, dto)
+	allPosts, err := repo.findAllPosts(ctx, dto)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(postMap) == 0 {
+	if len(allPosts) == 0 {
 		return nil, custom_err.ErrPostNotFound
 	}
 
-	posts := []model.PostResultDTO{}
 	initCommentIDs := []int64{}
 	postIDs := []int64{}
 
-	for _, v := range postMap {
-		posts = append(posts, *v)
+	for _, v := range allPosts {
 		postIDs = append(postIDs, v.ID)
 		initCommentIDs = append(initCommentIDs, *v.InitCommentID)
 	}
@@ -49,30 +45,18 @@ func (repo *SQLitePostRepository) GetAll(ctx context.Context, dto model.SearchPo
 		return nil, err
 	}
 
-	for i := 0; i < len(posts); i++ {
-		comments := mapWithComments[posts[i].ID]
-		posts[i].CommentIDs = comments
-
-		likes := mapWithLikes[int(*posts[i].InitCommentID)]
-		posts[i].Likes = likes
+	for i := range allPosts {
+		allPosts[i].CommentIDs = mapWithComments[allPosts[i].ID]
+		allPosts[i].Likes = mapWithLikes[int(*allPosts[i].InitCommentID)]
 	}
 
-	//filter asc or desc by id cuz autoincrement ~= created_at
-	slices.SortFunc(posts, func(a, b model.PostResultDTO) int {
-		if dto.IsLatestPostsFirst {
-			return cmp.Compare(b.ID, a.ID)
-		}
-
-		return cmp.Compare(a.ID, b.ID)
-	})
-
 	paginated := model.PostsPaginated{
-		Posts: posts,
+		Posts: allPosts,
 	}
 	return &paginated, nil
 }
 
-func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.SearchPostsDTO) (map[int64]*model.PostResultDTO, error) {
+func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.SearchPostsDTO) ([]model.PostResultDTO, error) {
 	query := `
 		SELECT id, title, author_id, category_id, created_at, init_comment_id
 		FROM post
@@ -92,6 +76,16 @@ func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.Se
 		}
 	}
 
+	if dto.IsLatestPostsFirst {
+		query += `
+			ORDER by id DESC
+		`
+	} else {
+		query += `
+			ORDER by id ASC
+		`
+	}
+
 	query += `
 		LIMIT ? OFFSET ?
 	`
@@ -104,7 +98,7 @@ func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.Se
 	}
 	defer rows.Close()
 
-	postsMap := make(map[int64]*model.PostResultDTO)
+	posts := []model.PostResultDTO{}
 
 	var createdAt string
 	for rows.Next() {
@@ -127,14 +121,14 @@ func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.Se
 			return nil, err
 		}
 
-		postsMap[post.ID] = &post
+		posts = append(posts, post)
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
-	return postsMap, nil
+	return posts, nil
 }
 
 func (repo *SQLitePostRepository) findCommentsForPosts(ctx context.Context, postIDs []int64) (map[int64][]int64, error) {
@@ -224,4 +218,34 @@ func (repo *SQLitePostRepository) countLikesForPost(ctx context.Context, comment
 	}
 
 	return commentsWithLikes, nil
+}
+
+func (repo *SQLitePostRepository) CountPosts(ctx context.Context, dto model.SearchPostsDTO) (int, error) {
+	query := `
+		SELECT COUNT(*)
+		FROM post
+	`
+
+	var args []any
+
+	if dto.IsSearch {
+		switch *dto.SearchField {
+		case "author":
+			query += `WHERE author_id = ? `
+			args = append(args, *dto.SearchValue)
+
+		case "category_id":
+			query += `WHERE category_id = ? `
+			args = append(args, *dto.SearchValue)
+		}
+	}
+
+	var total int
+
+	err := repo.db.QueryRowContext(ctx, query, args...).Scan(&total)
+	if err != nil {
+		return 0, err
+	}
+
+	return total, nil
 }

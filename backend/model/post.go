@@ -23,6 +23,7 @@ type SearchPostsDTO struct {
 	SearchField        *string
 	SearchValue        *string
 	IsLatestPostsFirst bool
+	Page               int
 	Limit              int
 	Offset             int
 }
