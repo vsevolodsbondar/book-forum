@@ -101,9 +101,6 @@ Use liveness for process responsiveness and readiness to decide whether
 an instance should receive traffic. A readiness failure alone does not
 indicate that restarting the process will help.
 
-The former `/heartbeat` endpoint has been removed. No combined `/health`
-endpoint is provided.
-
 ---
 
 ## `POST /v1/register`
