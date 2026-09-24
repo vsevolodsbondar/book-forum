@@ -27,3 +27,8 @@ type UserUpdateDTO struct {
 	Name           *string `json:"name"`
 	Description    *string `json:"description"`
 }
+
+type UserShortInfo struct {
+	UserName       string `json:"username"`
+	ProfilePicture string `json:"profilepic"`
+}
