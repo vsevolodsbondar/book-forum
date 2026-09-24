@@ -30,10 +30,12 @@ func (repo *SQLitePostRepository) GetAll(ctx context.Context, dto model.SearchPo
 
 	initCommentIDs := []int64{}
 	postIDs := []int64{}
+	authorIDs := []int64{}
 
 	for _, v := range allPosts {
 		postIDs = append(postIDs, v.ID)
 		initCommentIDs = append(initCommentIDs, *v.InitCommentID)
+		authorIDs = append(authorIDs, *v.AuthorID)
 	}
 
 	mapWithComments, err := repo.findCommentsForPosts(ctx, postIDs)
@@ -44,10 +46,15 @@ func (repo *SQLitePostRepository) GetAll(ctx context.Context, dto model.SearchPo
 	if err != nil {
 		return nil, err
 	}
+	mapWithUsers, err := repo.findAuthorsForPosts(ctx, authorIDs)
+	if err != nil {
+		return nil, err
+	}
 
 	for i := range allPosts {
 		allPosts[i].CommentIDs = mapWithComments[allPosts[i].ID]
-		allPosts[i].Likes = mapWithLikes[int(*allPosts[i].InitCommentID)]
+		allPosts[i].Likes = mapWithLikes[*allPosts[i].InitCommentID]
+		allPosts[i].Author = mapWithUsers[*allPosts[i].AuthorID]
 	}
 
 	paginated := model.PostsPaginated{
@@ -176,7 +183,7 @@ func (repo *SQLitePostRepository) findCommentsForPosts(ctx context.Context, post
 	return postsWithComments, nil
 }
 
-func (repo *SQLitePostRepository) countLikesForPost(ctx context.Context, commentIDs []int64) (map[int]int, error) {
+func (repo *SQLitePostRepository) countLikesForPost(ctx context.Context, commentIDs []int64) (map[int64]int, error) {
 	if len(commentIDs) == 0 {
 		return nil, nil
 	}
@@ -205,9 +212,9 @@ func (repo *SQLitePostRepository) countLikesForPost(ctx context.Context, comment
 	defer rows.Close()
 
 	//key == commentID, value == likeCount for comment
-	commentsWithLikes := map[int]int{}
+	commentsWithLikes := map[int64]int{}
 	for rows.Next() {
-		var commentID int
+		var commentID int64
 		var likeCount int
 
 		if err := rows.Scan(&commentID, &likeCount); err != nil {
@@ -218,6 +225,57 @@ func (repo *SQLitePostRepository) countLikesForPost(ctx context.Context, comment
 	}
 
 	return commentsWithLikes, nil
+}
+
+func (repo *SQLitePostRepository) findAuthorsForPosts(ctx context.Context, authorIDs []int64) (map[int64]model.UserShortInfo, error) {
+	if len(authorIDs) == 0 {
+		return nil, nil
+	}
+
+	placeholders := make([]string, len(authorIDs))
+	args := make([]any, len(authorIDs))
+
+	for i, postID := range authorIDs {
+		placeholders[i] = "?"
+		args[i] = postID
+	}
+
+	query := fmt.Sprintf(`
+		SELECT id, user_name, profile_picture
+		FROM user
+		WHERE id IN (%s)
+	`, strings.Join(placeholders, ","))
+
+	rows, err := repo.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	//key == postID, value == commentIDs for post
+	users := map[int64]model.UserShortInfo{}
+	for rows.Next() {
+		var userId int64
+		var userName string
+		var profilePic sql.NullString
+
+		if err := rows.Scan(&userId, &userName, &profilePic); err != nil {
+			return nil, err
+		}
+
+		userInfo := model.UserShortInfo{
+			UserName:       userName,
+			ProfilePicture: profilePic.String,
+		}
+
+		users[userId] = userInfo
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
 func (repo *SQLitePostRepository) CountPosts(ctx context.Context, dto model.SearchPostsDTO) (int, error) {

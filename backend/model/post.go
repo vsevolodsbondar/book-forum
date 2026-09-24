@@ -36,14 +36,15 @@ type PostsPaginated struct {
 }
 
 type PostResultDTO struct {
-	ID            int64     `json:"id"`
-	Title         string    `json:"title"`
-	AuthorID      *int64    `json:"author_id"`
-	CategoryID    *int64    `json:"parent_comment_id"`
-	InitCommentID *int64    `json:"initial_comment_id"`
-	CreatedAt     time.Time `json:"created_at"`
-	CommentIDs    []int64   `json:"commentIDs"`
-	Likes         int       `json:"likes"`
+	ID            int64         `json:"id"`
+	Title         string        `json:"title"`
+	AuthorID      *int64        `json:"author_id"`
+	CategoryID    *int64        `json:"parent_comment_id"`
+	InitCommentID *int64        `json:"initial_comment_id"`
+	CreatedAt     time.Time     `json:"created_at"`
+	CommentIDs    []int64       `json:"commentIDs"`
+	Likes         int           `json:"likes"`
+	Author        UserShortInfo `json:"author"`
 }
 
 func (dto *SearchPostsDTO) Validate() error {

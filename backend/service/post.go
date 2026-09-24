@@ -22,6 +22,7 @@ func (ps *PostService) GetAllPosts(ctx context.Context, dto model.SearchPostsDTO
 		return nil, err
 	}
 
+	//first will check how many elements will suffice request
 	total, err := ps.Repo.CountPosts(ctx, dto)
 	if err != nil {
 		return nil, err
