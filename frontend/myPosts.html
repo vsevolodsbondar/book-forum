@@ -13,6 +13,7 @@
     <header class="header">
         <a href="index.html" class="logo" aria-label="logo of forum"></a>
         <div class="header-btn"></div>
+        
     </header>
     <main class="main">
          <section class="sidebar">
@@ -21,26 +22,15 @@
                 <ul class="nav-list">
                     <li><a class="nav-list_item" href="index.html">Posts</a></li>
                     <li><a class="nav-list_item" href="users.html">Users</a></li>
-                    <li class="choosed"><a class="nav-list_item" href="createPost.html">Create a post</a></li>
-                    <li><a class="nav-list_item" href="myPosts?id=${user.id}.html">My posts</a></li>
+                    <li><a class="nav-list_item" href="createPost.html">Create post</a></li>
+                    <li class="choosed"><a class="nav-list_item" href="myPosts?id=${user.id}.html">My posts</a></li>
                 </ul>
             </nav>
          </section>
-         <section class="create-post">
-            <form class="newPost">
-                <select name="" class="input" required>
-                    <option value="">Choose the category</option>
-                    <option value="your option">Your option</option>
-                </select>
-                <input class="input" type="text" placeholder="Write a title" required>
-                <textarea class="input" placeholder="Write description" required></textarea>
-                <div class="btn-container">
-                    <button class="main_btn" disabled>Publish</button>
-                </div>
-            </form>
-         </section>
+        <section class="posts-of-user">
+        </section>
     </main>
     <script type="module" src="/src/static/scripts/header.js"></script>
-    <script type="module" src="/src/static/scripts/createPost.js"></script>
+    <script  src="/src/static/scripts/users.js"></script>
   </body>
 </html>

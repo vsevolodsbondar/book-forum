@@ -35,10 +35,13 @@ function renderLoggedInHeader(user){
             `;
 };
 //render navigation
-const list = document.querySelector(".nav-list")
+const list = document.querySelector(".nav-list");
+//renders navigation, check if there is already 4 li it's not gonna fill new elements
 function renderLoggedInNav(user){
-    let newEl;
-    newEl.innerHTML = `<li><a class="nav-list_item" href="createPost.html">Create post</a></li>
-    <li><a class="nav-list_item" href="myPosts?id=${user.id}.html">My posts</a></li>`; 
-    list.insertAdjacentHTML("beforeend", newEl);
-}
+    if (list.children.length!=4){
+        let newEl;
+        newEl.innerHTML = `<li><a class="nav-list_item" href="createPost.html">Create post</a></li>
+        <li><a class="nav-list_item" href="myPosts?id=${user.id}.html">My posts</a></li>`; 
+        list.insertAdjacentHTML("beforeend", newEl);
+    };
+};
