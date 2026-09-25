@@ -2,11 +2,7 @@
 
 > This API is **internal**. It is intended for BACKEND, not browsers.
 
-By default, AUTH is reachable inside the container network at:
-
-```text
-http://auth:8081/v1
-```
+By default, AUTH is reachable inside the container network at `http://auth:8081`. Authentication endpoints use the `/v1` prefix; health endpoints use `/health`.
 
 The listening port is configured through AUTH's `PORT` environment variable and defaults to `8081`. It is an internal service detail and is not part of the browser-facing contract.
 
@@ -25,7 +21,7 @@ The listening port is configured through AUTH's `PORT` environment variable and 
 - Registration and login share a non-blocking Argon2id concurrency limit
   (default: 2 operations). See [resource limits](security.md#resource-limits).
 
-Error bodies use the following shape:
+Authentication endpoint error bodies use the following shape:
 
 ```json
 {
@@ -35,6 +31,75 @@ Error bodies use the following shape:
 	}
 }
 ```
+
+---
+
+## Health checks
+
+Health endpoints are intended for deployment probes and internal monitoring.
+They require no authentication or request body and return JSON.
+
+### `GET /health/live`
+
+Reports that the HTTP server is responding. Does not check the database
+or other dependencies.
+
+#### Success - `200 OK`
+
+```json
+{
+	"service": "auth",
+	"status": "ok"
+}
+```
+
+A stopped or unresponsive server is detected by the caller through a
+connection failure or timeout.
+
+### `GET /health/ready`
+
+Checks whether AUTH can query the SQLite `users` table. An empty table
+is healthy. The check uses the request context with a one-second timeout.
+
+This verifies database read access; it does not guarantee that writes
+or every authentication operation will succeed.
+
+#### Success - `200 OK`
+
+```json
+{
+	"service": "auth",
+	"status": "ok",
+	"checks": {
+		"database": {
+			"status": "ok"
+		}
+	}
+}
+```
+
+#### Failure - `503 Service Unavailable`
+
+Returned when the database check fails, including when its context expires.
+
+```json
+{
+	"service": "auth",
+	"status": "unavailable",
+	"checks": {
+		"database": {
+			"status": "unavailable"
+		}
+	}
+}
+```
+
+Detailed database errors are logged internally and are not included in
+the response. Check names are object keys; their order has no meaning.
+
+Use liveness for process responsiveness and readiness to decide whether
+an instance should receive traffic. A readiness failure alone does not
+indicate that restarting the process will help.
 
 ---
 
