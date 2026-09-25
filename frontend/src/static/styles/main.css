@@ -125,10 +125,6 @@ body{
 .btn_update::before{
     background-image: url(../imgs/icons/update.svg);
 }
-button:disabled,
-textarea:disabled{
-    opacity: 0.6;
-}
 
 /* main */
 .main{
@@ -836,8 +832,7 @@ textarea:disabled{
     color: var(--font-color-orange);
 }
 .dislikes.choosed::before,
-.likes.choosed::before,
-.comment .stats .choosed.dislikes::before{
+.likes.choosed::before{
     background-image: url(../imgs/icons/like.svg);
 }
 .comments_title{

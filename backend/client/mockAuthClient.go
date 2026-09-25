@@ -7,7 +7,7 @@ type MockAuthClient struct{}
 func (m *MockAuthClient) RegisterUser(ctx context.Context, dto RegisterUserRequestDTO) (RegisterUserResponseDTO, error) {
 	return RegisterUserResponseDTO{
 		User: UserCreatedDTO{
-			ID:       2,
+			ID:       42,
 			Email:    dto.Email,
 			Username: dto.Username,
 		},
@@ -17,7 +17,7 @@ func (m *MockAuthClient) RegisterUser(ctx context.Context, dto RegisterUserReque
 func (m *MockAuthClient) LoginUser(ctx context.Context, dto LoginUserRequestDTO) (LoginUserResponseDTO, error) {
 	return LoginUserResponseDTO{
 		User: UserDTO{
-			ID:       2,
+			ID:       42,
 			Email:    dto.Email,
 			Username: "Username",
 		},
@@ -37,7 +37,7 @@ func (m *MockAuthClient) ValidateSession(ctx context.Context, token string) (Val
 			ExpiresAt: 123456,
 		},
 		User: UserDTO{
-			ID:       2,
+			ID:       42,
 			Email:    "Email",
 			Username: "Username",
 		},
