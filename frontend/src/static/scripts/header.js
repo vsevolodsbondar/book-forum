@@ -1,6 +1,6 @@
 export async function getUserID() { 
     try { 
-        const response = await fetch("http://localhost:8080/me"); 
+        const response = await fetch("http://localhost:8080/me", { credentials: "include" }); 
         if (!response.ok) { return null; } 
         const userID = await response.json(); 
         return userID; 
@@ -21,7 +21,8 @@ async function checkIsUserLoggedIn(){
         if (!responseUser.ok){
             throw new Error(`Error HTTP: ${responseUser.status}`); 
         };
-        const userData = await response.json();
+        const userData = await responseUser.json();
+        console.log(userData);
         renderLoggedInHeader(userData);
         renderLoggedInNav(userData);
     } catch(error){
@@ -39,9 +40,10 @@ function renderLoggedOutHeader(){
 };
 function renderLoggedInHeader(user){
    container.innerHTML = `<a href="createPost.html" aria-label="link to the page create post" class="main_btn">Write a post</a>
-            <div class="image-container">
-                <img class="author_img" src="./src/static/imgs/default.jpg" alt="photo of ${user.username}">
-            </div>
+            <a href="profile.html?id=${user.id}" class="image-container" aria-label="link to the your personal page">
+                <img class="author_img" src="/src/static/imgs/default.jpg" alt="photo of ${user.username}">
+            </a>
+            <button class="blue_empty_btn">Log out</button>
             `;
 };
 //render navigation
