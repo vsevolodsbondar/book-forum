@@ -10,11 +10,15 @@ async function getPostData(){
             throw new Error(`Error HTTP: ${response.status}`); 
         };
         const postData = await response.json();
-        let isDeletable = false;
-        if (userID == postData.user_id){
-            isDeletable = true;
+        let isLoggedIn = true;
+        let isOwner = false;
+        if (userID == postData.comments[0].user_id){
+            isOwner = true;
         };
-        renderPostData(postData, isDeletable);
+        if (userID===null){
+            isLoggedIn = false;
+        }
+        renderPostData(postData, isOwner, isLoggedIn);
         console.log(postData);
     } catch(error){
         console.log("the error was catched", error);
@@ -23,7 +27,7 @@ async function getPostData(){
 getPostData();
 
 //render post and comments
-function renderPostData(data, isDeletable){
+function renderPostData(data, isOwner, isLoggedIn){
     const postDiscription = document.querySelector(".comment.init")
     postDiscription.innerHTML = `
     <div class="author">
@@ -41,15 +45,17 @@ function renderPostData(data, isDeletable){
                     <div class="tags">
                         <div class="tags_item">${data.category}</div>
                     </div>
+                    ${isOwner ? "<button id='delete' class='blue_empty_btn'>Delete the post</button>": ""}
                     <div class="stats">
-                        <button class="likes">${data.comments[0].likes}</button>
-                        <button class="dislikes">${data.comments[0].dislikes}</button>
+                        <button class="likes ${data.comments[0].is_liked ? "choosed" : ""}">${data.comments[0].likes}</button>
+                        <button class="dislikes ${data.comments[0].is_disliked ? "choosed" : ""}">${data.comments[0].dislikes}</button>
                     </div>
-                    ${isDeletable ? "<button id='delete' class='blue_btn'>Delete the post</button>": ""}
+                    
                 </div>`;
-                renderAllComments(data);
+                renderAllComments(data, isOwner, isLoggedIn);
+                toDisableForm(isLoggedIn);
 };
-function renderAllComments(data){
+function renderAllComments(data, isOwner, isLoggedIn){
     const container = document.querySelector(".comment-container");
     for (let i=1; i<data.comments.length; i++){
         const name = data.comments[i].user_for_comment.username;
@@ -57,6 +63,8 @@ function renderAllComments(data){
         const text = data.comments[i].text;
         const likes = data.comments[i].likes;
         const dislikes = data.comments[i].dislikes;
+        const isLiked = data.comments[i].is_liked;
+        const isDisliked = data.comments[i].is_disliked;
         const id = data.comments[i].id;
         const newEl = `
         <article id="${id}" class="comment">
@@ -72,18 +80,27 @@ function renderAllComments(data){
                 <p class="description">${text}</p>
                 <div class="post-footer">
                     <div class="stats">
-                        <button class="likes">${likes}</button>
-                        <button class="dislikes">${dislikes}</button>
+                        <button class="likes ${isLiked ? "choosed" : ""}">${likes}</button>
+                        <button class="dislikes ${isDisliked ? "choosed" : ""}">${dislikes}</button>
                     </div>
                     <div class="reply">
-                        <button class="blue_empty_btn btn_update">Edit</button>
-                        <button class="blue_empty_btn btn_reply">Reply</button>
+                        ${isOwner ? '<button class="blue_empty_btn btn_update">Edit</button>': ''}
+                        ${isLoggedIn ? '<button class="blue_empty_btn btn_reply">Reply</button>': ''}
                     </div>
                 </div>
             </article>`;
             container.insertAdjacentHTML('beforeend', newEl);
     };
 };
+//to disable the form for comments if the user isn't logged in
+function toDisableForm(isLoggedIn){
+    const form = document.querySelector(".message");
+    if (!isLoggedIn){
+        form.querySelector(".message_field").disabled = true;
+        form.querySelector(".shadow_btn").disabled = true;
+        form.querySelector(".main_btn").disabled = true;
+    }
+}
 //formating of the date
 function formatDate(isoString){
     const date = new Date(isoString);
