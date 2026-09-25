@@ -1,4 +1,5 @@
 import { getUserID } from "./header.js";
+const form = document.querySelector(".message");
 //api to post by id
 const params = new URLSearchParams(window.location.search);
 const postID = params.get("id");
@@ -54,6 +55,12 @@ function renderPostData(data, isOwner, isLoggedIn){
                 </div>`;
                 renderAllComments(data, isOwner, isLoggedIn);
                 toDisableForm(isLoggedIn);
+                if (isLoggedIn){
+                    form.querySelector(".main_btn").addEventListener("click", (event)=>{
+                        event.preventDefault();
+                        createComment(form, postID);
+                    });
+                }
 };
 function renderAllComments(data, isOwner, isLoggedIn){
     const container = document.querySelector(".comment-container");
@@ -94,7 +101,6 @@ function renderAllComments(data, isOwner, isLoggedIn){
 };
 //to disable the form for comments if the user isn't logged in
 function toDisableForm(isLoggedIn){
-    const form = document.querySelector(".message");
     if (!isLoggedIn){
         form.querySelector(".message_field").disabled = true;
         form.querySelector(".shadow_btn").disabled = true;
@@ -106,7 +112,36 @@ function formatDate(isoString){
     const date = new Date(isoString);
     return date.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
 };
-
+//click function for creating a new comment
+async function createComment(form, postID) { 
+    const textValue = form .querySelector(".message_field") .value .trim(); 
+    // don't send empty comment 
+    if (textValue === "") { 
+        return; 
+    } 
+    const data = { 
+        text: textValue, 
+        parent_comment_id: null 
+    }; 
+    try { 
+        const response = await fetch( `http://localhost:8080/posts/${postID}/comments`, { 
+            method: "POST",   
+            headers: { "Content-Type": "application/json;charset=utf-8" }, 
+            body: JSON.stringify(data) 
+        } ); 
+        if (!response.ok) { 
+            throw new Error(`Error HTTP: ${response.status}`); 
+        } 
+        const result = await response.json(); 
+        console.log("Successful send:", result); 
+        // Make a form empty 
+        form.querySelector(".message_field").value = ""; 
+        // I could add render a comment here later
+        // // renderNewComment(result); 
+        } catch (error) { 
+            console.error("Error creating comment:", error); 
+    } 
+}
 // click events on update button
 const postInside = document.querySelector(".post-inside");
 postInside.addEventListener("click",  (event)=>{
