@@ -1,0 +1,130 @@
+package model
+
+import (
+	"fmt"
+	"forum_backend/custom_err"
+	"strings"
+	"time"
+)
+
+type Post struct {
+	ID            int64     `json:"id"`
+	Title         string    `json:"title"`
+	AuthorID      *int64    `json:"author_id"`
+	CategoryID    *int64    `json:"parent_comment_id"`
+	InitCommentID *int64    `json:"initial_comment_id"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	Comments      []Comment `json:"comments"`
+	Likes         []Like    `json:"likes"`
+}
+
+type SearchPostsDTO struct {
+	IsSearch           bool
+	SearchField        *string
+	SearchValue        *string
+	IsLatestPostsFirst bool
+	Page               int
+	Limit              int
+	Offset             int
+}
+
+type PostsPaginated struct {
+	Posts      []PostResultDTO `json:"posts"`
+	Page       int             `json:"page"`
+	PageSize   int             `json:"pageSize"`
+	TotalPages int             `json:"totalPages"`
+}
+
+type PostResultDTO struct {
+	ID            int64         `json:"id"`
+	Title         string        `json:"title"`
+	AuthorID      *int64        `json:"author_id"`
+	CategoryID    *int64        `json:"category_id"`
+	CategoryName  string        `json:"category_name"`
+	InitCommentID *int64        `json:"initial_comment_id"`
+	CreatedAt     time.Time     `json:"created_at"`
+	CommentIDs    []int64       `json:"commentIDs"`
+	Likes         int           `json:"likes"`
+	Author        UserShortInfo `json:"author"`
+}
+
+type CreatePostRequestDTO struct {
+	Title       *string `json:"title"`
+	CategoryID  *int64  `json:"category_id"`
+	InitComment *string `json:"init_comment_text"`
+}
+
+type CreatePostDTO struct {
+	Title           *string `json:"title"`
+	AuthorID        *int64  `json:"author_id"`
+	CategoryID      *int64  `json:"category_id"`
+	InitCommentText *string `json:"init_comment_text"`
+}
+
+type PostCreatedDTO struct {
+	ID              int64     `json:"id"`
+	Title           string    `json:"title"`
+	AuthorID        *int64    `json:"author_id"`
+	CategoryName    string    `json:"category_name"`
+	InitCommentID   *int64    `json:"initial_comment_id"`
+	InitCommentText *string   `json:"init_comment_text"`
+	CreatedAt       time.Time `json:"created_at"`
+}
+
+func (dto *SearchPostsDTO) Validate() error {
+	if dto.Limit <= 0 {
+		return fmt.Errorf("%w: limit must be greater than 0", custom_err.ErrInvalidInput)
+	}
+
+	if dto.Offset < 0 {
+		return fmt.Errorf("%w: offset cannot be negative", custom_err.ErrInvalidInput)
+	}
+
+	if dto.SearchField == nil {
+		return nil
+	}
+
+	switch *dto.SearchField {
+	case "authorId":
+		if dto.SearchValue == nil {
+			return fmt.Errorf(
+				"%w: author search value cannot be empty",
+				custom_err.ErrInvalidInput,
+			)
+		}
+
+	case "categoryId":
+		if dto.SearchValue == nil {
+			return fmt.Errorf(
+				"%w: category_id search value cannot be empty",
+				custom_err.ErrInvalidInput,
+			)
+		}
+
+	default:
+		return fmt.Errorf(
+			"%w: unsupported search field %q",
+			custom_err.ErrInvalidInput,
+			*dto.SearchField,
+		)
+	}
+
+	return nil
+}
+
+func (dto *CreatePostRequestDTO) Validate() error {
+	if dto.Title == nil || strings.TrimSpace(*dto.Title) == "" {
+		return fmt.Errorf("%w: title is required", custom_err.ErrInvalidInput)
+	}
+
+	if dto.CategoryID == nil || *dto.CategoryID <= 0 {
+		return fmt.Errorf("%w: category_id must be greater than 0", custom_err.ErrInvalidInput)
+	}
+
+	if dto.InitComment == nil || strings.TrimSpace(*dto.InitComment) == "" {
+		return fmt.Errorf("%w: init_comment_text is required", custom_err.ErrInvalidInput)
+	}
+
+	return nil
+}
