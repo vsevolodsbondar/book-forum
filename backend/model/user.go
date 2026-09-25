@@ -27,3 +27,21 @@ type UserUpdateDTO struct {
 	Name           *string `json:"name"`
 	Description    *string `json:"description"`
 }
+
+type GetAllUsersDTO struct {
+	Page int
+	Size int
+}
+
+type UserShortInfo struct {
+	ID             int
+	UserName       string
+	ProfilePicture string
+}
+
+type AllUsers struct {
+	Users []UserShortInfo `json:"users"`
+	Page  int             `json:"page"`
+	Size  int             `json:"size"`
+	Total int             `json:"total"`
+}

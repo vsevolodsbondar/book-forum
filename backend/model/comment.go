@@ -62,6 +62,7 @@ type UserForComment struct {
 	UserName string `json:"username"`
 	Image    string `json:"image"`
 }
+
 type FullComments struct {
 	ID              int64          `json:"id"`
 	Text            string         `json:"text"`

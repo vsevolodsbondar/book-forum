@@ -14,7 +14,9 @@ func RegisterRoutes(mux *http.ServeMux, comments *handler.CommentHandler, users 
 	mux.HandleFunc("DELETE /comments/{id}", custom_err.GlobalErrorHandler(comments.Delete))
 	//users
 	mux.HandleFunc("GET /users/{id}", custom_err.GlobalErrorHandler(users.GetUser))
+	mux.HandleFunc("GET /users", custom_err.GlobalErrorHandler(users.GetAllUsers))
 	mux.HandleFunc("POST /users", custom_err.GlobalErrorHandler(users.CreateUser))
 	mux.HandleFunc("PATCH /users/{id}", custom_err.GlobalErrorHandler(users.UpdateUser))
 	mux.HandleFunc("DELETE /users/{id}", custom_err.GlobalErrorHandler(users.DeleteUser))
+
 }

@@ -17,6 +17,38 @@ func NewSQLiteUserRepository(db *sql.DB) *SQLiteUserRepository {
 	return &SQLiteUserRepository{db: db}
 }
 
+func (ur *SQLiteUserRepository) GetAllUsers(ctx context.Context, params model.GetAllUsersDTO) (*model.AllUsers, error) {
+	var AllUsersInfo model.AllUsers
+	offset := (params.Page - 1) * params.Size
+	query := `
+		SELECT id, user_name, profile_picture
+		FROM user
+		ORDER BY id LIMIT ? OFFSET ?
+		`
+
+	rows, err := ur.db.QueryContext(ctx, query, params.Size, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var user model.UserShortInfo
+		if err := rows.Scan(&user.ID, &user.UserName, &user.ProfilePicture); err != nil {
+			return nil, custom_err.ErrGetRowsAffected //!!! create specific error
+		}
+
+		AllUsersInfo.Users = append(AllUsersInfo.Users, user)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err //!!! create custom err
+	}
+
+	AllUsersInfo.Page = params.Page
+	AllUsersInfo.Size = params.Size
+
+	return &AllUsersInfo, nil
+}
+
 // READ by ID
 func (ur *SQLiteUserRepository) GetUser(ctx context.Context, id int64) (*model.UserInfo, error) {
 	var user model.UserInfo

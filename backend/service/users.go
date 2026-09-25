@@ -11,14 +11,20 @@ import (
 
 type UserService struct {
 	Repo repository.UsersRepository
-	Auth client.AuthInterface
 }
 
 func NewUserService(repo repository.UsersRepository, auth client.AuthInterface) *UserService {
 	return &UserService{
 		Repo: repo,
-		Auth: auth,
 	}
+}
+
+func (us *UserService) GetAllUsers(ctx context.Context, params model.GetAllUsersDTO) (*model.AllUsers, error) {
+	usersInfo, err := us.Repo.GetAllUsers(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return usersInfo, err
 }
 
 // GET
