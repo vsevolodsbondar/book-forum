@@ -50,3 +50,24 @@ func (ps *PostService) GetAllPosts(ctx context.Context, dto model.SearchPostsDTO
 
 	return postsPaginated, err
 }
+
+func (ps *PostService) PostMaker(ctx context.Context, dto model.CreatePostRequestDTO, id int64) (*model.PostCreatedDTO, error) {
+	err := dto.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	createDTO := model.CreatePostDTO{
+		Title:           dto.Title,
+		AuthorID:        &id,
+		CategoryID:      dto.CategoryID,
+		InitCommentText: dto.InitComment,
+	}
+
+	res, err := ps.Repo.CreatePost(ctx, createDTO)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}

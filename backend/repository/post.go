@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"forum_backend/custom_err"
 	"forum_backend/model"
+	m "forum_backend/model"
 	"strings"
 	"time"
 )
@@ -68,6 +69,105 @@ func (repo *SQLitePostRepository) GetAll(ctx context.Context, dto model.SearchPo
 		Posts: allPosts,
 	}
 	return &paginated, nil
+}
+
+func (repo *SQLitePostRepository) CreatePost(ctx context.Context, dto m.CreatePostDTO) (*model.PostCreatedDTO, error) {
+	tx, err := repo.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	//1.check if user exists
+
+	query := `
+		INSERT INTO post (title, author_id, category_id) 
+		VALUES (?,?,?)
+		RETURNING id
+	`
+
+	var postID int64
+	if err := tx.QueryRowContext(ctx, query, dto.Title, dto.AuthorID, dto.CategoryID).Scan(&postID); err != nil {
+		return nil, err
+	}
+
+	request := model.CreateCommentRequest{
+		Text:   *dto.InitCommentText,
+		PostID: postID,
+		UserID: *dto.AuthorID,
+	}
+
+	comment, err := repo.createCommentTx(ctx, &request, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	post := model.PostCreatedDTO{}
+
+	updInitCommentID := `
+		UPDATE post 
+		SET init_comment_id = ?
+		WHERE id = ?
+		RETURNING id, title, author_id, init_comment_id, created_at
+	`
+	var createdAt string
+
+	err = tx.QueryRowContext(
+		ctx,
+		updInitCommentID,
+		comment.ID,
+		postID,
+	).Scan(
+		&post.ID,
+		&post.Title,
+		&post.AuthorID,
+		&post.InitCommentID,
+		&createdAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	post.CreatedAt, err = time.Parse("2006-01-02 15:04:05", createdAt)
+	if err != nil {
+		return nil, err
+	}
+
+	post.InitCommentText = &comment.Text
+
+	// 4. Commit everything
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	// 5. Category name from different table
+	category, err := repo.findCategoriesForPosts(ctx, []int64{*dto.CategoryID})
+	if err != nil {
+		return nil, err
+	}
+	post.CategoryName = category[*dto.CategoryID]
+
+	return &post, nil
+}
+
+func (cr *SQLitePostRepository) createCommentTx(ctx context.Context, comment *model.CreateCommentRequest, tx *sql.Tx) (*model.Comment, error) {
+	query := `
+		INSERT INTO comment (text, post_id, user_id)
+		VALUES (?,?,?) 
+		RETURNING id, text;
+	`
+
+	var c model.Comment
+	err := tx.QueryRowContext(
+		ctx, query, comment.Text, comment.PostID, comment.UserID,
+	).Scan(
+		&c.ID, &c.Text,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &c, nil
 }
 
 func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.SearchPostsDTO) ([]model.PostResultDTO, error) {

@@ -22,7 +22,6 @@ func NewPostHandler(service *service.PostService, authService client.AuthInterfa
 }
 
 func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) error {
-	ctx := r.Context()
 	page, limit, err := helper.GetPaginationParams(r)
 	if err != nil {
 		return fmt.Errorf("%w: invalid pagination", custom_err.ErrInvalidInput)
@@ -30,13 +29,34 @@ func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) error {
 
 	dto := parseSearchPostsDTO(r.URL.Query(), page, limit)
 
-	posts, err := h.Service.GetAllPosts(ctx, dto)
+	posts, err := h.Service.GetAllPosts(r.Context(), dto)
 	if err != nil {
 		return err
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	return json.NewEncoder(w).Encode(posts)
+}
+
+func (h *PostHandler) PostPost(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+	dto := model.CreatePostRequestDTO{}
+
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		return custom_err.ErrInvalidInput
+	}
+
+	sessionCookie, err := helper.ExtractSessionCookie(r)
+	response, err := h.Auth.ValidateSession(ctx, sessionCookie)
+
+	res, err := h.Service.PostMaker(ctx, dto, response.User.ID)
+	if err != nil {
+		return err
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(w).Encode(res)
 }
 
 func parseSearchPostsDTO(query url.Values, page int, limit int) model.SearchPostsDTO {

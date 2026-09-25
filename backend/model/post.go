@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"forum_backend/custom_err"
+	"strings"
 	"time"
 )
 
@@ -48,6 +49,29 @@ type PostResultDTO struct {
 	Author        UserShortInfo `json:"author"`
 }
 
+type CreatePostRequestDTO struct {
+	Title       *string `json:"title"`
+	CategoryID  *int64  `json:"category_id"`
+	InitComment *string `json:"init_comment_text"`
+}
+
+type CreatePostDTO struct {
+	Title           *string `json:"title"`
+	AuthorID        *int64  `json:"author_id"`
+	CategoryID      *int64  `json:"category_id"`
+	InitCommentText *string `json:"init_comment_text"`
+}
+
+type PostCreatedDTO struct {
+	ID              int64     `json:"id"`
+	Title           string    `json:"title"`
+	AuthorID        *int64    `json:"author_id"`
+	CategoryName    string    `json:"category_name"`
+	InitCommentID   *int64    `json:"initial_comment_id"`
+	InitCommentText *string   `json:"init_comment_text"`
+	CreatedAt       time.Time `json:"created_at"`
+}
+
 func (dto *SearchPostsDTO) Validate() error {
 	if dto.Limit <= 0 {
 		return fmt.Errorf("%w: limit must be greater than 0", custom_err.ErrInvalidInput)
@@ -84,6 +108,22 @@ func (dto *SearchPostsDTO) Validate() error {
 			custom_err.ErrInvalidInput,
 			*dto.SearchField,
 		)
+	}
+
+	return nil
+}
+
+func (dto *CreatePostRequestDTO) Validate() error {
+	if dto.Title == nil || strings.TrimSpace(*dto.Title) == "" {
+		return fmt.Errorf("%w: title is required", custom_err.ErrInvalidInput)
+	}
+
+	if dto.CategoryID == nil || *dto.CategoryID <= 0 {
+		return fmt.Errorf("%w: category_id must be greater than 0", custom_err.ErrInvalidInput)
+	}
+
+	if dto.InitComment == nil || strings.TrimSpace(*dto.InitComment) == "" {
+		return fmt.Errorf("%w: init_comment_text is required", custom_err.ErrInvalidInput)
 	}
 
 	return nil
