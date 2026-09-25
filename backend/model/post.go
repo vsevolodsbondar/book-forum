@@ -40,6 +40,7 @@ type PostResultDTO struct {
 	Title         string        `json:"title"`
 	AuthorID      *int64        `json:"author_id"`
 	CategoryID    *int64        `json:"category_id"`
+	CategoryName  string        `json:"category_name"`
 	InitCommentID *int64        `json:"initial_comment_id"`
 	CreatedAt     time.Time     `json:"created_at"`
 	CommentIDs    []int64       `json:"commentIDs"`

@@ -31,11 +31,13 @@ func (repo *SQLitePostRepository) GetAll(ctx context.Context, dto model.SearchPo
 	initCommentIDs := []int64{}
 	postIDs := []int64{}
 	authorIDs := []int64{}
+	categoryIDs := []int64{}
 
 	for _, v := range allPosts {
 		postIDs = append(postIDs, v.ID)
 		initCommentIDs = append(initCommentIDs, *v.InitCommentID)
 		authorIDs = append(authorIDs, *v.AuthorID)
+		categoryIDs = append(categoryIDs, *v.CategoryID)
 	}
 
 	mapWithComments, err := repo.findCommentsForPosts(ctx, postIDs)
@@ -50,11 +52,16 @@ func (repo *SQLitePostRepository) GetAll(ctx context.Context, dto model.SearchPo
 	if err != nil {
 		return nil, err
 	}
+	mapWithCategories, err := repo.findCategoriesForPosts(ctx, categoryIDs)
+	if err != nil {
+		return nil, err
+	}
 
 	for i := range allPosts {
 		allPosts[i].CommentIDs = mapWithComments[allPosts[i].ID]
 		allPosts[i].Likes = mapWithLikes[*allPosts[i].InitCommentID]
 		allPosts[i].Author = mapWithUsers[*allPosts[i].AuthorID]
+		allPosts[i].CategoryName = mapWithCategories[*allPosts[i].CategoryID]
 	}
 
 	paginated := model.PostsPaginated{
@@ -227,6 +234,46 @@ func (repo *SQLitePostRepository) countLikesForPost(ctx context.Context, comment
 	return commentsWithLikes, nil
 }
 
+func (repo *SQLitePostRepository) findCategoriesForPosts(ctx context.Context, categorieIDs []int64) (map[int64]string, error) {
+	if len(categorieIDs) == 0 {
+		return nil, nil
+	}
+
+	placeholders := make([]string, len(categorieIDs))
+	args := make([]any, len(categorieIDs))
+
+	for i, categoryID := range categorieIDs {
+		placeholders[i] = "?"
+		args[i] = categoryID
+	}
+
+	query := fmt.Sprintf(`
+		SELECT id, name
+		FROM category
+		WHERE id IN (%s)
+	`, strings.Join(placeholders, ","))
+
+	rows, err := repo.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	categories := map[int64]string{}
+	for rows.Next() {
+		var categoryID int64
+		var name string
+
+		if err := rows.Scan(&categoryID, &name); err != nil {
+			return nil, err
+		}
+
+		categories[categoryID] = name
+	}
+
+	return categories, nil
+}
+
 func (repo *SQLitePostRepository) findAuthorsForPosts(ctx context.Context, authorIDs []int64) (map[int64]model.UserShortInfo, error) {
 	if len(authorIDs) == 0 {
 		return nil, nil
@@ -252,7 +299,7 @@ func (repo *SQLitePostRepository) findAuthorsForPosts(ctx context.Context, autho
 	}
 	defer rows.Close()
 
-	//key == postID, value == commentIDs for post
+	//key == userID, value == some user info for post
 	users := map[int64]model.UserShortInfo{}
 	for rows.Next() {
 		var userId int64
