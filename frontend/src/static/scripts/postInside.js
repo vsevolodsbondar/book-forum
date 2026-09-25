@@ -1,14 +1,20 @@
+import { getUserID } from "./header.js";
 //api to post by id
 const params = new URLSearchParams(window.location.search);
 const postID = params.get("id");
 async function getPostData(){
     try{
+        const userID = await getUserID();
         const response = await fetch(`http://localhost:8080/posts/${postID}/comments`);
         if (!response.ok){
             throw new Error(`Error HTTP: ${response.status}`); 
         };
         const postData = await response.json();
-        renderPostData(postData);
+        let isDeletable = false;
+        if (userID == postData.user_id){
+            isDeletable = true;
+        };
+        renderPostData(postData, isDeletable);
         console.log(postData);
     } catch(error){
         console.log("the error was catched", error);
@@ -17,7 +23,7 @@ async function getPostData(){
 getPostData();
 
 //render post and comments
-function renderPostData(data){
+function renderPostData(data, isDeletable){
     const postDiscription = document.querySelector(".comment.init")
     postDiscription.innerHTML = `
     <div class="author">
@@ -39,6 +45,7 @@ function renderPostData(data){
                         <button class="likes">${data.comments[0].likes}</button>
                         <button class="dislikes">${data.comments[0].dislikes}</button>
                     </div>
+                    ${isDeletable ? "<button id='delete' class='blue_btn'>Delete the post</button>": ""}
                 </div>`;
                 renderAllComments(data);
 };

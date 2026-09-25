@@ -1,15 +1,25 @@
+export async function getUserID() { 
+    try { 
+        const response = await fetch("http://localhost:8080/me"); 
+        if (!response.ok) { return null; } 
+        const userID = await response.json(); 
+        return userID; 
+    } catch (error) { 
+        console.log("Error getting user ID:", error); 
+        return null; 
+    } 
+}
 //
 async function checkIsUserLoggedIn(){
         try{
-        const response = await fetch(`http://localhost:8080/me`);
-        if (!response.ok){
-            renderLoggedOutHeader();
-            return;
-        };
-        const userID = await response.json();
+        const userID = await getUserID();
+        if (userID === null) { 
+            renderLoggedOutHeader(); 
+            return; 
+        }
         const responseUser = await fetch(`http://localhost:8080/users/${userID}`);
         if (!responseUser.ok){
-            throw new Error(`Error HTTP: ${response.status}`); 
+            throw new Error(`Error HTTP: ${responseUser.status}`); 
         };
         const userData = await response.json();
         renderLoggedInHeader(userData);
@@ -39,9 +49,7 @@ const list = document.querySelector(".nav-list");
 //renders navigation, check if there is already 4 li it's not gonna fill new elements
 function renderLoggedInNav(user){
     if (list.children.length!=4){
-        let newEl;
-        newEl.innerHTML = `<li><a class="nav-list_item" href="createPost.html">Create post</a></li>
-        <li><a class="nav-list_item" href="myPosts?id=${user.id}.html">My posts</a></li>`; 
-        list.insertAdjacentHTML("beforeend", newEl);
+       list.insertAdjacentHTML("beforeend", `<li><a class="nav-list_item" href="createPost.html">Create post</a></li>
+        <li><a class="nav-list_item" href="myPosts.html?id=${user.id}">My posts</a></li>`);
     };
 };
