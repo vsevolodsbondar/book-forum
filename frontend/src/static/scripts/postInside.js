@@ -23,7 +23,7 @@ async function getPostData() {
     if (userID === null) {
       isLoggedIn = false;
     }
-    renderPostData(postData, isOwner, isLoggedIn);
+    renderPostData(postData, isOwner, isLoggedIn, userID);
     console.log(postData);
   } catch (error) {
     console.log("the error was catched", error);
@@ -32,7 +32,7 @@ async function getPostData() {
 getPostData();
 
 //render post and comments
-function renderPostData(data, isOwner, isLoggedIn) {
+function renderPostData(data, isOwner, isLoggedIn, userID) {
   const postDiscription = document.querySelector(".comment.init");
   postDiscription.innerHTML = `
     <div class="author">
@@ -56,7 +56,7 @@ function renderPostData(data, isOwner, isLoggedIn) {
                         <button class="dislikes">${data.comments[0].dislikes}</button>
                     </div>
                 </div>`;
-  renderAllComments(data, isOwner, isLoggedIn);
+  renderAllComments(data, userID, isLoggedIn);
   toDisableForm(isLoggedIn);
   if (isLoggedIn) {
     form.querySelector(".main_btn").addEventListener("click", (event) => {
@@ -92,9 +92,10 @@ function renderComment(comment, isOwner, isLoggedIn) {
             </article>`;
   container.insertAdjacentHTML("beforeend", newEl);
 }
-function renderAllComments(data, isOwner, isLoggedIn) {
+function renderAllComments(data, userID, isLoggedIn) {
   for (let i = 1; i < data.comments.length; i++) {
-    renderComment(data.comments[i], isOwner, isLoggedIn);
+    const isCommentOwner = data.comments[i].user_id === userID;
+    renderComment(data.comments[i], isCommentOwner, isLoggedIn);
   }
 }
 //to disable the form for comments if the user isn't logged in
@@ -182,13 +183,42 @@ postInside.addEventListener("click", (event) => {
     description.style.display = "block";
     updateForm.remove();
   });
-  submitBtn.addEventListener("click", () => {
-    const value = comment.querySelector(".update-form .message_field").value;
-    const trimmed = value.trim();
+  submitBtn.addEventListener("click", async () => {
+    const trimmed = comment
+      .querySelector(".update-form .message_field")
+      .value.trim();
     if (trimmed === "") return;
-    description.textContent = trimmed;
-    footer.style.display = "flex";
-    description.style.display = "block";
-    updateForm.remove();
+
+    const closeForm = () => {
+      footer.style.display = "flex";
+      description.style.display = "block";
+      updateForm.remove();
+    };
+
+    // nothing changed: backend would answer 400, so don't even ask
+    if (trimmed === description.textContent) {
+      closeForm();
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/comments/${comment.id}`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json;charset=utf-8" },
+          body: JSON.stringify({ text: trimmed }),
+        },
+      );
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+      const result = await response.json();
+      description.textContent = result.text;
+      closeForm();
+    } catch (error) {
+      console.error("Error updating comment:", error);
+    }
   });
 });
