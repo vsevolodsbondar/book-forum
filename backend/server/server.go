@@ -40,7 +40,12 @@ func Server(ctx context.Context, db *sql.DB) (*http.Server, error) {
 		},
 	}
 
-	// mockAuthClient := &client.MockAuthClient{}
+	err := authClient.Check(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println("Auth server ready to take connections.")
 
 	dependencyWiring(mux, db, authClient)
 

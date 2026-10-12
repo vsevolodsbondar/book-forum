@@ -162,10 +162,9 @@ func (c *AuthHTTPClient) doRequest(ctx context.Context, params AuthClientRequest
 
 func (c *AuthHTTPClient) Check(ctx context.Context) error {
 	params := AuthClientRequestParams{
-		Method:         http.MethodPost,
-		Path:           "/v1/logout",
-		ExpectedStatus: http.StatusNoContent,
-		RequestHeaders: headers,
+		Method:         http.MethodGet,
+		Path:           "/health/ready",
+		ExpectedStatus: http.StatusOK,
 	}
 
 	err := c.doRequest(ctx, params)
