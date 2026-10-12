@@ -1,4 +1,4 @@
-package db
+package database
 
 import (
 	"database/sql"
@@ -15,16 +15,16 @@ func Open(path string) (*sql.DB, error) {
 		return nil, fmt.Errorf("create database directory: %w", err)
 	}
 
-	database, err := sql.Open("sqlite3", path+"?_foreign_keys=on")
+	db, err := sql.Open("sqlite3", path+"?_foreign_keys=on")
 	if err != nil {
 		return nil, fmt.Errorf("open database: %w", err)
 	}
 
 	// Verifies connectivity, opening a connection if needed.
-	if err := database.Ping(); err != nil {
-		database.Close()
+	if err := db.Ping(); err != nil {
+		db.Close()
 		return nil, fmt.Errorf("verify database connection: %w", err)
 	}
 
-	return database, nil
+	return db, nil
 }

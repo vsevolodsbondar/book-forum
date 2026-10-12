@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"forum_backend/custom_err"
 	"forum_backend/helper"
 	"forum_backend/model"
 	"forum_backend/repository"
@@ -22,7 +23,7 @@ func (cs *CommentService) Create(ctx context.Context, comment *model.CreateComme
 	var isValidated bool
 	comment.Comment.Text, isValidated = helper.IsEmptyText(comment.Comment.Text)
 	if isValidated {
-		return nil, fmt.Errorf("Your message is empty")
+		return nil, fmt.Errorf("%w: your message is empty", custom_err.ErrInvalidInput)
 	}
 	commentWritten, err := cs.repo.Create(ctx, comment)
 	if err != nil {
@@ -40,7 +41,7 @@ func (cs *CommentService) Update(ctx context.Context, comment model.UpdateCommen
 	var isValidated bool
 	comment.CommentToUpdate.Text, isValidated = helper.IsEmptyText(comment.CommentToUpdate.Text)
 	if isValidated {
-		return nil, fmt.Errorf("Your message is empty")
+		return nil, fmt.Errorf("%w: your message is empty", custom_err.ErrInvalidInput)
 	}
 	updatedComment, err := cs.repo.Update(ctx, comment)
 	return updatedComment, err

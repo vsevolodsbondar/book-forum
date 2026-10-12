@@ -107,9 +107,9 @@ Display and tagging username.
 The original display casing is stored, while `COLLATE NOCASE UNIQUE` prevents ASCII case-only duplicates such as:
 
 ```text
-Alice
-alice
-ALICE
+User
+user
+USER
 ```
 
 AUTH trims and validates usernames before storage according to the

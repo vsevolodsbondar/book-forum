@@ -1,0 +1,1 @@
+// here the user should create a post and i guess than be redirected to the page of post

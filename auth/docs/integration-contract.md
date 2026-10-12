@@ -207,8 +207,8 @@ Content-Type: application/json
 
 ```json
 {
-	"email": "alice@example.com",
-	"username": "Alice",
+	"email": "user@example.com",
+	"username": "User",
 	"password": "..."
 }
 ```
@@ -222,7 +222,7 @@ Content-Type: application/json
 
 ```json
 {
-	"email": "alice@example.com",
+	"email": "user@example.com",
 	"password": "..."
 }
 ```
@@ -235,8 +235,8 @@ Example successful login public response:
 {
 	"user": {
 		"id": 42,
-		"email": "alice@example.com",
-		"username": "Alice"
+		"email": "user@example.com",
+		"username": "User"
 	}
 }
 ```
@@ -265,13 +265,13 @@ Email requirements:
 
 See [email requirements](api.md#email-requirements) for the full validation rules.
 
-Username requirements
+Username requirements:
 
 - Length after trimming: 3 to 30 characters.
 - Allowed characters: ASCII letters (`A–Z`, `a–z`), digits (`0–9`), and underscores (`_`).
 - Surrounding whitespace is trimmed before validation and storage.
 - Display casing is preserved.
-- Usernames are unique regardless of ASCII letter casing: `Alice` and `alice` conflict.
+- Usernames are unique regardless of ASCII letter casing: `User` and `user` conflict.
 
 See [username requirements](api.md#username-requirements) for the full validation rules.
 
@@ -328,13 +328,13 @@ BACKEND handles revocation and cookie deletion.
 ## AUTH -> BACKEND
 
 - [x] Internal AUTH base URL / container service name provided.
-- [ ] `/v1/register` implemented and documented.
-- [ ] `/v1/login` implemented and documented.
-- [ ] `/v1/session/validate` implemented and documented.
-- [ ] `/v1/logout` implemented and documented.
-- [ ] Error codes/status codes finalized.
-- [ ] Session expiry duration finalized/configurable.
-- [ ] Example requests available.
+- [x] `/v1/register` implemented and documented.
+- [x] `/v1/login` implemented and documented.
+- [x] `/v1/session/validate` implemented and documented.
+- [x] `/v1/logout` implemented and documented.
+- [x] Error codes/status codes finalized.
+- [x] Session expiry duration finalized/configurable.
+- [x] Example requests available.
 
 ## BACKEND -> AUTH
 
