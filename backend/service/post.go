@@ -73,6 +73,15 @@ func (ps *PostService) PostMaker(ctx context.Context, dto model.CreatePostReques
 	return res, nil
 }
 
+func (ps *PostService) GetByID(ctx context.Context, postID int64) (*model.PostResultDTO, error) {
+	post, err := ps.Repo.GetByID(ctx, postID)
+	if err != nil {
+		return nil, err
+	}
+
+	return post, nil
+}
+
 func (ps *PostService) DeletePost(ctx context.Context, dto model.DeletePostRequest) (bool, error) {
 	post, err := ps.Repo.GetByID(ctx, dto.PostID)
 	if err != nil {

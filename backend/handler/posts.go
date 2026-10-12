@@ -91,6 +91,23 @@ func (h *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+func (h *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+
+	postID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		return custom_err.ErrInvalidID
+	}
+
+	res, err := h.Service.GetByID(ctx, int64(postID))
+	if err != nil {
+		return err
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(w).Encode(res)
+}
+
 func parseSearchPostsDTO(query url.Values, page int, limit int) (model.SearchPostsDTO, error) {
 	dto := model.SearchPostsDTO{
 		Page:   page,
