@@ -50,7 +50,7 @@ function renderPostData(data, isOwner, isLoggedIn, userID) {
                     <div class="tags">
                         <div class="tags_item">${data.category}</div>
                     </div>
-                    ${isOwner ? "<button id='delete' class='blue_empty_btn'>Delete the post</button>" : ""}
+                    ${isOwner ? '<button class="delete">Delete the post</button>' : ""}
                     <div class="stats">
                         <button class="likes">${data.comments[0].likes}</button>
                         <button class="dislikes">${data.comments[0].dislikes}</button>
@@ -86,6 +86,7 @@ function renderComment(comment, isOwner, isLoggedIn) {
                     </div>
                     <div class="reply">
                         ${isOwner ? '<button class="blue_empty_btn btn_update">Edit</button>' : ""}
+						${isOwner ? '<button class="delete btn_delete">Delete</button>' : ""}
                         ${isLoggedIn ? '<button class="blue_empty_btn btn_reply">Reply</button>' : ""}
                     </div>
                 </div>
@@ -221,4 +222,38 @@ postInside.addEventListener("click", (event) => {
       console.error("Error updating comment:", error);
     }
   });
+});
+// click on delete button of a comment
+postInside.addEventListener("click", async (event) => {
+  const btn = event.target.closest(".btn_delete");
+  if (!btn) return;
+  const comment = btn.closest(".comment");
+
+  try {
+    const response = await fetch(
+      `http://localhost:8080/comments/${comment.id}`,
+      { method: "DELETE", credentials: "include" },
+    );
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+
+    // the backend either deleted the comment or turned it into "Deleted message"
+    const check = await fetch(`http://localhost:8080/comments/${comment.id}`, {
+      credentials: "include",
+    });
+    if (check.status === 404) {
+      comment.remove();
+      return;
+    }
+    const left = await check.json();
+    comment.querySelector(".description").textContent = left.text;
+    comment.querySelector(".username").textContent =
+      left.user_for_comment.username;
+    comment
+      .querySelectorAll(".btn_update, .btn_delete")
+      .forEach((el) => el.remove());
+  } catch (error) {
+    console.error("Error deleting comment:", error);
+  }
 });

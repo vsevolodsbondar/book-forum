@@ -17,6 +17,7 @@
 	--font-color-orange: #f48023;
 	--shadow:
 		0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+		--font-color-red: #d93025;
 	--font-color-black: #000000;
 	--font-color-orange: #f48023;
 }
@@ -127,6 +128,17 @@ body {
 button:disabled,
 textarea:disabled {
 	opacity: 0.6;
+}
+.delete {
+	padding: 10px;
+	border: none;
+	background-color: transparent;
+	font-size: 1.1rem;
+	color: var(--font-color-red);
+	cursor: pointer;
+}
+.delete:hover {
+	text-decoration: underline;
 }
 
 /* main */
