@@ -159,3 +159,19 @@ func (c *AuthHTTPClient) doRequest(ctx context.Context, params AuthClientRequest
 
 	return nil
 }
+
+func (c *AuthHTTPClient) Check(ctx context.Context) error {
+	params := AuthClientRequestParams{
+		Method:         http.MethodPost,
+		Path:           "/v1/logout",
+		ExpectedStatus: http.StatusNoContent,
+		RequestHeaders: headers,
+	}
+
+	err := c.doRequest(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

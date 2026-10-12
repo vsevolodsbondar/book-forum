@@ -11,6 +11,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"time"
 )
 
 type Config struct {
@@ -34,17 +35,16 @@ func Server(ctx context.Context, db *sql.DB) (*http.Server, error) {
 		},
 	}
 
-	// later will inject true client
-	// authClient := &client.AuthHTTPClient{
-	// 	BaseURL: "http://auth:8081",
-	// 	Client: &http.Client{
-	// 		Timeout: 3 * time.Second,
-	// 	},
-	// }
+	authClient := &client.AuthHTTPClient{
+		BaseURL: "http://auth:8081",
+		Client: &http.Client{
+			Timeout: 3 * time.Second,
+		},
+	}
 
-	mockAuthClient := &client.MockAuthClient{}
+	// mockAuthClient := &client.MockAuthClient{}
 
-	dependencyWiring(mux, db, mockAuthClient)
+	dependencyWiring(mux, db, authClient)
 
 	log.Println("Launching server at", srv.Addr)
 	return srv, nil
