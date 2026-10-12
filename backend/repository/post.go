@@ -36,9 +36,18 @@ func (repo *SQLitePostRepository) GetAll(ctx context.Context, dto model.SearchPo
 
 	for _, v := range allPosts {
 		postIDs = append(postIDs, v.ID)
-		initCommentIDs = append(initCommentIDs, *v.InitCommentID)
-		authorIDs = append(authorIDs, *v.AuthorID)
-		categoryIDs = append(categoryIDs, *v.CategoryID)
+
+		if v.InitCommentID != nil {
+			initCommentIDs = append(initCommentIDs, *v.InitCommentID)
+		}
+
+		if v.AuthorID != nil {
+			authorIDs = append(authorIDs, *v.AuthorID)
+		}
+
+		if v.CategoryID != nil {
+			categoryIDs = append(categoryIDs, *v.CategoryID)
+		}
 	}
 
 	mapWithComments, err := repo.findCommentsForPosts(ctx, postIDs)
@@ -59,10 +68,21 @@ func (repo *SQLitePostRepository) GetAll(ctx context.Context, dto model.SearchPo
 	}
 
 	for i := range allPosts {
-		allPosts[i].CommentIDs = mapWithComments[allPosts[i].ID]
-		allPosts[i].Likes = mapWithLikes[*allPosts[i].InitCommentID]
-		allPosts[i].Author = mapWithUsers[*allPosts[i].AuthorID]
-		allPosts[i].CategoryName = mapWithCategories[*allPosts[i].CategoryID]
+		post := &allPosts[i]
+
+		post.CommentIDs = mapWithComments[post.ID]
+
+		if post.InitCommentID != nil {
+			post.Likes = mapWithLikes[*post.InitCommentID]
+		}
+
+		if post.AuthorID != nil {
+			post.Author = mapWithUsers[*post.AuthorID]
+		}
+
+		if post.CategoryID != nil {
+			post.CategoryName = mapWithCategories[*post.CategoryID]
+		}
 	}
 
 	paginated := model.PostsPaginated{
@@ -150,7 +170,28 @@ func (repo *SQLitePostRepository) CreatePost(ctx context.Context, dto m.CreatePo
 	return &post, nil
 }
 
-func (cr *SQLitePostRepository) createCommentTx(ctx context.Context, comment *model.CreateCommentRequest, tx *sql.Tx) (*model.Comment, error) {
+func (repo *SQLitePostRepository) DeleteByID(ctx context.Context, dto m.DeletePostRequest) (bool, error) {
+	query := `
+		DELETE FROM post
+		WHERE id = ? AND author_id = ?
+	`
+
+	result, err := repo.db.ExecContext(
+		ctx, query, dto.PostID, dto.UserID,
+	)
+	if err != nil {
+		return false, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return rowsAffected > 0, nil
+}
+
+func (repo *SQLitePostRepository) createCommentTx(ctx context.Context, comment *model.CreateCommentRequest, tx *sql.Tx) (*model.Comment, error) {
 	query := `
 		INSERT INTO comment (text, post_id, user_id)
 		VALUES (?,?,?) 
@@ -217,15 +258,31 @@ func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.Se
 	var createdAt string
 	for rows.Next() {
 		var post model.PostResultDTO
+		var authorID sql.NullInt64
+		var categoryID sql.NullInt64
+		var initCommentID sql.NullInt64
 
 		err := rows.Scan(
 			&post.ID,
 			&post.Title,
-			&post.AuthorID,
-			&post.CategoryID,
+			&authorID,
+			&categoryID,
 			&createdAt,
-			&post.InitCommentID,
+			&initCommentID,
 		)
+
+		if authorID.Valid {
+			post.AuthorID = &authorID.Int64
+		}
+
+		if categoryID.Valid {
+			post.CategoryID = &categoryID.Int64
+		}
+
+		if initCommentID.Valid {
+			post.InitCommentID = &initCommentID.Int64
+		}
+
 		if err != nil {
 			return nil, err
 		}
@@ -430,18 +487,17 @@ func (repo *SQLitePostRepository) CountPosts(ctx context.Context, dto model.Sear
 		SELECT COUNT(*)
 		FROM post
 	`
-
 	var args []any
 
 	if dto.IsSearch {
 		switch *dto.SearchField {
-		case "author":
+		case "authorId":
 			query += `WHERE author_id = ? `
-			args = append(args, *dto.SearchValue)
+			args = append(args, dto.SearchValue)
 
-		case "category_id":
+		case "categoryId":
 			query += `WHERE category_id = ? `
-			args = append(args, *dto.SearchValue)
+			args = append(args, dto.SearchValue)
 		}
 	}
 

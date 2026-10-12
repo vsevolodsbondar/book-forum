@@ -72,6 +72,11 @@ type PostCreatedDTO struct {
 	CreatedAt       time.Time `json:"created_at"`
 }
 
+type DeletePostRequest struct {
+	PostID int64
+	UserID int64
+}
+
 func (dto *SearchPostsDTO) Validate() error {
 	if dto.Limit <= 0 {
 		return fmt.Errorf("%w: limit must be greater than 0", custom_err.ErrInvalidInput)
