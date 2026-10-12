@@ -158,20 +158,26 @@ func (h *CommentHandler) GetByID(w http.ResponseWriter, r *http.Request) error {
 	return json.NewEncoder(w).Encode(comment)
 }
 func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
 	commentID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		return fmt.Errorf("%w: invalid id", custom_err.ErrInvalidInput)
 	}
-	ctx := r.Context()
-	sessionCookie, err := helper.ExtractSessionCookie(r)
 
-	response, err := h.auth.ValidateSession(ctx, sessionCookie)
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		return fmt.Errorf("%w: no session cookie", custom_err.ErrExpiredSession)
+	}
+	session, err := h.auth.ValidateSession(ctx, cookie.Value)
+	if err != nil {
+		return fmt.Errorf("%w: session validation failed", custom_err.ErrSessionValidationFail)
+	}
+
 	commentDTO := model.DeleteCommentDTO{
 		CommentID: commentID,
-		UserID:    int(response.User.ID),
+		UserID:    int(session.User.ID),
 	}
-	err = h.service.Delete(ctx, commentDTO)
-	if err != nil {
+	if err := h.service.Delete(ctx, commentDTO); err != nil {
 		return err
 	}
 	w.WriteHeader(http.StatusNoContent)
