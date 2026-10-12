@@ -49,7 +49,7 @@ func Server(ctx context.Context, db *sql.DB) (*http.Server, error) {
 }
 
 func dependencyWiring(mux *http.ServeMux, db *sql.DB, auth client.AuthInterface) *http.ServeMux {
-	mux.HandleFunc("GET /api/posts", handler.GetLanding)
+	//comments wiring
 	commentsRepo := repository.NewSQLiteCommentRepository(db)
 	commentService := service.NewCommentService(commentsRepo)
 	commentHandler := handler.NewCommentHandler(commentService, auth)
@@ -57,8 +57,17 @@ func dependencyWiring(mux *http.ServeMux, db *sql.DB, auth client.AuthInterface)
 	usersRepo := repository.NewSQLiteUserRepository(db)
 	userService := service.NewUserService(usersRepo, auth)
 	userHandler := handler.NewUserHandler(userService, auth)
+	//posts wiring
+	postsRepo := repository.NewSQLitePostRepository(db)
+	postsService := service.NewPostService(postsRepo)
+	postsHandler := handler.NewPostHandler(postsService, auth)
 
-	RegisterRoutes(mux, commentHandler, userHandler)
+	categoryRepo := repository.NewSQLiteCategoryRepository(db)
+	categoryService := service.NewCategoryService(categoryRepo)
+	categoryHandler := handler.NewCategoryHandler(categoryService)
+
+	authSession := handler.NewAuthHandler(auth)
+	RegisterRoutes(mux, commentHandler, userHandler, postsHandler, authSession, categoryHandler)
 
 	return mux
 }

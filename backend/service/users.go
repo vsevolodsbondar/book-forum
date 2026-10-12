@@ -11,14 +11,10 @@ import (
 
 type UserService struct {
 	Repo repository.UsersRepository
-	Auth client.AuthInterface
 }
 
 func NewUserService(repo repository.UsersRepository, auth client.AuthInterface) *UserService {
-	return &UserService{
-		Repo: repo,
-		Auth: auth,
-	}
+	return &UserService{Repo: repo}
 }
 
 // GET
