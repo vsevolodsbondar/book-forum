@@ -106,28 +106,34 @@ func (h *CommentHandler) Update(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	commentID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		return fmt.Errorf("invalid id: %w", custom_err.ErrInvalidInput)
+		return fmt.Errorf("%w: invalid id", custom_err.ErrInvalidInput)
 	}
-	comentToUpdate := model.CommentPatchRequest{}
-	err = json.NewDecoder(r.Body).Decode(&comentToUpdate)
+
+	cookie, err := r.Cookie("session")
 	if err != nil {
+		return fmt.Errorf("%w: no session cookie", custom_err.ErrExpiredSession)
+	}
+	session, err := h.auth.ValidateSession(ctx, cookie.Value)
+	if err != nil {
+		return fmt.Errorf("%w: session validation failed", custom_err.ErrSessionValidationFail)
+	}
+
+	var body model.CommentPatchRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		return fmt.Errorf("%w: invalid json format", custom_err.ErrInvalidInput)
 	}
-	sessionCookie, err := helper.ExtractSessionCookie(r)
 
-	response, err := h.auth.ValidateSession(ctx, sessionCookie)
 	commentDTO := model.UpdateCommentDTO{
-		CommentToUpdate: comentToUpdate,
+		CommentToUpdate: body,
 		CommentID:       commentID,
-		UserID:          int(response.User.ID),
+		UserID:          int(session.User.ID),
 	}
 	updatedComment, err := h.service.Update(ctx, commentDTO)
 	if err != nil {
 		return err
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(updatedComment)
-	return nil
+	return json.NewEncoder(w).Encode(updatedComment)
 }
 func (h *CommentHandler) GetByID(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
