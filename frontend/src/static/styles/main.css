@@ -1065,6 +1065,10 @@ textarea:disabled {
 	opacity: 0.9;
 	line-height: 1;
 }
+/* posts of user */
+.posts-of-user{
+	padding-top: 35px;
+}
 
 /* hovers */
 @media (hover: hover) {
