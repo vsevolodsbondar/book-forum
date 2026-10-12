@@ -83,8 +83,12 @@ func (h *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	if res {
+		w.WriteHeader(http.StatusNoContent)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	return json.NewEncoder(w).Encode(res)
+	return nil
 }
 
 func parseSearchPostsDTO(query url.Values, page int, limit int) (model.SearchPostsDTO, error) {

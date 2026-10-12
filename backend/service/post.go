@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"forum_backend/custom_err"
 	"forum_backend/model"
 	"forum_backend/repository"
 )
@@ -73,6 +74,15 @@ func (ps *PostService) PostMaker(ctx context.Context, dto model.CreatePostReques
 }
 
 func (ps *PostService) DeletePost(ctx context.Context, dto model.DeletePostRequest) (bool, error) {
+	post, err := ps.Repo.GetByID(ctx, dto.PostID)
+	if err != nil {
+		return false, err
+	}
+
+	if post.AuthorID == nil || *post.AuthorID != dto.UserID {
+		return false, custom_err.ErrForbidden
+	}
+
 	res, err := ps.Repo.DeleteByID(ctx, dto)
 	if err != nil {
 		return false, err

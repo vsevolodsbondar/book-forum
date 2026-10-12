@@ -10,4 +10,5 @@ type PostRepository interface {
 	CreatePost(context.Context, m.CreatePostDTO) (*m.PostCreatedDTO, error)
 	CountPosts(context.Context, m.SearchPostsDTO) (int, error)
 	DeleteByID(context.Context, m.DeletePostRequest) (bool, error)
+	GetByID(context.Context, int64) (*m.PostResultDTO, error)
 }

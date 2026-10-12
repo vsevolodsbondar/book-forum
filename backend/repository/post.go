@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"forum_backend/custom_err"
 	"forum_backend/model"
@@ -189,6 +190,58 @@ func (repo *SQLitePostRepository) DeleteByID(ctx context.Context, dto m.DeletePo
 	}
 
 	return rowsAffected > 0, nil
+}
+
+func (repo *SQLitePostRepository) GetByID(ctx context.Context, postID int64) (*m.PostResultDTO, error) {
+	query := `
+		SELECT id, title, author_id, category_id, created_at, init_comment_id
+		FROM post
+		WHERE id = ?
+	`
+
+	var post m.PostResultDTO
+	var authorID sql.NullInt64
+	var categoryID sql.NullInt64
+	var initCommentID sql.NullInt64
+	var createdAt string
+
+	err := repo.db.QueryRowContext(ctx, query, postID).Scan(
+		&post.ID,
+		&post.Title,
+		&authorID,
+		&categoryID,
+		&createdAt,
+		&initCommentID,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, custom_err.ErrPostNotFound
+		}
+		return nil, err
+	}
+
+	if authorID.Valid {
+		post.AuthorID = &authorID.Int64
+	}
+
+	if categoryID.Valid {
+		post.CategoryID = &categoryID.Int64
+	}
+
+	if initCommentID.Valid {
+		post.InitCommentID = &initCommentID.Int64
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	post.CreatedAt, err = time.Parse("2006-01-02 15:04:05", createdAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return &post, nil
 }
 
 func (repo *SQLitePostRepository) createCommentTx(ctx context.Context, comment *model.CreateCommentRequest, tx *sql.Tx) (*model.Comment, error) {
