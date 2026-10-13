@@ -41,4 +41,5 @@ var (
 	// more errors
 	ErrNoChange  = errors.New("the text wasn't changed")
 	ErrForbidden = errors.New("forbidden")
+	ErrConflict  = errors.New("already exists")
 )
