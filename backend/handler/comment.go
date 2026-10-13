@@ -31,11 +31,14 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	// 1. who is it? Check this before touching the body
-	cookie, err := r.Cookie("session")
+	sessionCookie, err := helper.ExtractSessionCookie(r)
 	if err != nil {
-		return fmt.Errorf("%w: no session cookie", custom_err.ErrExpiredSession)
+		return err
 	}
-	session, err := h.auth.ValidateSession(ctx, cookie.Value)
+	response, err := h.auth.ValidateSession(ctx, sessionCookie)
+	if err != nil {
+		return err
+	}
 
 	// 2. what did they send?
 	var body model.CreateCommentBody
@@ -52,7 +55,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) error {
 			PostID:          int64(idPost),
 			ParentCommentID: body.ParentCommentID,
 		},
-		UserID: int(session.User.ID),
+		UserID: int(response.User.ID),
 	}
 
 	comment, err := h.service.Create(ctx, &dto)
@@ -85,9 +88,16 @@ func (h *CommentHandler) GetAllByPostID(w http.ResponseWriter, r *http.Request) 
 			return fmt.Errorf("%w: invalid size number", custom_err.ErrInvalidInput)
 		}
 	}
-	sessionCookie, err := helper.ExtractSessionCookie(r)
 
+	sessionCookie, err := helper.ExtractSessionCookie(r)
+	if err != nil {
+		return err
+	}
 	response, err := h.auth.ValidateSession(ctx, sessionCookie)
+	if err != nil {
+		return err
+	}
+
 	commentDTO := model.GetAllCommentDTO{
 		PageInt: pageInt,
 		SizeInt: sizeInt,
@@ -102,6 +112,7 @@ func (h *CommentHandler) GetAllByPostID(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(comments)
 	return nil
 }
+
 func (h *CommentHandler) Update(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	commentID, err := strconv.Atoi(r.PathValue("id"))
@@ -109,13 +120,13 @@ func (h *CommentHandler) Update(w http.ResponseWriter, r *http.Request) error {
 		return fmt.Errorf("%w: invalid id", custom_err.ErrInvalidInput)
 	}
 
-	cookie, err := r.Cookie("session")
+	sessionCookie, err := helper.ExtractSessionCookie(r)
 	if err != nil {
-		return fmt.Errorf("%w: no session cookie", custom_err.ErrExpiredSession)
+		return err
 	}
-	session, err := h.auth.ValidateSession(ctx, cookie.Value)
+	response, err := h.auth.ValidateSession(ctx, sessionCookie)
 	if err != nil {
-		return fmt.Errorf("%w: session validation failed", custom_err.ErrSessionValidationFail)
+		return err
 	}
 
 	var body model.CommentPatchRequest
@@ -126,7 +137,7 @@ func (h *CommentHandler) Update(w http.ResponseWriter, r *http.Request) error {
 	commentDTO := model.UpdateCommentDTO{
 		CommentToUpdate: body,
 		CommentID:       commentID,
-		UserID:          int(session.User.ID),
+		UserID:          int(response.User.ID),
 	}
 	updatedComment, err := h.service.Update(ctx, commentDTO)
 	if err != nil {
@@ -135,6 +146,7 @@ func (h *CommentHandler) Update(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Content-Type", "application/json")
 	return json.NewEncoder(w).Encode(updatedComment)
 }
+
 func (h *CommentHandler) GetByID(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	commentID, err := strconv.Atoi(r.PathValue("id"))
@@ -144,9 +156,9 @@ func (h *CommentHandler) GetByID(w http.ResponseWriter, r *http.Request) error {
 
 	// session is optional: guests can read, they just have no likes of their own
 	userID := 0
-	if cookie, err := r.Cookie("session"); err == nil {
-		if session, err := h.auth.ValidateSession(ctx, cookie.Value); err == nil {
-			userID = int(session.User.ID)
+	if sessionCookie, err := helper.ExtractSessionCookie(r); err == nil {
+		if response, err := h.auth.ValidateSession(ctx, sessionCookie); err == nil {
+			userID = int(response.User.ID)
 		}
 	}
 
@@ -157,6 +169,7 @@ func (h *CommentHandler) GetByID(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Content-Type", "application/json")
 	return json.NewEncoder(w).Encode(comment)
 }
+
 func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	commentID, err := strconv.Atoi(r.PathValue("id"))
@@ -164,18 +177,18 @@ func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 		return fmt.Errorf("%w: invalid id", custom_err.ErrInvalidInput)
 	}
 
-	cookie, err := r.Cookie("session")
+	sessionCookie, err := helper.ExtractSessionCookie(r)
 	if err != nil {
-		return fmt.Errorf("%w: no session cookie", custom_err.ErrExpiredSession)
+		return err
 	}
-	session, err := h.auth.ValidateSession(ctx, cookie.Value)
+	response, err := h.auth.ValidateSession(ctx, sessionCookie)
 	if err != nil {
-		return fmt.Errorf("%w: session validation failed", custom_err.ErrSessionValidationFail)
+		return err
 	}
 
 	commentDTO := model.DeleteCommentDTO{
 		CommentID: commentID,
-		UserID:    int(session.User.ID),
+		UserID:    int(response.User.ID),
 	}
 	if err := h.service.Delete(ctx, commentDTO); err != nil {
 		return err
