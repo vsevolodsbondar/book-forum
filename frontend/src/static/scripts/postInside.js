@@ -52,8 +52,8 @@ function renderPostData(data, isOwner, isLoggedIn, userID) {
                     </div>
                     ${isOwner ? '<button class="delete">Delete the post</button>' : ""}
                     <div class="stats">
-                        <button class="likes">${data.comments[0].likes}</button>
-                        <button class="dislikes">${data.comments[0].dislikes}</button>
+                        <button class="likes ${data.comments[0].is_liked ? "choosed" : ""}">${data.comments[0].likes}</button>
+                        <button class="dislikes ${data.comments[0].is_disliked ? "choosed" : ""}">${data.comments[0].dislikes}</button>
                     </div>
                 </div>`;
   renderAllComments(data, userID, isLoggedIn);
