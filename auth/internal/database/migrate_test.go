@@ -50,9 +50,7 @@ func newTestDB(t *testing.T) *sql.DB {
 	if err != nil {
 		t.Fatalf("open database: %v", err)
 	}
-	t.Cleanup(func() {
-		db.Close()
-	})
+	t.Cleanup(func() { db.Close() })
 
 	if err := Migrate(db); err != nil {
 		t.Fatalf("migrate database: %v", err)

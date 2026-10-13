@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"forum_backend/client"
 	"forum_backend/custom_err"
+	"forum_backend/helper"
 	"net/http"
 )
 
@@ -16,11 +17,9 @@ func NewAuthHandler(authClient client.AuthInterface) *AuthHandler {
 	return &AuthHandler{authClient: authClient}
 }
 func (h *AuthHandler) AuthUser(w http.ResponseWriter, r *http.Request) error {
-	session, err := r.Cookie("session")
-	if err != nil {
-		return fmt.Errorf("%w: no session cookie", custom_err.ErrExpiredSession)
-	}
-	result, err := h.authClient.ValidateSession(r.Context(), session.Value)
+	sessionCookie, err := helper.ExtractSessionCookie(r)
+
+	result, err := h.authClient.ValidateSession(r.Context(), sessionCookie)
 	if err != nil {
 		return fmt.Errorf("%w: session validation failed", custom_err.ErrSessionValidationFail)
 	}

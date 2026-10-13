@@ -159,3 +159,18 @@ func (c *AuthHTTPClient) doRequest(ctx context.Context, params AuthClientRequest
 
 	return nil
 }
+
+func (c *AuthHTTPClient) Check(ctx context.Context) error {
+	params := AuthClientRequestParams{
+		Method:         http.MethodGet,
+		Path:           "/health/ready",
+		ExpectedStatus: http.StatusOK,
+	}
+
+	err := c.doRequest(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

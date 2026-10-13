@@ -10,6 +10,7 @@ import (
 	"forum_backend/service"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 type PostHandler struct {
@@ -22,15 +23,17 @@ func NewPostHandler(service *service.PostService, authService client.AuthInterfa
 }
 
 func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) error {
-	ctx := r.Context()
 	page, limit, err := helper.GetPaginationParams(r)
 	if err != nil {
 		return fmt.Errorf("%w: invalid pagination", custom_err.ErrInvalidInput)
 	}
 
-	dto := parseSearchPostsDTO(r.URL.Query(), page, limit)
+	dto, err := parseSearchPostsDTO(r.URL.Query(), page, limit)
+	if err != nil {
+		return err
+	}
 
-	posts, err := h.Service.GetAllPosts(ctx, dto)
+	posts, err := h.Service.GetAllPosts(r.Context(), dto)
 	if err != nil {
 		return err
 	}
@@ -39,7 +42,73 @@ func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) error {
 	return json.NewEncoder(w).Encode(posts)
 }
 
-func parseSearchPostsDTO(query url.Values, page int, limit int) model.SearchPostsDTO {
+func (h *PostHandler) PostPost(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+	dto := model.CreatePostRequestDTO{}
+
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		return custom_err.ErrInvalidInput
+	}
+
+	sessionCookie, err := helper.ExtractSessionCookie(r)
+	response, err := h.Auth.ValidateSession(ctx, sessionCookie)
+
+	res, err := h.Service.PostMaker(ctx, dto, response.User.ID)
+	if err != nil {
+		return err
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(w).Encode(res)
+}
+
+func (h *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+	dto := model.DeletePostRequest{}
+
+	postID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		return custom_err.ErrInvalidID
+	}
+
+	sessionCookie, err := helper.ExtractSessionCookie(r)
+	response, err := h.Auth.ValidateSession(ctx, sessionCookie)
+
+	dto.PostID = int64(postID)
+	dto.UserID = int64(response.User.ID)
+
+	res, err := h.Service.DeletePost(ctx, dto)
+	if err != nil {
+		return err
+	}
+
+	if res {
+		w.WriteHeader(http.StatusNoContent)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	return nil
+}
+
+func (h *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+
+	postID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		return custom_err.ErrInvalidID
+	}
+
+	res, err := h.Service.GetByID(ctx, int64(postID))
+	if err != nil {
+		return err
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(w).Encode(res)
+}
+
+func parseSearchPostsDTO(query url.Values, page int, limit int) (model.SearchPostsDTO, error) {
 	dto := model.SearchPostsDTO{
 		Page:   page,
 		Limit:  limit,
@@ -48,17 +117,18 @@ func parseSearchPostsDTO(query url.Values, page int, limit int) model.SearchPost
 
 	// Search
 	search := query.Get("search")
-	if search != "" {
+	if search == "true" {
+		// Search field
+		field := query.Get("field")
+		// Search value
+		value := query.Get("value")
+
+		if field == "" || value == "" {
+			return model.SearchPostsDTO{}, fmt.Errorf("%w: if search is true - should fill search fields", custom_err.ErrInvalidInput)
+		}
+
 		dto.IsSearch = true
-	}
-
-	// Search field
-	if field := query.Get("field"); field != "" {
 		dto.SearchField = &field
-	}
-
-	// Search value
-	if value := query.Get("value"); value != "" {
 		dto.SearchValue = &value
 	}
 
@@ -76,5 +146,5 @@ func parseSearchPostsDTO(query url.Values, page int, limit int) model.SearchPost
 		dto.IsLatestPostsFirst = true
 	}
 
-	return dto
+	return dto, nil
 }

@@ -51,10 +51,9 @@ function renderPostData(data, isOwner, isLoggedIn) {
                     </div>
                     ${isOwner ? "<button id='delete' class='blue_empty_btn'>Delete the post</button>" : ""}
                     <div class="stats">
-                        <button class="likes ${data.comments[0].is_liked ? "choosed" : ""}">${data.comments[0].likes}</button>
-                        <button class="dislikes ${data.comments[0].is_disliked ? "choosed" : ""}">${data.comments[0].dislikes}</button>
+                        <button class="likes">${data.comments[0].likes}</button>
+                        <button class="dislikes">${data.comments[0].dislikes}</button>
                     </div>
-                    
                 </div>`;
 	renderAllComments(data, isOwner, isLoggedIn);
 	toDisableForm(isLoggedIn);
@@ -90,8 +89,8 @@ function renderAllComments(data, isOwner, isLoggedIn) {
                 <p class="description">${text}</p>
                 <div class="post-footer">
                     <div class="stats">
-                        <button class="likes ${isLiked ? "choosed" : ""}">${likes}</button>
-                        <button class="dislikes ${isDisliked ? "choosed" : ""}">${dislikes}</button>
+                        <button class="likes">${likes}</button>
+                        <button class="dislikes">${dislikes}</button>
                     </div>
                     <div class="reply">
                         ${isOwner ? '<button class="blue_empty_btn btn_update">Edit</button>' : ""}

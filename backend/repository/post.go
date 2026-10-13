@@ -3,9 +3,11 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"forum_backend/custom_err"
 	"forum_backend/model"
+	m "forum_backend/model"
 	"strings"
 	"time"
 )
@@ -28,46 +30,192 @@ func (repo *SQLitePostRepository) GetAll(ctx context.Context, dto model.SearchPo
 		return nil, custom_err.ErrPostNotFound
 	}
 
-	initCommentIDs := []int64{}
-	postIDs := []int64{}
-	authorIDs := []int64{}
-	categoryIDs := []int64{}
-
-	for _, v := range allPosts {
-		postIDs = append(postIDs, v.ID)
-		initCommentIDs = append(initCommentIDs, *v.InitCommentID)
-		authorIDs = append(authorIDs, *v.AuthorID)
-		categoryIDs = append(categoryIDs, *v.CategoryID)
-	}
-
-	mapWithComments, err := repo.findCommentsForPosts(ctx, postIDs)
-	if err != nil {
+	if err := repo.enrichPosts(ctx, allPosts); err != nil {
 		return nil, err
-	}
-	mapWithLikes, err := repo.countLikesForPost(ctx, initCommentIDs)
-	if err != nil {
-		return nil, err
-	}
-	mapWithUsers, err := repo.findAuthorsForPosts(ctx, authorIDs)
-	if err != nil {
-		return nil, err
-	}
-	mapWithCategories, err := repo.findCategoriesForPosts(ctx, categoryIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range allPosts {
-		allPosts[i].CommentIDs = mapWithComments[allPosts[i].ID]
-		allPosts[i].Likes = mapWithLikes[*allPosts[i].InitCommentID]
-		allPosts[i].Author = mapWithUsers[*allPosts[i].AuthorID]
-		allPosts[i].CategoryName = mapWithCategories[*allPosts[i].CategoryID]
 	}
 
 	paginated := model.PostsPaginated{
 		Posts: allPosts,
 	}
 	return &paginated, nil
+}
+
+func (repo *SQLitePostRepository) CreatePost(ctx context.Context, dto m.CreatePostDTO) (*model.PostCreatedDTO, error) {
+	tx, err := repo.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	//1.check if user exists
+
+	query := `
+		INSERT INTO post (title, author_id, category_id) 
+		VALUES (?,?,?)
+		RETURNING id
+	`
+
+	var postID int64
+	if err := tx.QueryRowContext(ctx, query, dto.Title, dto.AuthorID, dto.CategoryID).Scan(&postID); err != nil {
+		return nil, err
+	}
+
+	request := model.CreateCommentRequest{
+		Text:   *dto.InitCommentText,
+		PostID: postID,
+		UserID: *dto.AuthorID,
+	}
+
+	comment, err := repo.createCommentTx(ctx, &request, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	post := model.PostCreatedDTO{}
+
+	updInitCommentID := `
+		UPDATE post 
+		SET init_comment_id = ?
+		WHERE id = ?
+		RETURNING id, title, author_id, init_comment_id, created_at
+	`
+	var createdAt string
+
+	err = tx.QueryRowContext(
+		ctx,
+		updInitCommentID,
+		comment.ID,
+		postID,
+	).Scan(
+		&post.ID,
+		&post.Title,
+		&post.AuthorID,
+		&post.InitCommentID,
+		&createdAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	post.CreatedAt, err = time.Parse("2006-01-02 15:04:05", createdAt)
+	if err != nil {
+		return nil, err
+	}
+
+	post.InitCommentText = &comment.Text
+
+	// 4. Commit everything
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	// 5. Category name from different table
+	category, err := repo.findCategoriesForPosts(ctx, []int64{*dto.CategoryID})
+	if err != nil {
+		return nil, err
+	}
+	post.CategoryName = category[*dto.CategoryID]
+
+	return &post, nil
+}
+
+func (repo *SQLitePostRepository) DeleteByID(ctx context.Context, dto m.DeletePostRequest) (bool, error) {
+	query := `
+		DELETE FROM post
+		WHERE id = ? AND author_id = ?
+	`
+
+	result, err := repo.db.ExecContext(
+		ctx, query, dto.PostID, dto.UserID,
+	)
+	if err != nil {
+		return false, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return rowsAffected > 0, nil
+}
+
+func (repo *SQLitePostRepository) GetByID(ctx context.Context, postID int64) (*m.PostResultDTO, error) {
+	query := `
+		SELECT id, title, author_id, category_id, created_at, init_comment_id
+		FROM post
+		WHERE id = ?
+	`
+
+	var post m.PostResultDTO
+	var authorID sql.NullInt64
+	var categoryID sql.NullInt64
+	var initCommentID sql.NullInt64
+	var createdAt string
+
+	err := repo.db.QueryRowContext(ctx, query, postID).Scan(
+		&post.ID,
+		&post.Title,
+		&authorID,
+		&categoryID,
+		&createdAt,
+		&initCommentID,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, custom_err.ErrPostNotFound
+		}
+		return nil, err
+	}
+
+	if authorID.Valid {
+		post.AuthorID = &authorID.Int64
+	}
+
+	if categoryID.Valid {
+		post.CategoryID = &categoryID.Int64
+	}
+
+	if initCommentID.Valid {
+		post.InitCommentID = &initCommentID.Int64
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	post.CreatedAt, err = time.Parse("2006-01-02 15:04:05", createdAt)
+	if err != nil {
+		return nil, err
+	}
+
+	posts := []model.PostResultDTO{post}
+
+	if err := repo.enrichPosts(ctx, posts); err != nil {
+		return nil, err
+	}
+
+	return &posts[0], nil
+}
+
+func (repo *SQLitePostRepository) createCommentTx(ctx context.Context, comment *model.CreateCommentRequest, tx *sql.Tx) (*model.Comment, error) {
+	query := `
+		INSERT INTO comment (text, post_id, user_id)
+		VALUES (?,?,?) 
+		RETURNING id, text;
+	`
+
+	var c model.Comment
+	err := tx.QueryRowContext(
+		ctx, query, comment.Text, comment.PostID, comment.UserID,
+	).Scan(
+		&c.ID, &c.Text,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &c, nil
 }
 
 func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.SearchPostsDTO) ([]model.PostResultDTO, error) {
@@ -117,15 +265,31 @@ func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.Se
 	var createdAt string
 	for rows.Next() {
 		var post model.PostResultDTO
+		var authorID sql.NullInt64
+		var categoryID sql.NullInt64
+		var initCommentID sql.NullInt64
 
 		err := rows.Scan(
 			&post.ID,
 			&post.Title,
-			&post.AuthorID,
-			&post.CategoryID,
+			&authorID,
+			&categoryID,
 			&createdAt,
-			&post.InitCommentID,
+			&initCommentID,
 		)
+
+		if authorID.Valid {
+			post.AuthorID = &authorID.Int64
+		}
+
+		if categoryID.Valid {
+			post.CategoryID = &categoryID.Int64
+		}
+
+		if initCommentID.Valid {
+			post.InitCommentID = &initCommentID.Int64
+		}
+
 		if err != nil {
 			return nil, err
 		}
@@ -143,6 +307,71 @@ func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.Se
 	}
 
 	return posts, nil
+}
+
+func (repo *SQLitePostRepository) enrichPosts(ctx context.Context, posts []model.PostResultDTO) error {
+	if len(posts) == 0 {
+		return nil
+	}
+
+	postIDs := make([]int64, 0, len(posts))
+	initCommentIDs := make([]int64, 0, len(posts))
+	authorIDs := make([]int64, 0, len(posts))
+	categoryIDs := make([]int64, 0, len(posts))
+
+	for _, post := range posts {
+		postIDs = append(postIDs, post.ID)
+
+		if post.InitCommentID != nil {
+			initCommentIDs = append(initCommentIDs, *post.InitCommentID)
+		}
+		if post.AuthorID != nil {
+			authorIDs = append(authorIDs, *post.AuthorID)
+		}
+		if post.CategoryID != nil {
+			categoryIDs = append(categoryIDs, *post.CategoryID)
+		}
+	}
+
+	mapWithComments, err := repo.findCommentsForPosts(ctx, postIDs)
+	if err != nil {
+		return err
+	}
+
+	mapWithLikes, err := repo.countLikesForPost(ctx, initCommentIDs)
+	if err != nil {
+		return err
+	}
+
+	mapWithUsers, err := repo.findAuthorsForPosts(ctx, authorIDs)
+	if err != nil {
+		return err
+	}
+
+	mapWithCategories, err := repo.findCategoriesForPosts(ctx, categoryIDs)
+	if err != nil {
+		return err
+	}
+
+	for i := range posts {
+		post := &posts[i]
+
+		post.CommentIDs = mapWithComments[post.ID]
+
+		if post.InitCommentID != nil {
+			post.Likes = mapWithLikes[*post.InitCommentID]
+		}
+
+		if post.AuthorID != nil {
+			post.Author = mapWithUsers[*post.AuthorID]
+		}
+
+		if post.CategoryID != nil {
+			post.CategoryName = mapWithCategories[*post.CategoryID]
+		}
+	}
+
+	return nil
 }
 
 func (repo *SQLitePostRepository) findCommentsForPosts(ctx context.Context, postIDs []int64) (map[int64][]int64, error) {
@@ -330,18 +559,17 @@ func (repo *SQLitePostRepository) CountPosts(ctx context.Context, dto model.Sear
 		SELECT COUNT(*)
 		FROM post
 	`
-
 	var args []any
 
 	if dto.IsSearch {
 		switch *dto.SearchField {
-		case "author":
+		case "authorId":
 			query += `WHERE author_id = ? `
-			args = append(args, *dto.SearchValue)
+			args = append(args, dto.SearchValue)
 
-		case "category_id":
+		case "categoryId":
 			query += `WHERE category_id = ? `
-			args = append(args, *dto.SearchValue)
+			args = append(args, dto.SearchValue)
 		}
 	}
 
