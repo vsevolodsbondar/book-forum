@@ -65,33 +65,24 @@ function renderPostData(data, isOwner, isLoggedIn) {
     });
   }
 }
-function renderAllComments(data, isOwner, isLoggedIn) {
+function renderComment(comment, isOwner, isLoggedIn) {
   const container = document.querySelector(".comment-container");
-  for (let i = 1; i < data.comments.length; i++) {
-    const name = data.comments[i].user_for_comment.username;
-    const date = formatDate(data.comments[i].updated_at);
-    const text = data.comments[i].text;
-    const likes = data.comments[i].likes;
-    const dislikes = data.comments[i].dislikes;
-    const isLiked = data.comments[i].is_liked;
-    const isDisliked = data.comments[i].is_disliked;
-    const id = data.comments[i].id;
-    const newEl = `
-        <article id="${id}" class="comment">
+  const newEl = `
+        <article id="${comment.id}" class="comment">
                 <div class="author">
                     <div class="image-container">
-                        <img class="author_img" src="/src/static/imgs/default.jpg" alt="photo of ${name}">
+                        <img class="author_img" src="/src/static/imgs/default.jpg" alt="photo of ${comment.user_for_comment.username}">
                     </div>
                     <div class="author-info">
-                        <p class="username">${name}</p>
-                        <p class="date">${date}</p>
+                        <p class="username">${comment.user_for_comment.username}</p>
+                        <p class="date">${formatDate(comment.updated_at)}</p>
                     </div>
                 </div>
-                <p class="description">${text}</p>
+                <p class="description">${comment.text}</p>
                 <div class="post-footer">
                     <div class="stats">
-                        <button class="likes">${likes}</button>
-                        <button class="dislikes">${dislikes}</button>
+                        <button class="likes ${comment.is_liked ? "choosed" : ""}">${comment.likes}</button>
+                        <button class="dislikes ${comment.is_disliked ? "choosed" : ""}">${comment.dislikes}</button>
                     </div>
                     <div class="reply">
                         ${isOwner ? '<button class="blue_empty_btn btn_update">Edit</button>' : ""}
@@ -99,7 +90,11 @@ function renderAllComments(data, isOwner, isLoggedIn) {
                     </div>
                 </div>
             </article>`;
-    container.insertAdjacentHTML("beforeend", newEl);
+  container.insertAdjacentHTML("beforeend", newEl);
+}
+function renderAllComments(data, isOwner, isLoggedIn) {
+  for (let i = 1; i < data.comments.length; i++) {
+    renderComment(data.comments[i], isOwner, isLoggedIn);
   }
 }
 //to disable the form for comments if the user isn't logged in
@@ -145,10 +140,18 @@ async function createComment(form, postID) {
     }
     const result = await response.json();
     console.log("Successful send:", result);
-    // Make a form empty
+    // POST returns only the raw comment, so ask the server for the full one
+    const fullResponse = await fetch(
+      `http://localhost:8080/comments/${result.id}`,
+      { credentials: "include" },
+    );
+    if (!fullResponse.ok) {
+      throw new Error(`Error HTTP: ${fullResponse.status}`);
+    }
+    const fullComment = await fullResponse.json();
+
     form.querySelector(".message_field").value = "";
-    // I could add render a comment here later
-    // // renderNewComment(result);
+    renderComment(fullComment, true, true);
   } catch (error) {
     console.error("Error creating comment:", error);
   }
