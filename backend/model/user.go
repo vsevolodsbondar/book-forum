@@ -35,8 +35,8 @@ type GetAllUsersDTO struct {
 
 type UserShortInfo struct {
 	ID             int
-	UserName       string
-	ProfilePicture string
+	UserName       string `json:"username"`
+	ProfilePicture string `json:"profilepic"`
 }
 
 type AllUsers struct {
