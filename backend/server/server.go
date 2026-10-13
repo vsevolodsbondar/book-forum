@@ -11,6 +11,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"time"
 )
 
 type Config struct {
@@ -32,24 +33,28 @@ func Server(ctx context.Context, db *sql.DB) (*http.Server, error) {
 		},
 	}
 
-	// later will inject true client
-	// authClient := &client.AuthHTTPClient{
-	// 	BaseURL: "http://auth:8081",
-	// 	Client: &http.Client{
-	// 		Timeout: 3 * time.Second,
-	// 	},
-	// }
+	authClient := &client.AuthHTTPClient{
+		BaseURL: "http://auth:8081",
+		Client: &http.Client{
+			Timeout: 3 * time.Second,
+		},
+	}
 
-	mockAuthClient := &client.MockAuthClient{}
+	err := authClient.Check(context.Background())
+	if err != nil {
+		return nil, err
+	}
 
-	dependencyWiring(mux, db, mockAuthClient)
+	log.Println("Auth server ready to take connections.")
+
+	dependencyWiring(mux, db, authClient)
 
 	log.Println("Launching server at", srv.Addr)
 	return srv, nil
 }
 
 func dependencyWiring(mux *http.ServeMux, db *sql.DB, auth client.AuthInterface) *http.ServeMux {
-	mux.HandleFunc("GET /api/posts", handler.GetLanding)
+	//comments wiring
 	commentsRepo := repository.NewSQLiteCommentRepository(db)
 	commentService := service.NewCommentService(commentsRepo)
 	commentHandler := handler.NewCommentHandler(commentService, auth)
@@ -57,8 +62,17 @@ func dependencyWiring(mux *http.ServeMux, db *sql.DB, auth client.AuthInterface)
 	usersRepo := repository.NewSQLiteUserRepository(db)
 	userService := service.NewUserService(usersRepo, auth)
 	userHandler := handler.NewUserHandler(userService, auth)
+	//posts wiring
+	postsRepo := repository.NewSQLitePostRepository(db)
+	postsService := service.NewPostService(postsRepo)
+	postsHandler := handler.NewPostHandler(postsService, auth)
 
-	RegisterRoutes(mux, commentHandler, userHandler)
+	categoryRepo := repository.NewSQLiteCategoryRepository(db)
+	categoryService := service.NewCategoryService(categoryRepo)
+	categoryHandler := handler.NewCategoryHandler(categoryService)
+
+	authSession := handler.NewAuthHandler(auth)
+	RegisterRoutes(mux, commentHandler, userHandler, postsHandler, authSession, categoryHandler)
 
 	return mux
 }

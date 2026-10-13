@@ -14,9 +14,7 @@ type UserService struct {
 }
 
 func NewUserService(repo repository.UsersRepository, auth client.AuthInterface) *UserService {
-	return &UserService{
-		Repo: repo,
-	}
+	return &UserService{Repo: repo}
 }
 
 func (us *UserService) GetAllUsers(ctx context.Context, params model.GetAllUsersDTO) (*model.AllUsers, error) {

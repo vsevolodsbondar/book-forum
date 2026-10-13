@@ -23,7 +23,8 @@ func handleError(w http.ResponseWriter, err error) {
 	errResp := ErrorResponse{}
 
 	switch {
-	case errors.Is(err, ErrExpiredSession):
+	case errors.Is(err, ErrExpiredSession),
+		errors.Is(err, ErrSessionValidationFail):
 		errResp.Status = http.StatusUnauthorized
 		errResp.Message = err.Error()
 
