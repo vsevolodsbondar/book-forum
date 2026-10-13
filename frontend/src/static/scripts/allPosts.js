@@ -1,19 +1,6 @@
 //get info about posts
 
 async function getPostData() {
-<<<<<<< HEAD
-	try {
-		const response = await fetch(`http://localhost:8080/posts`);
-		if (!response.ok) {
-			throw new Error(`Error HTTP: ${response.status}`);
-		}
-		const postData = await response.json();
-		console.log(postData);
-		renderAllPosts(postData);
-	} catch (error) {
-		console.log("the error was catched", error);
-	}
-=======
   try {
     const response = await fetch(`http://localhost:8080/posts`);
     if (!response.ok) {
@@ -25,23 +12,11 @@ async function getPostData() {
   } catch (error) {
     console.log("the error was catched", error);
   }
->>>>>>> c63ccbe (rebase)
 }
 getPostData();
 //function for rendering all posts
 const postsContainer = document.querySelector(".posts");
 function renderAllPosts(data) {
-<<<<<<< HEAD
-	for (let i = 0; i < data.posts.length; i++) {
-		const postID = data.posts[i].id;
-		const userName = data.posts[i].author.username;
-		const date = formatDate(data.posts[i].created_at);
-		const title = data.posts[i].title;
-		const category = data.posts[i].category_id;
-		const likes = data.posts[i].likes;
-		const amountComments = data.posts[i].commentIDs.length;
-		const newEl = `
-=======
   for (let i = 0; i < data.posts.length; i++) {
     const postID = data.posts[i].id;
     const userName = data.posts[i].author.username;
@@ -49,9 +24,8 @@ function renderAllPosts(data) {
     const title = data.posts[i].title;
     const category = data.posts[i].category_id;
     const likes = data.posts[i].likes;
-    const amountComments = data.posts[i].commentIDs.length;
+    const amountComments = data.posts[i].commentIDs.length - 1;
     const newEl = `
->>>>>>> c63ccbe (rebase)
                     <a href="postInside.html?id=${postID}" aria-label="link to the post" class="post">
                     <div class="author">
                         <div class="image-container">
@@ -73,19 +47,6 @@ function renderAllPosts(data) {
                         </div>
                     </div>
                 </a>`;
-<<<<<<< HEAD
-		postsContainer.insertAdjacentHTML("beforeend", newEl);
-	}
-}
-//formating of the date
-function formatDate(isoString) {
-	const date = new Date(isoString);
-	return date.toLocaleDateString(undefined, {
-		day: "numeric",
-		month: "long",
-		year: "numeric",
-	});
-=======
     postsContainer.insertAdjacentHTML("beforeend", newEl);
   }
 }
@@ -97,5 +58,4 @@ function formatDate(isoString) {
     month: "long",
     year: "numeric",
   });
->>>>>>> c63ccbe (rebase)
 }
