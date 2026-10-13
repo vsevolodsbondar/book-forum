@@ -35,9 +35,9 @@ function renderPosts(data) {
     const userName = data.posts[i].author.username;
     const date = formatDate(data.posts[i].created_at);
     const title = data.posts[i].title;
-    const category = data.posts[i].category_id;
+    const category = data.posts[i].category_name;
     const likes = data.posts[i].likes;
-    const amountComments = data.posts[i].commentIDs.length;
+    const amountComments = data.posts[i].commentIDs.length - 1;
     const newEl = `
                     <a href="postInside.html?id=${postID}" aria-label="link to the post" class="post">
                     <div class="author">

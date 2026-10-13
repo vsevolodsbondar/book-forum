@@ -17,6 +17,8 @@ services:
         networks:
             - web
             - auth
+        depends_on:
+            - auth
 
     auth:
         build:
