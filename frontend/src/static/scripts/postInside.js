@@ -9,6 +9,7 @@ async function getPostData() {
     const userID = await getUserID();
     const response = await fetch(
       `http://localhost:8080/posts/${postID}/comments`,
+      { credentials: "include" },
     );
     if (!response.ok) {
       throw new Error(`Error HTTP: ${response.status}`);
@@ -134,6 +135,7 @@ async function createComment(form, postID) {
       `http://localhost:8080/posts/${postID}/comments`,
       {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json;charset=utf-8" },
         body: JSON.stringify(data),
       },

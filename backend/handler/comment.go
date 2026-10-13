@@ -23,38 +23,45 @@ func NewCommentHandler(service *service.CommentService, authService client.AuthI
 
 // on all hanlders has be a check of userID
 func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) error {
-	var commentRaw model.CreateCommentRequest
-	var commentBody model.CreateCommentBody
-	decoder := json.NewDecoder(r.Body)
-	decoder.DisallowUnknownFields()
-	err := decoder.Decode(&commentBody)
-	if err != nil {
-		return err
-	}
+	ctx := r.Context()
+
 	idPost, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		return fmt.Errorf("%w: invalid id", custom_err.ErrInvalidInput)
 	}
-	commentRaw.Text = commentBody.Text
-	commentRaw.PostID = int64(idPost)
-	ctx := r.Context()
 
-	sessionCookie, err := helper.ExtractSessionCookie(r)
+	// 1. who is it? Check this before touching the body
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		return fmt.Errorf("%w: no session cookie", custom_err.ErrExpiredSession)
+	}
+	session, err := h.auth.ValidateSession(ctx, cookie.Value)
 
-	response, err := h.auth.ValidateSession(ctx, sessionCookie)
-
-	commentDTO := model.CreateCommentDTO{
-		Comment: commentRaw,
-		UserID:  int(response.User.ID),
+	// 2. what did they send?
+	var body model.CreateCommentBody
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&body); err != nil {
+		return fmt.Errorf("%w: invalid json format", custom_err.ErrInvalidInput)
 	}
 
-	comment, err := h.service.Create(ctx, &commentDTO)
+	// 3. assemble the DTO: text/parent from body, post from URL, user from session
+	dto := model.CreateCommentDTO{
+		Comment: model.CreateCommentRequest{
+			Text:            body.Text,
+			PostID:          int64(idPost),
+			ParentCommentID: body.ParentCommentID,
+		},
+		UserID: int(session.User.ID),
+	}
+
+	comment, err := h.service.Create(ctx, &dto)
 	if err != nil {
 		return err
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(comment)
-	return nil
+	w.WriteHeader(http.StatusCreated)
+	return json.NewEncoder(w).Encode(comment)
 }
 
 func (h *CommentHandler) GetAllByPostID(w http.ResponseWriter, r *http.Request) error {
@@ -121,6 +128,28 @@ func (h *CommentHandler) Update(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(updatedComment)
 	return nil
+}
+func (h *CommentHandler) GetByID(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+	commentID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		return fmt.Errorf("%w: invalid id", custom_err.ErrInvalidInput)
+	}
+
+	// session is optional: guests can read, they just have no likes of their own
+	userID := 0
+	if cookie, err := r.Cookie("session"); err == nil {
+		if session, err := h.auth.ValidateSession(ctx, cookie.Value); err == nil {
+			userID = int(session.User.ID)
+		}
+	}
+
+	comment, err := h.service.GetByID(ctx, commentID, userID)
+	if err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(w).Encode(comment)
 }
 func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 	commentID, err := strconv.Atoi(r.PathValue("id"))
