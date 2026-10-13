@@ -6,6 +6,7 @@ import (
 	"errors"
 	"forum_backend/custom_err"
 	"forum_backend/model"
+	"log/slog"
 	"time"
 )
 
@@ -97,6 +98,7 @@ func (ur *SQLiteUserRepository) CreateUser(ctx context.Context, user *model.User
 		user.LastSeen,
 	)
 	if err != nil {
+		slog.Error("failed to insert user into db", "err", err)
 		return nil, custom_err.ErrCreateUser
 	}
 

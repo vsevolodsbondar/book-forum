@@ -1,13 +1,16 @@
 package client
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 type MockAuthClient struct{}
 
 func (m *MockAuthClient) RegisterUser(ctx context.Context, dto RegisterUserRequestDTO) (RegisterUserResponseDTO, error) {
 	return RegisterUserResponseDTO{
 		User: UserCreatedDTO{
-			ID:       42,
+			ID:       322,
 			Email:    dto.Email,
 			Username: dto.Username,
 		},
@@ -24,7 +27,7 @@ func (m *MockAuthClient) LoginUser(ctx context.Context, dto LoginUserRequestDTO)
 		Session: SessionDTO{
 			ID:        "1",
 			Token:     "mock-token",
-			ExpiresAt: 123456,
+			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
 		},
 	}, nil
 }

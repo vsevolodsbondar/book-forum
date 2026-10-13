@@ -28,6 +28,55 @@ func NewUserHandler(service *service.UserService, auth client.AuthInterface) *Us
 	}
 }
 
+func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+
+	var input client.LoginUserRequestDTO
+
+	//get fields
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&input); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			return custom_err.ErrBadRequest
+		}
+		return custom_err.ErrInvalidInput
+	}
+
+	//send req to auth to create session
+	loginResp, err := h.auth.LoginUser(ctx, input)
+	if err != nil {
+		return err
+	}
+
+	//set cookie
+	helper.SetCookie(w, loginResp.Session.Token, loginResp.Session.ExpiresAt)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	return json.NewEncoder(w).Encode(loginResp.Session.ID)
+}
+
+func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+	//get token
+	token, err := helper.ExtractSessionCookie(r)
+	if err != nil {
+		return err
+	}
+	//send token to auth for session delete
+	err = h.auth.LogoutUser(ctx, token)
+	if err != nil {
+		return err
+	}
+
+	//clear Cookie
+	helper.ClearSessionCookie(w)
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	var input model.UserDTO
