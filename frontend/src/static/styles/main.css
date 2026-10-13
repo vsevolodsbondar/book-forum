@@ -20,6 +20,7 @@
 		--font-color-red: #d93025;
 	--font-color-black: #000000;
 	--font-color-orange: #f48023;
+	--font-alert: #d93025;
 }
 body {
 	display: flex;
@@ -139,6 +140,10 @@ textarea:disabled {
 }
 .delete:hover {
 	text-decoration: underline;
+}
+.form_error {
+	color: var(--font-alert);
+	font-size: 0.95rem;
 }
 
 /* main */

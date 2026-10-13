@@ -30,7 +30,6 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) error {
 		return fmt.Errorf("%w: invalid id", custom_err.ErrInvalidInput)
 	}
 
-	// 1. who is it? Check this before touching the body
 	sessionCookie, err := helper.ExtractSessionCookie(r)
 	if err != nil {
 		return err

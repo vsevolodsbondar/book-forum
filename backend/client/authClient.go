@@ -144,7 +144,7 @@ func (c *AuthHTTPClient) doRequest(ctx context.Context, params AuthClientRequest
 		return fmt.Errorf(
 			"%w: %s",
 			e.ErrAuthService,
-			responseError.Message,
+			responseError.Error.Message,
 		)
 	}
 
