@@ -257,3 +257,23 @@ postInside.addEventListener("click", async (event) => {
     console.error("Error deleting comment:", error);
   }
 });
+
+// click on delete button of the post
+postInside.addEventListener("click", async (event) => {
+  const btn = event.target.closest(".post-footer .delete");
+  if (!btn) return;
+
+  try {
+    const response = await fetch(`http://localhost:8080/posts/${postID}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+    // the post (with its comments and likes) is gone, so there is nothing to show here
+    window.location.href = "index.html";
+  } catch (error) {
+    console.error("Error deleting post:", error);
+  }
+});
