@@ -1,28 +1,92 @@
+const postsContainer = document.querySelector(".posts");
+const categorySelect = document.querySelector("select[name='category']");
+const seeMoreBtn = document.querySelector(".see-more");
+let currentPage = 1;
 //get info about posts
 
-async function getPostData() {
+// builds the query string from the current state of the controls
+function buildQuery(page) {
+  const params = new URLSearchParams({ byLatest: "true", page });
+  if (categorySelect.value !== "") {
+    params.set("search", "true");
+    params.set("field", "categoryId");
+    params.set("value", categorySelect.value);
+  }
+  return params.toString();
+}
+
+async function getPostData({ append = false } = {}) {
+  // append = true -> load the next page and add it below the existing posts
+  const page = append ? currentPage + 1 : 1;
   try {
-    const response = await fetch(`http://localhost:8080/posts`);
+    const response = await fetch(
+      `http://localhost:8080/posts?${buildQuery(page)}`,
+    );
+    // the backend answers 404 when there are no posts at all
+    if (response.status === 404) {
+      postsContainer.innerHTML = "<p>No posts yet</p>";
+      seeMoreBtn.style.display = "none";
+      return;
+    }
     if (!response.ok) {
       throw new Error(`Error HTTP: ${response.status}`);
     }
     const postData = await response.json();
-    console.log(postData);
+    if (!append) postsContainer.innerHTML = "";
     renderAllPosts(postData);
+    currentPage = page;
+    // show the button only while there are more pages
+    seeMoreBtn.style.display = page < postData.totalPages ? "block" : "none";
   } catch (error) {
     console.log("the error was catched", error);
   }
 }
 getPostData();
+seeMoreBtn.addEventListener("click", () => getPostData({ append: true }));
+// filters above the list: New / Popular / Most comments
+const filters = document.querySelector(".main-section > .tags");
+filters.addEventListener("click", (event) => {
+  const btn = event.target.closest("button[data-filter]");
+  if (!btn) return;
+
+  filters
+    .querySelectorAll("button")
+    .forEach((b) => b.classList.remove("choosed"));
+  btn.classList.add("choosed");
+
+  if (btn.dataset.filter === "new") {
+    getPostData();
+  }
+});
+// fill the category <select> with categories from the backend
+async function loadCategories() {
+  try {
+    const response = await fetch("http://localhost:8080/categories");
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+    const categories = await response.json();
+    for (const category of categories) {
+      const option = document.createElement("option");
+      option.value = category.id;
+      option.textContent = category.category_name;
+      categorySelect.append(option);
+    }
+  } catch (error) {
+    console.log("the error was catched", error);
+  }
+}
+loadCategories();
+// choosing a category asks the backend for posts of that category only
+categorySelect.addEventListener("change", () => getPostData());
 //function for rendering all posts
-const postsContainer = document.querySelector(".posts");
 function renderAllPosts(data) {
   for (let i = 0; i < data.posts.length; i++) {
     const postID = data.posts[i].id;
     const userName = data.posts[i].author.username;
     const date = formatDate(data.posts[i].created_at);
     const title = data.posts[i].title;
-    const category = data.posts[i].category_id;
+    const category = data.posts[i].category_name;
     const likes = data.posts[i].likes;
     const amountComments = data.posts[i].commentIDs.length - 1;
     const newEl = `

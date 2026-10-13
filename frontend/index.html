@@ -31,15 +31,15 @@
       </section>
       <section class="main-section">
         <article class="tags">
-          <button type="button" class="tags_item choosed">New</button>
-          <button type="button" class="tags_item">Popular</button>
-          <button type="button" class="tags_item">Most comments</button>
+          <button type="button" class="tags_item choosed" data-filter="new">
+            New
+          </button>
           <select name="category" class="tags_item">
             <option value="">Filter by category</option>
-            <option value="your option">Your option</option>
           </select>
         </article>
         <article class="posts"></article>
+        <button type="button" class="blue_empty_btn see-more" style="display: none; margin: 20px auto 0">See more</button>
       </section>
     </main>
     <script type="module" src="/src/static/scripts/header.js"></script>
