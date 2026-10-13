@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"forum_backend/custom_err"
 	"net/http"
+	"time"
 )
 
 func ExtractSessionCookie(r *http.Request) (string, error) {
@@ -19,4 +20,29 @@ func ExtractSessionCookie(r *http.Request) (string, error) {
 	}
 
 	return sessionCookie.Value, nil
+}
+
+const sessionCookieName = "session_id"
+
+func SetCookie(w http.ResponseWriter, token string, expiresAt int64) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     sessionCookieName,
+		Value:    token,
+		Path:     "/",
+		Expires:  time.Unix(expiresAt, 0),
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+}
+
+func ClearSessionCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     sessionCookieName,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+
 }

@@ -17,6 +17,14 @@ func NewUserService(repo repository.UsersRepository, auth client.AuthInterface) 
 	return &UserService{Repo: repo}
 }
 
+func (us *UserService) GetAllUsers(ctx context.Context, params model.GetAllUsersDTO) (*model.AllUsers, error) {
+	usersInfo, err := us.Repo.GetAllUsers(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return usersInfo, err
+}
+
 // GET
 func (us *UserService) GetUser(ctx context.Context, id int64) (*model.UserInfo, error) {
 	if id < 1 {
