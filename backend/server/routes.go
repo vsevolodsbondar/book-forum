@@ -20,7 +20,7 @@ func RegisterRoutes(mux *http.ServeMux, comments *handler.CommentHandler, users 
 	mux.HandleFunc("PATCH /users/{id}", custom_err.GlobalErrorHandler(users.UpdateUser))
 	mux.HandleFunc("DELETE /users/{id}", custom_err.GlobalErrorHandler(users.DeleteUser))
 	mux.HandleFunc("POST /login", custom_err.GlobalErrorHandler(users.Login))
-	mux.HandleFunc("POST /login", custom_err.GlobalErrorHandler(users.Logout))
+	mux.HandleFunc("POST /logout", custom_err.GlobalErrorHandler(users.Logout))
 	//posts
 	mux.HandleFunc("GET /posts", custom_err.GlobalErrorHandler(posts.GetPosts))
 	mux.HandleFunc("GET /posts/{id}", custom_err.GlobalErrorHandler(posts.GetPostByID))
