@@ -7,4 +7,5 @@ type AuthInterface interface {
 	LoginUser(context.Context, LoginUserRequestDTO) (LoginUserResponseDTO, error)
 	ValidateSession(context.Context, string) (ValidateSessionResponseDTO, error)
 	LogoutUser(context.Context, string) error
+	Check(context.Context) error
 }

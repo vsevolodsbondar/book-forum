@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"forum_backend/client"
 	"forum_backend/custom_err"
 	"forum_backend/helper"
@@ -25,6 +26,55 @@ func NewUserHandler(service *service.UserService, auth client.AuthInterface) *Us
 		service: service,
 		auth:    auth,
 	}
+}
+
+func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+
+	var input client.LoginUserRequestDTO
+
+	//get fields
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&input); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			return custom_err.ErrBadRequest
+		}
+		return custom_err.ErrInvalidInput
+	}
+
+	//send req to auth to create session
+	loginResp, err := h.auth.LoginUser(ctx, input)
+	if err != nil {
+		return err
+	}
+
+	//set cookie
+	helper.SetCookie(w, loginResp.Session.Token, loginResp.Session.ExpiresAt)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	return json.NewEncoder(w).Encode(loginResp.Session.ID)
+}
+
+func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+	//get token
+	token, err := helper.ExtractSessionCookie(r)
+	if err != nil {
+		return err
+	}
+	//send token to auth for session delete
+	err = h.auth.LogoutUser(ctx, token)
+	if err != nil {
+		return err
+	}
+
+	//clear Cookie
+	helper.ClearSessionCookie(w)
+	w.WriteHeader(http.StatusNoContent)
+	return nil
 }
 
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) error {
@@ -61,6 +111,37 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	return json.NewEncoder(w).Encode(user)
+}
+
+func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) error {
+	page := r.URL.Query().Get("page")
+	size := r.URL.Query().Get("size")
+	ctx := r.Context()
+	pageInt, sizeInt := 1, 20
+	if page != "" {
+		pageInt, err := strconv.Atoi(page)
+		if err != nil || pageInt < 1 {
+			return fmt.Errorf("%w: invalid id", custom_err.ErrInvalidInput)
+		}
+	}
+
+	if size != "" {
+		sizeInt, err := strconv.Atoi(size)
+		if err != nil || sizeInt <= 0 {
+			return fmt.Errorf("%w: invalid size number", custom_err.ErrInvalidInput)
+		}
+	}
+
+	GetAllUsersParams := model.GetAllUsersDTO{Page: pageInt, Size: sizeInt}
+
+	usersInfo, err := h.service.GetAllUsers(ctx, GetAllUsersParams)
+	if err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(usersInfo)
+	return nil
+
 }
 
 func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) error {
