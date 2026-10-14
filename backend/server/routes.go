@@ -35,7 +35,7 @@ func RegisterRoutes(
 	mux.HandleFunc("GET /posts/{id}", custom_err.GlobalErrorHandler(posts.GetPostByID))
 	mux.HandleFunc("DELETE /posts/{id}", custom_err.GlobalErrorHandler(posts.DeletePost))
 	mux.HandleFunc("POST /posts", custom_err.GlobalErrorHandler(posts.PostPost)) //namings...
-	mux.HandleFunc("PATCH /posts", custom_err.GlobalErrorHandler(posts.PatchPost))
+	mux.HandleFunc("PATCH /posts/{id}", custom_err.GlobalErrorHandler(posts.PatchPost))
 
 	//check for auth user
 	mux.HandleFunc("GET /me", custom_err.GlobalErrorHandler(auth.AuthUser))

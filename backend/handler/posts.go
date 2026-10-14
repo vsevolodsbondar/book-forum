@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"forum_backend/client"
 	"forum_backend/custom_err"
@@ -46,9 +47,16 @@ func (h *PostHandler) PostPost(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	dto := model.CreatePostRequestDTO{}
 
-	err := json.NewDecoder(r.Body).Decode(&dto)
-	if err != nil {
-		return custom_err.ErrInvalidInput
+	r.Body = http.MaxBytesReader(w, r.Body, maxReqBodySize)
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&dto); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			return custom_err.ErrBadRequest
+		}
+
+		return fmt.Errorf("%w: invalid json format", custom_err.ErrInvalidInput)
 	}
 
 	sessionCookie, err := helper.ExtractSessionCookie(r)
@@ -130,7 +138,17 @@ func (h *PostHandler) PatchPost(w http.ResponseWriter, r *http.Request) error {
 
 	dto := model.PatchPostDTO{}
 
-	err = json.NewDecoder(r.Body).Decode(&dto)
+	r.Body = http.MaxBytesReader(w, r.Body, maxReqBodySize)
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&dto); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			return custom_err.ErrBadRequest
+		}
+
+		return fmt.Errorf("%w: invalid json format", custom_err.ErrInvalidInput)
+	}
 
 	sessionCookie, err := helper.ExtractSessionCookie(r)
 	if err != nil {

@@ -81,7 +81,12 @@ type PatchPostDTO struct {
 	PostID      int64
 	UserID      int64
 	NewTitle    *string `json:"new_title"`
-	NewCategory *string `json:"new_category_name"`
+	NewCategory *int64  `json:"new_category"`
+}
+
+type PatchResultDTO struct {
+	Title      *string
+	CategoryID *int64
 }
 
 func (dto *SearchPostsDTO) Validate() error {
@@ -120,6 +125,18 @@ func (dto *SearchPostsDTO) Validate() error {
 			custom_err.ErrInvalidInput,
 			*dto.SearchField,
 		)
+	}
+
+	return nil
+}
+
+func (dto *PatchPostDTO) Validate() error {
+	if dto.NewTitle == nil || strings.TrimSpace(*dto.NewTitle) == "" {
+		return fmt.Errorf("%w: title is required", custom_err.ErrInvalidInput)
+	}
+
+	if dto.NewCategory == nil || *dto.NewCategory <= 0 {
+		return fmt.Errorf("%w: category_id must be greater than 0", custom_err.ErrInvalidInput)
 	}
 
 	return nil

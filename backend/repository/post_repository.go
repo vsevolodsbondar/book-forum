@@ -11,5 +11,5 @@ type PostRepository interface {
 	CountPosts(context.Context, m.SearchPostsDTO) (int, error)
 	DeleteByID(context.Context, m.DeletePostDTO) (bool, error)
 	GetByID(context.Context, int64) (*m.PostResultDTO, error)
-	ReplaceFieldsInPost(context.Context, m.PatchPostDTO) (*m.PostResultDTO, error)
+	ReplaceFieldsInPost(context.Context, map[string]any, int64) (*m.PatchResultDTO, error)
 }

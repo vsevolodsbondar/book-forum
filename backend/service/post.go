@@ -101,10 +101,45 @@ func (ps *PostService) DeletePost(ctx context.Context, dto model.DeletePostDTO) 
 }
 
 func (ps *PostService) PatchPost(ctx context.Context, dto model.PatchPostDTO) (*model.PostResultDTO, error) {
+	// validation of the request's data
+	err := dto.Validate()
+	if err != nil {
+		return nil, err
+	}
+	if dto.NewTitle == nil && dto.NewCategory == nil {
+		return nil, custom_err.ErrInvalidInput
+	}
 
+	// validation of rights
 	post, err := ps.Repo.GetByID(ctx, dto.PostID)
 	if err != nil {
 		return nil, err
+	}
+	if post.AuthorID == nil || *post.AuthorID != dto.UserID {
+		return nil, custom_err.ErrForbidden
+	}
+
+	// constructing request to db
+	fields := make(map[string]any)
+	if dto.NewTitle != nil {
+		fields["title"] = *dto.NewTitle
+	}
+	if dto.NewCategory != nil {
+		fields["category_id"] = *dto.NewCategory
+	}
+
+	// executing request
+	res, err := ps.Repo.ReplaceFieldsInPost(ctx, fields, dto.PostID)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.CategoryID != nil {
+		post.CategoryID = res.CategoryID
+	}
+
+	if res.Title != nil {
+		post.Title = *res.Title
 	}
 
 	return post, nil
