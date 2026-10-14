@@ -26,4 +26,4 @@ COPY --from=builder /tmp/backend /app/backend
 EXPOSE 8080
 
 # running executable using linux os
-CMD ["/app/backend"]
+CMD ["/app/backend", "--init"]

@@ -57,7 +57,8 @@ func handleError(w http.ResponseWriter, err error) {
 		errors.Is(err, ErrGetUser),
 		errors.Is(err, ErrCreateUser),
 		errors.Is(err, ErrUpdateUser),
-		errors.Is(err, ErrDeleteUser):
+		errors.Is(err, ErrDeleteUser),
+		errors.Is(err, ErrCreateReaction):
 		errResp.Status = http.StatusInternalServerError
 		errResp.Message = err.Error()
 
