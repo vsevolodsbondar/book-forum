@@ -15,6 +15,9 @@ WORKDIR /app
 
 COPY --from=builder /app/auth .
 
+## Use included sample databse
+COPY --from=builder /app/test/test.db ./data/auth.db
+
 EXPOSE 8081
 
 CMD ["./auth"]
