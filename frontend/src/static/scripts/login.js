@@ -38,18 +38,21 @@ loginForm.addEventListener("submit", async (event) => {
       body: JSON.stringify({ email, password }),
     });
     if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
+      const error = new Error(`Error HTTP: ${response.status}`);
+      error.status = response.status; // keep the code to choose the message later
+      throw error;
     }
     //if logged in redirect a user to index.html
     window.location.href = "index.html";
   } catch (error) {
-    if (error instanceof TypeError) {
-      // fetch itself failed: the server is not reachable
-      showFormError(loginForm, "The server is not available. Try again later.");
-    } else {
-      showFormError(loginForm, "Wrong email or password.");
-    }
     console.log("login failed", error);
+    if (error instanceof TypeError) {
+      showFormError(loginForm, "The server is not available. Try again later.");
+    } else if (error.status === 401) {
+      showFormError(loginForm, "Wrong email or password.");
+    } else {
+      showFormError(loginForm, "Something went wrong. Try again later.");
+    }
   }
 });
 
@@ -65,7 +68,7 @@ regForm.addEventListener("submit", async (event) => {
   const description = regForm.elements.description.value;
   //cheking if the passwords that were written 2 times are the same
   if (password != repeatPassword) {
-    console.log("matching failed");
+    showFormError(regForm, "Passwords do not match.");
     return;
   }
   try {
@@ -75,18 +78,28 @@ regForm.addEventListener("submit", async (event) => {
       body: JSON.stringify({ email, password, username, description }),
     });
     if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
+      const error = new Error(`Error HTTP: ${response.status}`);
+      error.status = response.status; // keep the code to choose the message later
+      throw error;
     }
-    loginBtn.click();
+    // registered -> show the login form and tell the user what to do next
+    formContainer.style.justifyContent = "flex-start";
+    showFormError(loginForm, "You are registered. Now you can log in.");
+    loginForm.elements.email.value = email;
   } catch (error) {
     console.log("registration failed", error);
     if (error instanceof TypeError) {
+      // fetch itself failed: the server is not reachable
       showFormError(regForm, "The server is not available. Try again later.");
-    } else {
+    } else if (error.status === 409) {
+      showFormError(regForm, "This email or username is already in use.");
+    } else if (error.status === 400) {
       showFormError(
         regForm,
-        "Registration failed. This email or username may already be in use.",
+        "Check your data: password must have at least 15 characters, username 3-30 characters (letters, digits and _).",
       );
+    } else {
+      showFormError(regForm, "Something went wrong. Try again later.");
     }
   }
 });
