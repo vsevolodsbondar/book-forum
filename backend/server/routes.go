@@ -6,8 +6,14 @@ import (
 	"net/http"
 )
 
-func RegisterRoutes(mux *http.ServeMux, comments *handler.CommentHandler, users *handler.UserHandler, posts *handler.PostHandler, auth *handler.AuthHandler, categories *handler.CategoryHandler) {
-	// mux.HandleFunc("GET /api/posts", handler.GetLanding)
+func RegisterRoutes(
+	mux *http.ServeMux,
+	comments *handler.CommentHandler,
+	users *handler.UserHandler,
+	posts *handler.PostHandler,
+	auth *handler.AuthHandler,
+	categories *handler.CategoryHandler,
+) {
 	mux.HandleFunc("GET /posts/{id}/comments", custom_err.GlobalErrorHandler(comments.GetAllByPostID))
 	mux.HandleFunc("POST /posts/{id}/comments", custom_err.GlobalErrorHandler(comments.Create))
 	mux.HandleFunc("PATCH /comments/{id}", custom_err.GlobalErrorHandler(comments.Update))
@@ -26,7 +32,7 @@ func RegisterRoutes(mux *http.ServeMux, comments *handler.CommentHandler, users 
 	mux.HandleFunc("GET /posts/{id}", custom_err.GlobalErrorHandler(posts.GetPostByID))
 	mux.HandleFunc("DELETE /posts/{id}", custom_err.GlobalErrorHandler(posts.DeletePost))
 	mux.HandleFunc("POST /posts", custom_err.GlobalErrorHandler(posts.PostPost)) //namings...
-	// mux.HandleFunc("PATCH /posts", custom_err.GlobalErrorHandler(posts.PatchPost))
+	mux.HandleFunc("PATCH /posts", custom_err.GlobalErrorHandler(posts.PatchPost))
 
 	//check for auth user
 	mux.HandleFunc("GET /me", custom_err.GlobalErrorHandler(auth.AuthUser))

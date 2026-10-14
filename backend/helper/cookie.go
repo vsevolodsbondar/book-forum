@@ -8,8 +8,10 @@ import (
 	"time"
 )
 
+const sessionCookieName = "session_id"
+
 func ExtractSessionCookie(r *http.Request) (string, error) {
-	sessionCookie, err := r.Cookie("session_id")
+	sessionCookie, err := r.Cookie(sessionCookieName)
 	if err != nil {
 		if errors.Is(err, http.ErrNoCookie) {
 			return "", fmt.Errorf("unauthorized", http.StatusUnauthorized)
@@ -21,8 +23,6 @@ func ExtractSessionCookie(r *http.Request) (string, error) {
 
 	return sessionCookie.Value, nil
 }
-
-const sessionCookieName = "session_id"
 
 func SetCookie(w http.ResponseWriter, token string, expiresAt int64) {
 	http.SetCookie(w, &http.Cookie{

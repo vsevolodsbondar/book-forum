@@ -82,7 +82,7 @@ func (ps *PostService) GetByID(ctx context.Context, postID int64) (*model.PostRe
 	return post, nil
 }
 
-func (ps *PostService) DeletePost(ctx context.Context, dto model.DeletePostRequest) (bool, error) {
+func (ps *PostService) DeletePost(ctx context.Context, dto model.DeletePostDTO) (bool, error) {
 	post, err := ps.Repo.GetByID(ctx, dto.PostID)
 	if err != nil {
 		return false, err
@@ -98,4 +98,14 @@ func (ps *PostService) DeletePost(ctx context.Context, dto model.DeletePostReque
 	}
 
 	return res, nil
+}
+
+func (ps *PostService) PatchPost(ctx context.Context, dto model.PatchPostDTO) (*model.PostResultDTO, error) {
+
+	post, err := ps.Repo.GetByID(ctx, dto.PostID)
+	if err != nil {
+		return nil, err
+	}
+
+	return post, nil
 }

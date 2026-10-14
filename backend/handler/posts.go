@@ -65,7 +65,7 @@ func (h *PostHandler) PostPost(w http.ResponseWriter, r *http.Request) error {
 
 func (h *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	dto := model.DeletePostRequest{}
+	dto := model.DeletePostDTO{}
 
 	postID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
@@ -100,6 +100,39 @@ func (h *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) error 
 	}
 
 	res, err := h.Service.GetByID(ctx, int64(postID))
+	if err != nil {
+		return err
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(w).Encode(res)
+}
+
+func (h *PostHandler) PatchPost(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+
+	postID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		return custom_err.ErrInvalidID
+	}
+
+	dto := model.PatchPostDTO{}
+
+	err = json.NewDecoder(r.Body).Decode(&dto)
+
+	sessionCookie, err := helper.ExtractSessionCookie(r)
+	if err != nil {
+		return err
+	}
+	response, err := h.Auth.ValidateSession(ctx, sessionCookie)
+	if err != nil {
+		return err
+	}
+
+	dto.PostID = int64(postID)
+	dto.UserID = int64(response.User.ID)
+
+	res, err := h.Service.PatchPost(ctx, dto)
 	if err != nil {
 		return err
 	}

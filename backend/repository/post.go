@@ -119,7 +119,7 @@ func (repo *SQLitePostRepository) CreatePost(ctx context.Context, dto m.CreatePo
 	return &post, nil
 }
 
-func (repo *SQLitePostRepository) DeleteByID(ctx context.Context, dto m.DeletePostRequest) (bool, error) {
+func (repo *SQLitePostRepository) DeleteByID(ctx context.Context, dto m.DeletePostDTO) (bool, error) {
 	query := `
 		DELETE FROM post
 		WHERE id = ? AND author_id = ?
@@ -196,6 +196,14 @@ func (repo *SQLitePostRepository) GetByID(ctx context.Context, postID int64) (*m
 	}
 
 	return &posts[0], nil
+}
+
+func (repo *SQLitePostRepository) ReplaceFieldsInPost(ctx context.Context, dto model.PatchPostDTO) (*model.PostResultDTO, error) {
+	// query := `
+
+	// `
+
+	return &model.PostResultDTO{}, nil
 }
 
 func (repo *SQLitePostRepository) createCommentTx(ctx context.Context, comment *model.CreateCommentRequest, tx *sql.Tx) (*model.Comment, error) {

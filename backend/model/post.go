@@ -72,9 +72,16 @@ type PostCreatedDTO struct {
 	CreatedAt       time.Time `json:"created_at"`
 }
 
-type DeletePostRequest struct {
+type DeletePostDTO struct {
 	PostID int64
 	UserID int64
+}
+
+type PatchPostDTO struct {
+	PostID      int64
+	UserID      int64
+	NewTitle    *string `json:"new_title"`
+	NewCategory *string `json:"new_category_name"`
 }
 
 func (dto *SearchPostsDTO) Validate() error {
