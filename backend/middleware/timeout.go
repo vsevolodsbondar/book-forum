@@ -45,5 +45,5 @@ func runWithTimeOut(w http.ResponseWriter, r *http.Request, next http.Handler, d
 
 func writeTimeOutResponse(w http.ResponseWriter, r *http.Request) {
 	slog.WarnContext(r.Context(), "request timed out", "path", r.URL.Path)
-	http.Error(w, "request timed out", http.StatusGatewayTimeout)
+	http.Error(w, "request timed out", http.StatusRequestTimeout)
 }

@@ -28,12 +28,12 @@ func (h *ReactionHandler) CreateReaction(w http.ResponseWriter, r *http.Request)
 	//check auth session
 	sessionCookie, err := helper.ExtractSessionCookie(r)
 	if err != nil {
-		return custom_err.ErrExpiredSession
+		return err
 	}
 
 	session, err := h.auth.ValidateSession(ctx, sessionCookie)
 	if err != nil {
-		return custom_err.ErrExpiredSession
+		return err
 	}
 
 	//get input
@@ -66,12 +66,12 @@ func (h *ReactionHandler) UpdateReaction(w http.ResponseWriter, r *http.Request)
 	//check auth session
 	sessionCookie, err := helper.ExtractSessionCookie(r)
 	if err != nil {
-		return custom_err.ErrExpiredSession
+		return err
 	}
 
 	session, err := h.auth.ValidateSession(ctx, sessionCookie)
 	if err != nil {
-		return custom_err.ErrExpiredSession
+		return err
 	}
 
 	//get input
@@ -106,12 +106,12 @@ func (h *ReactionHandler) DeleteReaction(w http.ResponseWriter, r *http.Request)
 	//check auth session
 	sessionCookie, err := helper.ExtractSessionCookie(r)
 	if err != nil {
-		return custom_err.ErrExpiredSession
+		return err
 	}
 
 	session, err := h.auth.ValidateSession(ctx, sessionCookie)
 	if err != nil {
-		return custom_err.ErrExpiredSession
+		return err
 	}
 
 	//get input
