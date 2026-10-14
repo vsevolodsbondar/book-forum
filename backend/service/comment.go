@@ -36,7 +36,12 @@ func (cs *CommentService) GetAllByPostID(ctx context.Context, comment model.GetA
 	comments, err := cs.repo.GetAllByPostID(ctx, comment)
 	return comments, err
 }
-
+func (cs *CommentService) GetByID(ctx context.Context, commentID int, userID int) (*model.FullComment, error) {
+	if commentID <= 0 {
+		return nil, fmt.Errorf("%w: invalid comment id", custom_err.ErrInvalidInput)
+	}
+	return cs.repo.GetByID(ctx, commentID, userID)
+}
 func (cs *CommentService) Update(ctx context.Context, comment model.UpdateCommentDTO) (*model.UpdatedComment, error) {
 	var isValidated bool
 	comment.CommentToUpdate.Text, isValidated = helper.IsEmptyText(comment.CommentToUpdate.Text)

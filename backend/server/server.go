@@ -40,7 +40,15 @@ func Server(ctx context.Context, db *sql.DB) (*http.Server, error) {
 		},
 	}
 
-	err := authClient.Check(context.Background())
+	var err error
+	for attempt := 1; attempt <= 10; attempt++ {
+		err = authClient.Check(context.Background())
+		if err == nil {
+			break
+		}
+		log.Printf("auth is not ready (attempt %d/10): %v", attempt, err)
+		time.Sleep(time.Second)
+	}
 	if err != nil {
 		return nil, err
 	}

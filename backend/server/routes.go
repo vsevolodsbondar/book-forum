@@ -9,6 +9,7 @@ import (
 func RegisterRoutes(mux *http.ServeMux, comments *handler.CommentHandler, users *handler.UserHandler, posts *handler.PostHandler, auth *handler.AuthHandler, categories *handler.CategoryHandler) {
 	// mux.HandleFunc("GET /api/posts", handler.GetLanding)
 	mux.HandleFunc("GET /posts/{id}/comments", custom_err.GlobalErrorHandler(comments.GetAllByPostID))
+	mux.HandleFunc("GET /comments/{id}", custom_err.GlobalErrorHandler(comments.GetByID))
 	mux.HandleFunc("POST /posts/{id}/comments", custom_err.GlobalErrorHandler(comments.Create))
 	mux.HandleFunc("PATCH /comments/{id}", custom_err.GlobalErrorHandler(comments.Update))
 	mux.HandleFunc("DELETE /comments/{id}", custom_err.GlobalErrorHandler(comments.Delete))
