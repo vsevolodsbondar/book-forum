@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"forum_backend/client"
 	"forum_backend/custom_err"
@@ -41,9 +42,14 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) error {
 
 	// 2. what did they send?
 	var body model.CreateCommentBody
+	r.Body = http.MaxBytesReader(w, r.Body, maxReqBodySize)
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&body); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			return custom_err.ErrBadRequest
+		}
 		return fmt.Errorf("%w: invalid json format", custom_err.ErrInvalidInput)
 	}
 
@@ -129,7 +135,14 @@ func (h *CommentHandler) Update(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	var body model.CommentPatchRequest
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	r.Body = http.MaxBytesReader(w, r.Body, maxReqBodySize)
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&body); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			return custom_err.ErrBadRequest
+		}
 		return fmt.Errorf("%w: invalid json format", custom_err.ErrInvalidInput)
 	}
 
