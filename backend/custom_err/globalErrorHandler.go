@@ -49,6 +49,9 @@ func handleError(w http.ResponseWriter, err error) {
 	case errors.Is(err, ErrWrongCredentials):
 		errResp.Status = http.StatusUnauthorized
 		errResp.Message = err.Error()
+	case errors.Is(err, ErrConflict):
+		errResp.Status = http.StatusConflict
+		errResp.Message = err.Error()
 	case errors.Is(err, ErrForbidden):
 		errResp.Status = http.StatusForbidden
 		errResp.Message = err.Error()

@@ -48,7 +48,10 @@ type ValidateSessionResponseDTO struct {
 	User    UserDTO    `json:"user"`
 }
 
+// with this struct we can get a real reason what happend
 type ResponseError struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
+	Error struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+	} `json:"error"`
 }

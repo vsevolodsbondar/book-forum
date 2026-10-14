@@ -50,7 +50,7 @@ function renderPostData(data, isOwner, isLoggedIn, userID) {
                     <div class="tags">
                         <div class="tags_item">${data.category}</div>
                     </div>
-                    ${isOwner ? '<button class="delete">Delete the post</button>' : ""}
+                    ${isOwner ? '<button class="delete delete-post">Delete the post</button>' : ""}
                     <div class="stats">
                         <button class="likes ${data.comments[0].is_liked ? "choosed" : ""}">${data.comments[0].likes}</button>
                         <button class="dislikes ${data.comments[0].is_disliked ? "choosed" : ""}">${data.comments[0].dislikes}</button>
@@ -260,7 +260,7 @@ postInside.addEventListener("click", async (event) => {
 
 // click on delete button of the post
 postInside.addEventListener("click", async (event) => {
-  const btn = event.target.closest(".post-footer .delete");
+  const btn = event.target.closest(".delete-post");
   if (!btn) return;
 
   try {

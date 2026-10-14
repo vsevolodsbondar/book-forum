@@ -36,6 +36,24 @@ async function checkIsUserLoggedIn() {
 checkIsUserLoggedIn();
 //render of header
 const container = document.querySelector(".header .header-btn");
+// the button is rendered by JS later, so we listen on the parent (event delegation)
+container.addEventListener("click", async (event) => {
+  if (!event.target.closest(".logout")) return;
+
+  try {
+    const response = await fetch("http://localhost:8080/logout", {
+      method: "POST",
+      credentials: "include", // sends the session cookie so the server knows which session to delete
+    });
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+    // the cookie is cleared by the server; reload as a guest
+    window.location.href = "index.html";
+  } catch (error) {
+    console.log("logout failed", error);
+  }
+});
 function renderLoggedOutHeader() {
   container.innerHTML = `
             <a href="login.html#reg" class="main_btn header_register">Register</a>
@@ -46,7 +64,7 @@ function renderLoggedInHeader(user) {
             <a href="profile.html?id=${user.id}" class="image-container" aria-label="link to the your personal page">
                 <img class="author_img" src="/src/static/imgs/default.jpg" alt="photo of ${user.username}">
             </a>
-            <button class="blue_empty_btn">Log out</button>
+            <button type="button" class="blue_empty_btn logout">Log out</button>
             `;
 }
 //render navigation
