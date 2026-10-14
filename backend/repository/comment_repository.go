@@ -8,6 +8,7 @@ import (
 type CommentRepository interface {
 	Create(ctx context.Context, comment *model.CreateCommentDTO) (*model.Comment, error)
 	GetAllByPostID(ctx context.Context, comment model.GetAllCommentDTO) (*model.AllComments, error)
+	GetByID(ctx context.Context, commentID int, userID int) (*model.FullComment, error)
 	Update(ctx context.Context, comment model.UpdateCommentDTO) (*model.UpdatedComment, error)
 	Delete(ctx context.Context, comment model.DeleteCommentDTO) error
 }

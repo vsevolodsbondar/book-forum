@@ -6,9 +6,10 @@ import (
 	"net/http"
 )
 
-func RegisterRoutes(mux *http.ServeMux, comments *handler.CommentHandler, users *handler.UserHandler, posts *handler.PostHandler, auth *handler.AuthHandler, categories *handler.CategoryHandler) {
+func RegisterRoutes(mux *http.ServeMux, comments *handler.CommentHandler, users *handler.UserHandler, posts *handler.PostHandler, auth *handler.AuthHandler, categories *handler.CategoryHandler, reactions *handler.ReactionHandler) {
 	// mux.HandleFunc("GET /api/posts", handler.GetLanding)
 	mux.HandleFunc("GET /posts/{id}/comments", custom_err.GlobalErrorHandler(comments.GetAllByPostID))
+	mux.HandleFunc("GET /comments/{id}", custom_err.GlobalErrorHandler(comments.GetByID))
 	mux.HandleFunc("POST /posts/{id}/comments", custom_err.GlobalErrorHandler(comments.Create))
 	mux.HandleFunc("PATCH /comments/{id}", custom_err.GlobalErrorHandler(comments.Update))
 	mux.HandleFunc("DELETE /comments/{id}", custom_err.GlobalErrorHandler(comments.Delete))
@@ -21,6 +22,7 @@ func RegisterRoutes(mux *http.ServeMux, comments *handler.CommentHandler, users 
 	mux.HandleFunc("DELETE /users/{id}", custom_err.GlobalErrorHandler(users.DeleteUser))
 	mux.HandleFunc("POST /login", custom_err.GlobalErrorHandler(users.Login))
 	mux.HandleFunc("POST /logout", custom_err.GlobalErrorHandler(users.Logout))
+
 	//posts
 	mux.HandleFunc("GET /posts", custom_err.GlobalErrorHandler(posts.GetPosts))
 	mux.HandleFunc("GET /posts/{id}", custom_err.GlobalErrorHandler(posts.GetPostByID))
@@ -33,4 +35,9 @@ func RegisterRoutes(mux *http.ServeMux, comments *handler.CommentHandler, users 
 
 	//categories
 	mux.HandleFunc("GET /categories", custom_err.GlobalErrorHandler(categories.GetAll))
+
+	//like
+	mux.HandleFunc("POST /reaction", custom_err.GlobalErrorHandler(reactions.CreateReaction))
+	mux.HandleFunc("PATCH /reaction", custom_err.GlobalErrorHandler(reactions.UpdateReaction))
+	mux.HandleFunc("DELETE /reaction", custom_err.GlobalErrorHandler(reactions.DeleteReaction))
 }

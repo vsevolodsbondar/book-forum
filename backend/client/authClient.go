@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"forum_backend/custom_err"
 	e "forum_backend/custom_err"
 	"io"
 	"net/http"
@@ -71,7 +72,7 @@ func (c *AuthHTTPClient) ValidateSession(ctx context.Context, token string) (Val
 
 	err := c.doRequest(ctx, params)
 	if err != nil {
-		return ValidateSessionResponseDTO{}, err
+		return ValidateSessionResponseDTO{}, fmt.Errorf("%w: no session cookie", custom_err.ErrExpiredSession)
 	}
 
 	return result, nil

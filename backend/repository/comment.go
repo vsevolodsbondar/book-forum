@@ -132,7 +132,37 @@ func (cr *SQLiteCommentRepository) GetAllByPostID(ctx context.Context, comment m
 	comments.Total = countComments
 	return &comments, nil
 }
+func (cr *SQLiteCommentRepository) GetByID(ctx context.Context, commentID int, userID int) (*model.FullComment, error) {
+	query := `SELECT c.id, c.text, c.post_id, c.updated_at, c.parent_comment_id, c.user_id,
+	COALESCE(u.user_name, 'Deleted user'),
+	COALESCE(u.profile_picture, ''),
+	(SELECT COUNT(*) FROM likes l WHERE l.comment_id = c.id AND l.type_of_like = 1),
+	(SELECT COUNT(*) FROM likes l WHERE l.comment_id = c.id AND l.type_of_like = 0),
+	EXISTS(SELECT 1 FROM likes l WHERE l.comment_id = c.id AND l.user_id = $1 AND l.type_of_like = 1),
+	EXISTS(SELECT 1 FROM likes l WHERE l.comment_id = c.id AND l.user_id = $1 AND l.type_of_like = 0)
+	FROM comment c
+	LEFT JOIN user u ON c.user_id = u.id
+	WHERE c.id = $2`
 
+	var c model.FullComment
+	var updatedStr string
+	err := cr.db.QueryRowContext(ctx, query, userID, commentID).Scan(
+		&c.ID, &c.Text, &c.PostID, &updatedStr, &c.ParentCommentID, &c.UserID,
+		&c.User.UserName, &c.User.Image,
+		&c.Likes, &c.Dislikes, &c.IsLiked, &c.IsDisliked,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w: the comment with this id doesn't exist", custom_err.ErrCommentNotFound)
+	}
+	if err != nil {
+		return nil, err
+	}
+	c.UpdatedAt, err = parseSQLiteTime(updatedStr)
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
 func (cr *SQLiteCommentRepository) Update(ctx context.Context, comment model.UpdateCommentDTO) (*model.UpdatedComment, error) {
 	tx, err := cr.db.BeginTx(ctx, nil)
 	if err != nil {

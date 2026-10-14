@@ -40,7 +40,15 @@ func Server(ctx context.Context, db *sql.DB) (*http.Server, error) {
 		},
 	}
 
-	err := authClient.Check(context.Background())
+	var err error
+	for attempt := 1; attempt <= 10; attempt++ {
+		err = authClient.Check(context.Background())
+		if err == nil {
+			break
+		}
+		log.Printf("auth is not ready (attempt %d/10): %v", attempt, err)
+		time.Sleep(time.Second)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -62,6 +70,10 @@ func dependencyWiring(mux *http.ServeMux, db *sql.DB, auth client.AuthInterface)
 	usersRepo := repository.NewSQLiteUserRepository(db)
 	userService := service.NewUserService(usersRepo, auth)
 	userHandler := handler.NewUserHandler(userService, auth)
+	//reactions wiring
+	reactionRepo := repository.NewSQLiteReactionRepository(db)
+	reactionService := service.NewReactionService(reactionRepo)
+	reactionHandler := handler.NewReactionHandler(reactionService, auth)
 	//posts wiring
 	postsRepo := repository.NewSQLitePostRepository(db)
 	postsService := service.NewPostService(postsRepo)
@@ -72,7 +84,7 @@ func dependencyWiring(mux *http.ServeMux, db *sql.DB, auth client.AuthInterface)
 	categoryHandler := handler.NewCategoryHandler(categoryService)
 
 	authSession := handler.NewAuthHandler(auth)
-	RegisterRoutes(mux, commentHandler, userHandler, postsHandler, authSession, categoryHandler)
+	RegisterRoutes(mux, commentHandler, userHandler, postsHandler, authSession, categoryHandler, reactionHandler)
 
 	return mux
 }

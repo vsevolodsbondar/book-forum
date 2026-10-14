@@ -23,11 +23,15 @@ var (
 	ErrUpdateUser            = errors.New("failed to update user")
 	ErrDeleteUser            = errors.New("failed to delete user")
 	ErrSessionValidationFail = errors.New("failed session validation")
+	ErrCreateReaction        = errors.New("failed to create reaction")
+	ErrUpdateReaction        = errors.New("failed to update reaction")
+	ErrDeleteReaction        = errors.New("failed to delete reaction")
 	//not found status 404
 	ErrPostNotFound     = errors.New("post not found")
 	ErrCommentNotFound  = errors.New("comment not found")
 	ErrCategoryNotFound = errors.New("category not found")
 	ErrUserNotFound     = errors.New("user not found")
+	ErrReactionNotFound = errors.New("reaction not found")
 	//probably should be more specific, but atm do not know it yet
 	ErrInvalidInput      = errors.New("invalid input")
 	ErrExpiredSession    = errors.New("session expired")

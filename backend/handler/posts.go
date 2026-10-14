@@ -52,7 +52,13 @@ func (h *PostHandler) PostPost(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	sessionCookie, err := helper.ExtractSessionCookie(r)
+	if err != nil {
+		return err
+	}
 	response, err := h.Auth.ValidateSession(ctx, sessionCookie)
+	if err != nil {
+		return err
+	}
 
 	res, err := h.Service.PostMaker(ctx, dto, response.User.ID)
 	if err != nil {
@@ -73,7 +79,13 @@ func (h *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	sessionCookie, err := helper.ExtractSessionCookie(r)
+	if err != nil {
+		return err
+	}
 	response, err := h.Auth.ValidateSession(ctx, sessionCookie)
+	if err != nil {
+		return err
+	}
 
 	dto.PostID = int64(postID)
 	dto.UserID = int64(response.User.ID)
