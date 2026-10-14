@@ -27,7 +27,7 @@ VALUES
 -- CATEGORIES
 -- =========================
 
-INSERT INTO category (id, name)
+INSERT OR IGNORE INTO category (id, name)
 VALUES
 (1, 'Fantasy'),
 (2, 'Science Fiction'),
