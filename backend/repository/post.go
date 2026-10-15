@@ -279,6 +279,17 @@ func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.Se
 		case "categoryId":
 			query += `WHERE category_id = ? `
 			args = append(args, dto.SearchValue)
+
+		case "likedBy", "dislikedBy":
+			reaction := 1
+			if *dto.SearchField == "dislikedBy" {
+				reaction = -1
+			}
+			query += `WHERE init_comment_id IN (
+				SELECT comment_id FROM likes
+				WHERE user_id = ? AND type_of_like = ?
+			) `
+			args = append(args, dto.SearchValue, reaction)
 		}
 	}
 
@@ -614,6 +625,17 @@ func (repo *SQLitePostRepository) CountPosts(ctx context.Context, dto model.Sear
 		case "categoryId":
 			query += `WHERE category_id = ? `
 			args = append(args, dto.SearchValue)
+
+		case "likedBy", "dislikedBy":
+			reaction := 1
+			if *dto.SearchField == "dislikedBy" {
+				reaction = -1
+			}
+			query += `WHERE init_comment_id IN (
+				SELECT comment_id FROM likes
+				WHERE user_id = ? AND type_of_like = ?
+			) `
+			args = append(args, dto.SearchValue, reaction)
 		}
 	}
 
