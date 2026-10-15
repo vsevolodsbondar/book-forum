@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"forum_backend/helper"
 	"forum_backend/model"
 	"forum_backend/repository"
 )
@@ -15,6 +16,9 @@ func NewReactionService(repo repository.ReactionRepository) *ReactionService {
 }
 
 func (rs *ReactionService) CreateReaction(ctx context.Context, input model.ReactionDTO) error {
+	if err := helper.ValidateValue(input.Value); err != nil {
+		return err
+	}
 	err := rs.Repo.CreateReaction(ctx, input)
 	if err != nil {
 		return err
@@ -23,6 +27,9 @@ func (rs *ReactionService) CreateReaction(ctx context.Context, input model.React
 }
 
 func (rs *ReactionService) UpdateReaction(ctx context.Context, input model.ReactionDTO) error {
+	if err := helper.ValidateValue(input.Value); err != nil {
+		return err
+	}
 	err := rs.Repo.UpdateReaction(ctx, input)
 	if err != nil {
 		return err

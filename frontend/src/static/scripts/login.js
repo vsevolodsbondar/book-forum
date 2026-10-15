@@ -1,12 +1,12 @@
 //change of file name when image was chosen from computer
 const input = document.getElementById("file-field");
-const label = document.querySelector(".file-field_label");
+// const label = document.querySelector(".file-field_label");
 
-input.addEventListener("change", function () {
-  if (this.files && this.files.length > 0) {
-    label.textContent = this.files[0].name;
-  }
-});
+// input.addEventListener("change", function () {
+//   if (this.files && this.files.length > 0) {
+//     label.textContent = this.files[0].name;
+//   }
+// });
 //click on register and login button
 const regBtn = document.getElementById("toRegister");
 const loginBtn = document.getElementById("toLogin");
@@ -30,6 +30,9 @@ loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const email = loginForm.elements.email.value;
   const password = loginForm.elements.password.value;
+  const submitBtn = loginForm.querySelector("button[type='submit']");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Logging in...";
   try {
     const response = await fetch("http://localhost:8080/login", {
       method: "POST",
@@ -53,6 +56,9 @@ loginForm.addEventListener("submit", async (event) => {
     } else {
       showFormError(loginForm, "Something went wrong. Try again later.");
     }
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Login";
   }
 });
 
@@ -71,6 +77,9 @@ regForm.addEventListener("submit", async (event) => {
     showFormError(regForm, "Passwords do not match.");
     return;
   }
+  const submitBtn = regForm.querySelector("button[type='submit']");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Registering...";
   try {
     const response = await fetch("http://localhost:8080/users", {
       method: "POST",
@@ -82,10 +91,8 @@ regForm.addEventListener("submit", async (event) => {
       error.status = response.status; // keep the code to choose the message later
       throw error;
     }
-    // registered -> show the login form and tell the user what to do next
-    formContainer.style.justifyContent = "flex-start";
-    showFormError(loginForm, "You are registered. Now you can log in.");
-    loginForm.elements.email.value = email;
+    // registered -> reload the page, it opens with the login form
+    window.location.href = "login.html";
   } catch (error) {
     console.log("registration failed", error);
     if (error instanceof TypeError) {
@@ -101,5 +108,8 @@ regForm.addEventListener("submit", async (event) => {
     } else {
       showFormError(regForm, "Something went wrong. Try again later.");
     }
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Register";
   }
 });

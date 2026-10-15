@@ -61,9 +61,9 @@ func (cr *SQLiteCommentRepository) GetAllByPostID(ctx context.Context, comment m
 	COALESCE(u.user_name, 'Deleted user') AS user_name,
 	COALESCE(u.profile_picture, '') AS profile_picture,
 	(SELECT COUNT(*) FROM likes l WHERE l.comment_id = c.id AND l.type_of_like = 1) AS likes,
-    (SELECT COUNT(*) FROM likes l WHERE l.comment_id = c.id AND l.type_of_like = 0) AS dislikes,
+    (SELECT COUNT(*) FROM likes l WHERE l.comment_id = c.id AND l.type_of_like = -1) AS dislikes,
 	EXISTS( SELECT 1 FROM likes l WHERE l.comment_id = c.id AND l.user_id = $1 AND l.type_of_like = 1) AS is_liked,
-	EXISTS(SELECT 1 FROM likes l WHERE l.comment_id = c.id AND l.user_id = $1 AND l.type_of_like = 0) AS is_disliked
+	EXISTS(SELECT 1 FROM likes l WHERE l.comment_id = c.id AND l.user_id = $1 AND l.type_of_like = -1) AS is_disliked
 	FROM comment c
 	LEFT JOIN user u ON c.user_id = u.id
 	WHERE c.post_id = $2
@@ -137,9 +137,9 @@ func (cr *SQLiteCommentRepository) GetByID(ctx context.Context, commentID int, u
 	COALESCE(u.user_name, 'Deleted user'),
 	COALESCE(u.profile_picture, ''),
 	(SELECT COUNT(*) FROM likes l WHERE l.comment_id = c.id AND l.type_of_like = 1),
-	(SELECT COUNT(*) FROM likes l WHERE l.comment_id = c.id AND l.type_of_like = 0),
+	(SELECT COUNT(*) FROM likes l WHERE l.comment_id = c.id AND l.type_of_like = -1),
 	EXISTS(SELECT 1 FROM likes l WHERE l.comment_id = c.id AND l.user_id = $1 AND l.type_of_like = 1),
-	EXISTS(SELECT 1 FROM likes l WHERE l.comment_id = c.id AND l.user_id = $1 AND l.type_of_like = 0)
+	EXISTS(SELECT 1 FROM likes l WHERE l.comment_id = c.id AND l.user_id = $1 AND l.type_of_like = -1)
 	FROM comment c
 	LEFT JOIN user u ON c.user_id = u.id
 	WHERE c.id = $2`

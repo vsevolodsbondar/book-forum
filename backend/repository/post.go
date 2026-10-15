@@ -119,7 +119,7 @@ func (repo *SQLitePostRepository) CreatePost(ctx context.Context, dto m.CreatePo
 	return &post, nil
 }
 
-func (repo *SQLitePostRepository) DeleteByID(ctx context.Context, dto m.DeletePostRequest) (bool, error) {
+func (repo *SQLitePostRepository) DeleteByID(ctx context.Context, dto m.DeletePostDTO) (bool, error) {
 	query := `
 		DELETE FROM post
 		WHERE id = ? AND author_id = ?
@@ -196,6 +196,50 @@ func (repo *SQLitePostRepository) GetByID(ctx context.Context, postID int64) (*m
 	}
 
 	return &posts[0], nil
+}
+
+func (repo *SQLitePostRepository) ReplaceFieldsInPost(ctx context.Context, fields map[string]any, postID int64) (*model.PatchResultDTO, error) {
+	setFields := make([]string, 0, len(fields))
+	args := make([]any, 0, len(fields))
+
+	allowedFields := map[string]bool{
+		"title":       true,
+		"category_id": true,
+	}
+
+	for field, value := range fields {
+		if !allowedFields[field] {
+			return nil, custom_err.ErrInvalidInput
+		}
+
+		setFields = append(setFields, field+" = ?")
+		args = append(args, value)
+	}
+
+	query := `
+		UPDATE posts
+		SET ` + strings.Join(setFields, ", ") + `
+		WHERE id = ?
+		RETURNING title, category_id
+	`
+
+	args = append(args, postID)
+
+	var res m.PatchResultDTO
+	err := repo.db.QueryRowContext(ctx, query, args...).Scan(
+		&res.Title,
+		&res.CategoryID,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return &model.PatchResultDTO{}, custom_err.ErrPostNotFound
+		}
+
+		return &model.PatchResultDTO{}, err
+	}
+
+	return &res, nil
 }
 
 func (repo *SQLitePostRepository) createCommentTx(ctx context.Context, comment *model.CreateCommentRequest, tx *sql.Tx) (*model.Comment, error) {
