@@ -595,6 +595,7 @@ func (repo *SQLitePostRepository) findAuthorsForPosts(ctx context.Context, autho
 		}
 
 		userInfo := model.UserShortInfo{
+			ID:             userId,
 			UserName:       userName,
 			ProfilePicture: profilePic.String,
 		}
