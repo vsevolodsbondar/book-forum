@@ -24,7 +24,6 @@ async function getPostData() {
       isLoggedIn = false;
     }
     renderPostData(postData, isOwner, isLoggedIn, userID);
-    console.log(postData);
   } catch (error) {
     console.log("the error was catched", error);
   }
@@ -34,6 +33,7 @@ getPostData();
 //render post and comments
 function renderPostData(data, isOwner, isLoggedIn, userID) {
   const postDiscription = document.querySelector(".comment.init");
+  postDiscription.id = data.comments[0].id;
   postDiscription.innerHTML = `
     <div class="author">
                     <div class="image-container">
@@ -277,3 +277,6 @@ postInside.addEventListener("click", async (event) => {
     console.error("Error deleting post:", error);
   }
 });
+
+//endpoint for likes/dislikes
+// function check

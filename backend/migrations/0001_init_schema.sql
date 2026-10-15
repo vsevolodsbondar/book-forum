@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS likes(
     FOREIGN KEY(user_id) REFERENCES user(id) ON DELETE CASCADE,
     FOREIGN KEY(comment_id) REFERENCES comment(id) ON DELETE CASCADE,
     UNIQUE(user_id, comment_id),
-    CHECK(type_of_like IN (0,1))
+    CHECK(type_of_like IN (-1,1))
 );
 CREATE INDEX idx_comment_post_id ON comment(post_id);
 CREATE INDEX idx_post_author_id ON post(author_id);
