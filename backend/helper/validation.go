@@ -22,20 +22,18 @@ func ValidateValue(value int) error {
 	return nil
 }
 
-func ValidateUsername(username string) error {
-	username, empty := IsEmptyText(username)
-	if empty {
+func ValidateUsername(username *string) error {
+	*username = strings.TrimSpace(*username)
+	switch n := len(*username); {
+	case n == 0:
 		return custom_err.ErrEmptyUsername
-	}
-
-	switch {
-	case len(username) < 3:
+	case n < 3:
 		return custom_err.ErrUsernameTooShort
-	case len(username) > 30:
+	case n > 30:
 		return custom_err.ErrUsernameTooLong
 	}
 
-	for _, c := range username {
+	for _, c := range *username {
 		if !isAlphanumeric(c) && c != '_' {
 			return custom_err.ErrInvalidUsername
 		}
@@ -44,6 +42,24 @@ func ValidateUsername(username string) error {
 	return nil
 }
 
+func ValidateName(name *string) error {
+	*name = strings.TrimSpace(*name)
+	if len(*name) > 32 {
+		return custom_err.ErrNameTooLong
+	}
+
+	return nil
+}
+
+func ValidateDescription(desc *string) error {
+	*desc = strings.TrimSpace(*desc)
+	if len(*desc) > 500 {
+		return custom_err.ErrDescTooLong
+	}
+
+	return nil
+}
+
 func isAlphanumeric(r rune) bool {
-	return (r >= 'a' && r <= 'z') ||(r >= 'A' && r <= 'Z') ||(r >= '0' && r <= '9')
+	return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9')
 }

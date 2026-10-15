@@ -110,7 +110,7 @@ func validateUpdateInput(us *UserService, ctx context.Context, id int64, input m
 	}
 
 	if input.UserName != nil {
-		if err := helper.ValidateUsername(*input.UserName); err != nil {
+		if err := helper.ValidateUsername(input.UserName); err != nil {
 			return err
 		}
 
@@ -125,9 +125,16 @@ func validateUpdateInput(us *UserService, ctx context.Context, id int64, input m
 		}
 	}
 
+	if input.Name != nil {
+		if err := helper.ValidateName(input.Name); err != nil {
+			return err
+		}
+	}
 
-	if input.Description != nil && len(*input.Description) > 500 {
-		return custom_err.ErrDescTooLong
+	if input.Description != nil {
+		if err := helper.ValidateDescription(input.Description); err != nil {
+			return err
+		}
 	}
 
 	return nil

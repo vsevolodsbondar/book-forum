@@ -12,12 +12,13 @@ type ErrorResponse struct {
 // return just base error without context "return error.ErrInvalidInput"
 var (
 	// input validation related status 400
-	ErrInvalidID         = errors.New("id must be a positive integer")
-	ErrEmptyUsername     = errors.New("username cannot be empty")
-	ErrInvalidUsername   = errors.New("username must only contain alphanumeric characters and underscores")
-	ErrUsernameTooLong   = errors.New("username must be at most 30 characters")
-	ErrUsernameTooShort  = errors.New("username must be at least 3 characters")
-	ErrDescTooLong       = errors.New("description must be at most 500 characters")
+	ErrInvalidID        = errors.New("id must be a positive integer")
+	ErrEmptyUsername    = errors.New("username cannot be empty")
+	ErrInvalidUsername  = errors.New("username must only contain alphanumeric characters and underscores")
+	ErrUsernameTooLong  = errors.New("username must be at most 30 characters")
+	ErrUsernameTooShort = errors.New("username must be at least 3 characters")
+	ErrNameTooLong      = errors.New("name must be at most 32 characters")
+	ErrDescTooLong      = errors.New("description must be at most 500 characters")
 	// db malfunction related status 500
 	ErrGetRowsAffected       = errors.New("failed to get rows affected")
 	ErrGetUser               = errors.New("failed to get user")
@@ -46,7 +47,7 @@ var (
 	ErrInvalidSession    = errors.New("invalid session")
 	ErrBadRequest        = errors.New("failed to process request")
 	// more errors
-	ErrNoChange      = errors.New("the text wasn't changed")
-	ErrForbidden     = errors.New("forbidden")
-	ErrConflict      = errors.New("already exists")
+	ErrNoChange  = errors.New("the text wasn't changed")
+	ErrForbidden = errors.New("forbidden")
+	ErrConflict  = errors.New("already exists")
 )

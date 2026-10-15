@@ -43,6 +43,7 @@ func handleError(w http.ResponseWriter, err error) {
 		errors.Is(err, ErrUsernameTooLong),
 		errors.Is(err, ErrUsernameTooShort),
 		errors.Is(err, ErrInvalidUsername),
+		errors.Is(err, ErrNameTooLong),
 		errors.Is(err, ErrDescTooLong),
 		errors.Is(err, ErrBadRequest):
 		errResp.Status = http.StatusBadRequest
