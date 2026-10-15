@@ -91,10 +91,8 @@ regForm.addEventListener("submit", async (event) => {
       error.status = response.status; // keep the code to choose the message later
       throw error;
     }
-    // registered -> show the login form and tell the user what to do next
-    formContainer.style.justifyContent = "flex-start";
-    showFormError(loginForm, "You are registered. Now you can log in.");
-    loginForm.elements.email.value = email;
+    // registered -> reload the page, it opens with the login form
+    window.location.href = "login.html";
   } catch (error) {
     console.log("registration failed", error);
     if (error instanceof TypeError) {
