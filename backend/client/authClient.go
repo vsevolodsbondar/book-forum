@@ -98,6 +98,12 @@ func (c *AuthHTTPClient) LogoutUser(ctx context.Context, token string) error {
 	return nil
 }
 
+type ErrDoReq struct {
+	Status  int
+	Code    int
+	Message string
+}
+
 func (c *AuthHTTPClient) doRequest(ctx context.Context, params AuthClientRequestParams) error {
 	var reader io.Reader
 
