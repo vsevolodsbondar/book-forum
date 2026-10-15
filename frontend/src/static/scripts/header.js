@@ -75,7 +75,7 @@ function renderLoggedInNav(user) {
     list.insertAdjacentHTML(
       "beforeend",
       `<li><a class="nav-list_item" href="createPost.html">Create post</a></li>
-        <li><a class="nav-list_item" href="myPosts.html?id=${user.id}">My posts</a></li>`,
+        <li><a id="myPostLink" class="nav-list_item" href="myPosts.html?id=${user.id}">My posts</a></li>`,
     );
   }
 }
