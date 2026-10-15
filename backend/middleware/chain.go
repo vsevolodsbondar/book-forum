@@ -9,6 +9,7 @@ func Chain(handler http.Handler) http.Handler {
 	handler = CORS(handler)
 	handler = Timeout(5 * time.Second)(handler)
 	handler = Recovery(handler)
+	handler = Logger(handler)
 
 	return handler
 }
