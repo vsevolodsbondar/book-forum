@@ -19,6 +19,7 @@ var (
 	//db malfunction related status 500
 	ErrGetRowsAffected       = errors.New("failed to get rows affected")
 	ErrGetUser               = errors.New("failed to get user")
+	ErrGetUsers              = errors.New("failed to get users")
 	ErrCreateUser            = errors.New("failed to create user")
 	ErrUpdateUser            = errors.New("failed to update user")
 	ErrDeleteUser            = errors.New("failed to delete user")

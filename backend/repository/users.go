@@ -19,29 +19,33 @@ func NewSQLiteUserRepository(db *sql.DB) *SQLiteUserRepository {
 }
 
 func (ur *SQLiteUserRepository) GetAllUsers(ctx context.Context, params model.GetAllUsersDTO) (*model.AllUsers, error) {
-	var AllUsersInfo model.AllUsers
+	var AllUsersInfo = model.AllUsers{
+		Users: []model.UserShortInfo{}, // пустой список будет [] а не null
+		Page:  params.Page,
+		Size:  params.Size,
+	}
 	offset := (params.Page - 1) * params.Size
 	query := `
-		SELECT id, user_name, profile_picture
+		SELECT id, user_name, COALESCE(profile_picture, '')
 		FROM user
 		ORDER BY id LIMIT ? OFFSET ?
 		`
 
 	rows, err := ur.db.QueryContext(ctx, query, params.Size, offset)
 	if err != nil {
-		return nil, err
+		return nil, custom_err.ErrGetUsers
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var user model.UserShortInfo
 		if err := rows.Scan(&user.ID, &user.UserName, &user.ProfilePicture); err != nil {
-			return nil, custom_err.ErrGetRowsAffected //!!! create specific error
+			return nil, custom_err.ErrGetUsers
 		}
 
 		AllUsersInfo.Users = append(AllUsersInfo.Users, user)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, err //!!! create custom err
+		return nil, err
 	}
 
 	AllUsersInfo.Page = params.Page
@@ -55,7 +59,7 @@ func (ur *SQLiteUserRepository) GetUser(ctx context.Context, id int64) (*model.U
 	var user model.UserInfo
 
 	query := `
-		SELECT id, user_name, created_at, profile_picture, last_seen, name, description
+		SELECT id, user_name, created_at, COALESCE(profile_picture, ''), last_seen, COALESCE(name, ''), COALESCE(description, '')
 		FROM user
 		WHERE id = ?
 	`
