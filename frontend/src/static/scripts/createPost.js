@@ -67,3 +67,21 @@ createForm.addEventListener("submit", async (event) => {
     }
   }
 });
+
+const navList = document.querySelector(".nav-list");
+
+// finds the "Create post" item and highlights it; returns false if it isn't rendered yet
+function markCurrentNavItem() {
+  const link = navList.querySelector('a[href="createPost.html"]');
+  if (!link) return false;
+  link.closest("li").classList.add("choosed");
+  return true;
+}
+
+// header.js renders the item later (after the /me request), so we wait for it
+if (!markCurrentNavItem()) {
+  const observer = new MutationObserver(() => {
+    if (markCurrentNavItem()) observer.disconnect();
+  });
+  observer.observe(navList, { childList: true });
+}

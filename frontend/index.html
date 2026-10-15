@@ -25,21 +25,46 @@
             <li class="choosed">
               <a class="nav-list_item" href="index.html">Posts</a>
             </li>
-            <li><a class="nav-list_item" href="users.html">Users</a></li>
+            <!-- <li><a class="nav-list_item" href="users.html">Users</a></li> -->
           </ul>
         </nav>
       </section>
       <section class="main-section">
         <article class="tags">
           <button type="button" class="tags_item choosed" data-filter="new">
-            New
+            Newest
+          </button>
+          <button type="button" class="tags_item" data-filter="old">
+            Oldest
+          </button>
+          <button
+            type="button"
+            class="tags_item"
+            data-filter="liked"
+            style="display: none"
+          >
+            Liked posts
+          </button>
+          <button
+            type="button"
+            class="tags_item"
+            data-filter="disliked"
+            style="display: none"
+          >
+            Disliked posts
           </button>
           <select name="category" class="tags_item">
             <option value="">Filter by category</option>
           </select>
         </article>
         <article class="posts"></article>
-        <button type="button" class="blue_empty_btn see-more" style="display: none; margin: 20px auto 0">See more</button>
+        <button
+          type="button"
+          class="blue_empty_btn see-more"
+          style="display: none; margin: 20px auto 0"
+        >
+          See more
+        </button>
       </section>
     </main>
     <script type="module" src="/src/static/scripts/header.js"></script>

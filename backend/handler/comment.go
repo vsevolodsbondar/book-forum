@@ -94,20 +94,18 @@ func (h *CommentHandler) GetAllByPostID(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	sessionCookie, err := helper.ExtractSessionCookie(r)
-	if err != nil {
-		return err
-	}
-	response, err := h.auth.ValidateSession(ctx, sessionCookie)
-	if err != nil {
-		return err
+	userID := 0
+	if sessionCookie, err := helper.ExtractSessionCookie(r); err == nil {
+		if response, err := h.auth.ValidateSession(ctx, sessionCookie); err == nil {
+			userID = int(response.User.ID)
+		}
 	}
 
 	commentDTO := model.GetAllCommentDTO{
 		PageInt: pageInt,
 		SizeInt: sizeInt,
 		IDPost:  idPost,
-		UserID:  int(response.User.ID),
+		UserID:  userID,
 	}
 	comments, err := h.service.GetAllByPostID(ctx, commentDTO)
 	if err != nil {

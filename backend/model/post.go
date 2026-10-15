@@ -118,7 +118,13 @@ func (dto *SearchPostsDTO) Validate() error {
 				custom_err.ErrInvalidInput,
 			)
 		}
-
+	case "likedBy", "dislikedBy":
+		if dto.SearchValue == nil {
+			return fmt.Errorf(
+				"%w: liked_by search value cannot be empty",
+				custom_err.ErrInvalidInput,
+			)
+		}
 	default:
 		return fmt.Errorf(
 			"%w: unsupported search field %q",
