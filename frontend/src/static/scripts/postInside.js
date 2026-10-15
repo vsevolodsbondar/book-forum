@@ -279,4 +279,66 @@ postInside.addEventListener("click", async (event) => {
 });
 
 //endpoint for likes/dislikes
-// function check
+const API = "http://localhost:8080";
+function changeAmount(button, shift) {
+  button.textContent = Number(button.textContent) + shift;
+}
+async function sendReaction(method, commentID, value) {
+  const response = await fetch(`${API}/reaction`, {
+    method,
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ comment_id: commentID, like: value }),
+  });
+  if (!response.ok) {
+    const error = new Error("reaction failed");
+    error.status = response.status;
+    throw error;
+  }
+}
+document.addEventListener("click", async (event) => {
+  const button = event.target.closest(".likes, .dislikes");
+  if (!button) return;
+  const comment = button.closest(".comment");
+  if (!comment) return;
+
+  const likeBtn = comment.querySelector(".likes");
+  const dislikeBtn = comment.querySelector(".dislikes");
+
+  const isLike = button.classList.contains("likes");
+  const value = isLike ? 1 : -1;
+  const opposite = isLike ? dislikeBtn : likeBtn;
+  const commentId = Number(comment.id);
+
+  const wasChosen = button.classList.contains("choosed");
+  const oppositeChosen = opposite.classList.contains("choosed");
+  button.disabled = true;
+  try {
+    if (wasChosen) {
+      // second click on the same button, so delete the reaction
+      await sendReaction("DELETE", commentId, value);
+      button.classList.remove("choosed");
+      changeAmount(button, -1);
+    } else if (oppositeChosen) {
+      // click on the opposite button, so update the reaction
+      await sendReaction("PATCH", commentId, value);
+      opposite.classList.remove("choosed");
+      changeAmount(opposite, -1);
+      button.classList.add("choosed");
+      changeAmount(button, 1);
+    } else {
+      // first click, so create the reaction
+      await sendReaction("POST", commentId, value);
+      button.classList.add("choosed");
+      changeAmount(button, 1);
+    }
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) {
+      window.location.href = "login.html";
+    } else {
+      console.error(error);
+    }
+  } finally {
+    button.disabled = false;
+  }
+});
