@@ -261,7 +261,7 @@ WHERE id = 6;
 -- LIKES
 -- type_of_like:
 -- 1 = like
--- 0 = dislike
+-- -1 = dislike
 -- =========================
 
 INSERT INTO likes (user_id, comment_id, type_of_like)
@@ -269,7 +269,7 @@ VALUES
 -- Comment 1
 (1, 1, 1),
 (3, 1, 1),
-(4, 1, 0),
+(4, 1, -1),
 
 -- Comment 2
 (1, 2, 1),
@@ -282,7 +282,7 @@ VALUES
 -- Comment 5
 (3, 5, 1),
 (4, 5, 1),
-(6, 5, 0),
+(6, 5, -1),
 
 -- Comment 6
 (1, 6, 1),
@@ -293,7 +293,7 @@ VALUES
 
 -- Comment 10
 (3, 10, 1),
-(6, 10, 0),
+(6, 10, -1),
 
 -- Comment 11
 (1, 11, 1),

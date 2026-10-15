@@ -5,8 +5,9 @@ let currentPage = 1;
 //get info about posts
 
 // builds the query string from the current state of the controls
+let byLatest = "true";
 function buildQuery(page) {
-  const params = new URLSearchParams({ byLatest: "true", page });
+  const params = new URLSearchParams({ byLatest, page });
   if (categorySelect.value !== "") {
     params.set("search", "true");
     params.set("field", "categoryId");
@@ -43,7 +44,8 @@ async function getPostData({ append = false } = {}) {
 }
 getPostData();
 seeMoreBtn.addEventListener("click", () => getPostData({ append: true }));
-// filters above the list: New / Popular / Most comments
+
+// filters above the list: New / Old
 const filters = document.querySelector(".main-section > .tags");
 filters.addEventListener("click", (event) => {
   const btn = event.target.closest("button[data-filter]");
@@ -54,9 +56,8 @@ filters.addEventListener("click", (event) => {
     .forEach((b) => b.classList.remove("choosed"));
   btn.classList.add("choosed");
 
-  if (btn.dataset.filter === "new") {
-    getPostData();
-  }
+  byLatest = btn.dataset.filter === "new" ? "true" : "false";
+  getPostData();
 });
 // fill the category <select> with categories from the backend
 async function loadCategories() {

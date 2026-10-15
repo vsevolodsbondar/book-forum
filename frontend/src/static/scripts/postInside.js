@@ -24,7 +24,6 @@ async function getPostData() {
       isLoggedIn = false;
     }
     renderPostData(postData, isOwner, isLoggedIn, userID);
-    console.log(postData);
   } catch (error) {
     console.log("the error was catched", error);
   }
@@ -34,6 +33,7 @@ getPostData();
 //render post and comments
 function renderPostData(data, isOwner, isLoggedIn, userID) {
   const postDiscription = document.querySelector(".comment.init");
+  postDiscription.id = data.comments[0].id;
   postDiscription.innerHTML = `
     <div class="author">
                     <div class="image-container">
@@ -275,5 +275,70 @@ postInside.addEventListener("click", async (event) => {
     window.location.href = "index.html";
   } catch (error) {
     console.error("Error deleting post:", error);
+  }
+});
+
+//endpoint for likes/dislikes
+const API = "http://localhost:8080";
+function changeAmount(button, shift) {
+  button.textContent = Number(button.textContent) + shift;
+}
+async function sendReaction(method, commentID, value) {
+  const response = await fetch(`${API}/reaction`, {
+    method,
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ comment_id: commentID, like: value }),
+  });
+  if (!response.ok) {
+    const error = new Error("reaction failed");
+    error.status = response.status;
+    throw error;
+  }
+}
+document.addEventListener("click", async (event) => {
+  const button = event.target.closest(".likes, .dislikes");
+  if (!button) return;
+  const comment = button.closest(".comment");
+  if (!comment) return;
+
+  const likeBtn = comment.querySelector(".likes");
+  const dislikeBtn = comment.querySelector(".dislikes");
+
+  const isLike = button.classList.contains("likes");
+  const value = isLike ? 1 : -1;
+  const opposite = isLike ? dislikeBtn : likeBtn;
+  const commentId = Number(comment.id);
+
+  const wasChosen = button.classList.contains("choosed");
+  const oppositeChosen = opposite.classList.contains("choosed");
+  button.disabled = true;
+  try {
+    if (wasChosen) {
+      // second click on the same button, so delete the reaction
+      await sendReaction("DELETE", commentId, value);
+      button.classList.remove("choosed");
+      changeAmount(button, -1);
+    } else if (oppositeChosen) {
+      // click on the opposite button, so update the reaction
+      await sendReaction("PATCH", commentId, value);
+      opposite.classList.remove("choosed");
+      changeAmount(opposite, -1);
+      button.classList.add("choosed");
+      changeAmount(button, 1);
+    } else {
+      // first click, so create the reaction
+      await sendReaction("POST", commentId, value);
+      button.classList.add("choosed");
+      changeAmount(button, 1);
+    }
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) {
+      window.location.href = "login.html";
+    } else {
+      console.error(error);
+    }
+  } finally {
+    button.disabled = false;
   }
 });
