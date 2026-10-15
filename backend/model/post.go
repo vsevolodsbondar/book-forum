@@ -131,12 +131,16 @@ func (dto *SearchPostsDTO) Validate() error {
 }
 
 func (dto *PatchPostDTO) Validate() error {
-	if dto.NewTitle == nil || strings.TrimSpace(*dto.NewTitle) == "" {
-		return fmt.Errorf("%w: title is required", custom_err.ErrInvalidInput)
+	if dto.NewTitle != nil {
+		if strings.TrimSpace(*dto.NewTitle) == "" {
+			return fmt.Errorf("%w: title can't be empty", custom_err.ErrInvalidInput)
+		}
 	}
 
-	if dto.NewCategory == nil || *dto.NewCategory <= 0 {
-		return fmt.Errorf("%w: category_id must be greater than 0", custom_err.ErrInvalidInput)
+	if dto.NewCategory != nil {
+		if *dto.NewCategory <= 0 {
+			return fmt.Errorf("%w: category_id must be greater than 0", custom_err.ErrInvalidInput)
+		}
 	}
 
 	return nil

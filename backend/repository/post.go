@@ -217,7 +217,7 @@ func (repo *SQLitePostRepository) ReplaceFieldsInPost(ctx context.Context, field
 	}
 
 	query := `
-		UPDATE posts
+		UPDATE post
 		SET ` + strings.Join(setFields, ", ") + `
 		WHERE id = ?
 		RETURNING title, category_id
