@@ -19,39 +19,46 @@ func NewSQLiteUserRepository(db *sql.DB) *SQLiteUserRepository {
 }
 
 func (ur *SQLiteUserRepository) GetAllUsers(ctx context.Context, params model.GetAllUsersDTO) (*model.AllUsers, error) {
-	var AllUsersInfo = model.AllUsers{
-		Users: []model.UserShortInfo{}, // пустой список будет [] а не null
+	result := model.AllUsers{
+		Users: []model.UserShortInfo{},
 		Page:  params.Page,
 		Size:  params.Size,
 	}
+
+	err := ur.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM user`).Scan(&result.Total)
+	if err != nil {
+		slog.Error("failed to count users", "err", err)
+		return nil, custom_err.ErrGetUsers
+	}
+
 	offset := (params.Page - 1) * params.Size
 	query := `
 		SELECT id, user_name, COALESCE(profile_picture, '')
 		FROM user
 		ORDER BY id LIMIT ? OFFSET ?
-		`
+	`
 
 	rows, err := ur.db.QueryContext(ctx, query, params.Size, offset)
 	if err != nil {
+		slog.Error("failed to query users", "err", err)
 		return nil, custom_err.ErrGetUsers
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		var user model.UserShortInfo
 		if err := rows.Scan(&user.ID, &user.UserName, &user.ProfilePicture); err != nil {
+			slog.Error("failed to scan user row", "err", err)
 			return nil, custom_err.ErrGetUsers
 		}
-
-		AllUsersInfo.Users = append(AllUsersInfo.Users, user)
+		result.Users = append(result.Users, user)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, err
+		slog.Error("failed to iterate users", "err", err)
+		return nil, custom_err.ErrGetUsers
 	}
 
-	AllUsersInfo.Page = params.Page
-	AllUsersInfo.Size = params.Size
-
-	return &AllUsersInfo, nil
+	return &result, nil
 }
 
 // READ by ID
