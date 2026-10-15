@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"forum_backend/client"
 	"forum_backend/custom_err"
 	"forum_backend/helper"
@@ -10,10 +11,10 @@ import (
 )
 
 type UserService struct {
-	Repo repository.UsersRepository
+	Repo repository.UserRepository
 }
 
-func NewUserService(repo repository.UsersRepository, auth client.AuthInterface) *UserService {
+func NewUserService(repo repository.UserRepository, auth client.AuthInterface) *UserService {
 	return &UserService{Repo: repo}
 }
 
@@ -63,12 +64,19 @@ func (us *UserService) UpdateUser(ctx context.Context, id int64, input model.Use
 		return custom_err.ErrInvalidID
 	}
 
-	if err := validateUpdateInput(input); err != nil {
+	// user, err := us.Repo.GetUser(ctx, id)
+	// if err != nil {
+	// 	return err
+	// }
+	// if err := validateUpdateInput(&input, user, us); err != nil {
+	// 	return err
+	// }
+
+	if err := validateUpdateInput(us, ctx, id, input); err != nil {
 		return err
 	}
 
-	err := us.Repo.UpdateUser(ctx, id, input)
-	if err != nil {
+	if err := us.Repo.UpdateUser(ctx, id, input); err != nil {
 		return err
 	}
 
@@ -94,7 +102,7 @@ func validateSubmission(input model.UserDTO) error {
 	if empty {
 		return custom_err.ErrEmptyUsername
 	}
-	if len(username) > 32 {
+	if len(username) > 30 {
 		return custom_err.ErrUsernameTooLong
 	}
 	if len(input.Description) > 500 {
@@ -103,18 +111,31 @@ func validateSubmission(input model.UserDTO) error {
 	return nil
 }
 
-func validateUpdateInput(input model.UserUpdateDTO) error {
+func validateUpdateInput(us *UserService, ctx context.Context, id int64, input model.UserUpdateDTO) error {
+	user, err := us.Repo.GetUser(ctx, id)
+	if err != nil {
+		return err
+	}
+
 	if input.UserName != nil {
-		username, empty := helper.IsEmptyText(*input.UserName)
-		if empty {
-			return custom_err.ErrEmptyUsername
+		if err := helper.ValidateUsername(*input.UserName); err != nil {
+			return err
 		}
-		if len(username) > 32 {
-			return custom_err.ErrUsernameTooLong
+
+		if *input.UserName == user.UserName {
+			return custom_err.ErrUnchangedUsername
+		}
+
+		if free, err := us.Repo.CheckUsernameAvailability(ctx, *input.UserName); err != nil {
+			return err
+		} else if !free {
+			return custom_err.ErrTakenUsername
 		}
 	}
+
 	if input.Description != nil && len(*input.Description) > 500 {
 		return custom_err.ErrDescTooLong
 	}
+
 	return nil
 }
