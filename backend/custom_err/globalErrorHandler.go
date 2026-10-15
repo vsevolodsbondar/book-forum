@@ -43,15 +43,12 @@ func handleError(w http.ResponseWriter, err error) {
 		errors.Is(err, ErrUsernameTooLong),
 		errors.Is(err, ErrUsernameTooShort),
 		errors.Is(err, ErrInvalidUsername),
-		errors.Is(err, ErrUnchangedUsername),
-		errors.Is(err, ErrTakenUsername),
 		errors.Is(err, ErrDescTooLong),
 		errors.Is(err, ErrBadRequest):
 		errResp.Status = http.StatusBadRequest
 		errResp.Message = err.Error()
 
-	case errors.Is(err, ErrConflict),
-		errors.Is(err, ErrTakenUsername):
+	case errors.Is(err, ErrConflict):
 		errResp.Status = http.StatusConflict
 		errResp.Message = err.Error()
 
