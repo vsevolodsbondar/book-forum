@@ -147,11 +147,7 @@ func (c *AuthHTTPClient) doRequest(ctx context.Context, params AuthClientRequest
 			)
 		}
 
-		return fmt.Errorf(
-			"%w: %s",
-			e.ErrAuthService,
-			responseError.Message,
-		)
+		return mapAuthError(resp.StatusCode, responseError)
 	}
 
 	if params.RequestResult != nil {
@@ -180,4 +176,23 @@ func (c *AuthHTTPClient) Check(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// function to diverse  errors for frontend
+func mapAuthError(status int, resp ResponseError) error {
+	msg := resp.Error.Message
+
+	switch status {
+	case http.StatusBadRequest:
+		return fmt.Errorf("%w: %s", e.ErrInvalidInput, msg) // 400
+	case http.StatusUnauthorized:
+		if resp.Error.Code == "invalid_session" {
+			return fmt.Errorf("%w: %s", e.ErrExpiredSession, msg) // 401
+		}
+		return fmt.Errorf("%w: %s", e.ErrWrongCredentials, msg) // 401
+	case http.StatusConflict:
+		return fmt.Errorf("%w: %s", e.ErrConflict, msg) // 409
+	default:
+		return fmt.Errorf("%w: %s", e.ErrAuthService, msg) // 500
+	}
 }
