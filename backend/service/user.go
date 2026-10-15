@@ -64,14 +64,6 @@ func (us *UserService) UpdateUser(ctx context.Context, id int64, input model.Use
 		return custom_err.ErrInvalidID
 	}
 
-	// user, err := us.Repo.GetUser(ctx, id)
-	// if err != nil {
-	// 	return err
-	// }
-	// if err := validateUpdateInput(&input, user, us); err != nil {
-	// 	return err
-	// }
-
 	if err := validateUpdateInput(us, ctx, id, input); err != nil {
 		return err
 	}
@@ -123,15 +115,16 @@ func validateUpdateInput(us *UserService, ctx context.Context, id int64, input m
 		}
 
 		if *input.UserName == user.UserName {
-			return custom_err.ErrUnchangedUsername
+			return custom_err.ErrNoChange
 		}
 
 		if free, err := us.Repo.CheckUsernameAvailability(ctx, *input.UserName); err != nil {
 			return err
 		} else if !free {
-			return custom_err.ErrTakenUsername
+			return custom_err.ErrConflict
 		}
 	}
+
 
 	if input.Description != nil && len(*input.Description) > 500 {
 		return custom_err.ErrDescTooLong
