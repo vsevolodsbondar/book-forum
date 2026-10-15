@@ -1,3 +1,5 @@
+import { getUserID } from "./header.js";
+
 const postsContainer = document.querySelector(".posts");
 const categorySelect = document.querySelector("select[name='category']");
 const seeMoreBtn = document.querySelector(".see-more");
@@ -6,9 +8,15 @@ let currentPage = 1;
 
 // builds the query string from the current state of the controls
 let byLatest = "true";
+let reactionField = null; // "likedBy", "dislikedBy" or null
+let userID = null;
 function buildQuery(page) {
   const params = new URLSearchParams({ byLatest, page });
-  if (categorySelect.value !== "") {
+  if (reactionField) {
+    params.set("search", "true");
+    params.set("field", reactionField);
+    params.set("value", userID);
+  } else if (categorySelect.value !== "") {
     params.set("search", "true");
     params.set("field", "categoryId");
     params.set("value", categorySelect.value);
@@ -56,9 +64,27 @@ filters.addEventListener("click", (event) => {
     .forEach((b) => b.classList.remove("choosed"));
   btn.classList.add("choosed");
 
-  byLatest = btn.dataset.filter === "new" ? "true" : "false";
+  const filter = btn.dataset.filter;
+  reactionField =
+    filter === "liked" ? "likedBy" : filter === "disliked" ? "dislikedBy" : null;
+  if (reactionField) {
+    categorySelect.value = ""; // category and liked/disliked can't be combined
+  } else {
+    byLatest = filter === "new" ? "true" : "false";
+  }
   getPostData();
 });
+
+// "Liked posts" is shown only for logged in users
+async function showLikedButton() {
+  userID = await getUserID();
+  if (userID !== null) {
+    filters
+      .querySelectorAll('[data-filter="liked"], [data-filter="disliked"]')
+      .forEach((b) => (b.style.display = ""));
+  }
+}
+showLikedButton();
 // fill the category <select> with categories from the backend
 async function loadCategories() {
   try {
@@ -79,7 +105,16 @@ async function loadCategories() {
 }
 loadCategories();
 // choosing a category asks the backend for posts of that category only
-categorySelect.addEventListener("change", () => getPostData());
+categorySelect.addEventListener("change", () => {
+  reactionField = null;
+  filters
+    .querySelectorAll("button")
+    .forEach((b) => b.classList.remove("choosed"));
+  filters
+    .querySelector(`[data-filter="${byLatest === "true" ? "new" : "old"}"]`)
+    .classList.add("choosed");
+  getPostData();
+});
 //function for rendering all posts
 function renderAllPosts(data) {
   for (let i = 0; i < data.posts.length; i++) {
