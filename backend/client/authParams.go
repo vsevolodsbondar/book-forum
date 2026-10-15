@@ -7,4 +7,5 @@ type AuthClientRequestParams struct {
 	ExpectedStatus int
 	RequestResult  any
 	RequestHeaders map[string]string
+	SafeToRetry    bool
 }

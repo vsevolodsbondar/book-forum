@@ -25,6 +25,7 @@ func (c *AuthHTTPClient) RegisterUser(ctx context.Context, dto RegisterUserReque
 		RequestBody:    dto,
 		ExpectedStatus: http.StatusCreated,
 		RequestResult:  &result,
+		SafeToRetry:    false,
 	}
 
 	err := c.doRequest(ctx, params)
@@ -45,6 +46,7 @@ func (c *AuthHTTPClient) LoginUser(ctx context.Context, dto LoginUserRequestDTO)
 		RequestBody:    dto,
 		ExpectedStatus: http.StatusOK,
 		RequestResult:  &result,
+		SafeToRetry:    true,
 	}
 
 	err := c.doRequest(ctx, params)
@@ -68,6 +70,7 @@ func (c *AuthHTTPClient) ValidateSession(ctx context.Context, token string) (Val
 		ExpectedStatus: http.StatusOK,
 		RequestResult:  &result,
 		RequestHeaders: headers,
+		SafeToRetry:    true,
 	}
 
 	err := c.doRequest(ctx, params)
@@ -88,6 +91,7 @@ func (c *AuthHTTPClient) LogoutUser(ctx context.Context, token string) error {
 		Path:           "/v1/logout",
 		ExpectedStatus: http.StatusNoContent,
 		RequestHeaders: headers,
+		SafeToRetry:    true,
 	}
 
 	err := c.doRequest(ctx, params)
@@ -105,6 +109,32 @@ type ErrDoReq struct {
 }
 
 func (c *AuthHTTPClient) doRequest(ctx context.Context, params AuthClientRequestParams) error {
+	var err error
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		err = c.doRequestOnce(ctx, params)
+		if err == nil {
+			return nil
+		}
+
+		//cases when we give up
+		triesExceeded := attempt >= maxAttempts-1
+		if !ShouldRetry(err, params.SafeToRetry) || triesExceeded {
+			return err
+		}
+
+		wait := buildBackoff(attempt)
+		sleepErr := sleepCtx(ctx, wait)
+		if sleepErr != nil {
+			return err
+		}
+	}
+	return err
+}
+
+func (c *AuthHTTPClient) doRequestOnce(ctx context.Context, params AuthClientRequestParams) error {
+	ctx, cancel := context.WithTimeout(ctx, attemptTimeout)
+	defer cancel()
+
 	var reader io.Reader
 
 	if params.RequestBody != nil {
@@ -147,16 +177,19 @@ func (c *AuthHTTPClient) doRequest(ctx context.Context, params AuthClientRequest
 			)
 		}
 
-		return mapAuthError(resp.StatusCode, responseError)
+		//that way we do not lose the statuscode
+		return &AuthStatusError{
+			Status: resp.StatusCode,
+			Err:    mapAuthError(resp.StatusCode, responseError),
+		}
 	}
 
 	if params.RequestResult != nil {
 		if err := json.NewDecoder(resp.Body).Decode(params.RequestResult); err != nil {
-			return fmt.Errorf(
-				"%w: %w",
-				e.ErrJSONDecodeFailed,
-				err,
-			)
+			return &AuthStatusError{
+				Status: resp.StatusCode,
+				Err:    fmt.Errorf("%w: %w", e.ErrJSONDecodeFailed, err),
+			}
 		}
 	}
 
