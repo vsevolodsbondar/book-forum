@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const sessionCookieName = "session_id"
+const sessionCookieName = "token"
 
 func ExtractSessionCookie(r *http.Request) (string, error) {
 	sessionCookie, err := r.Cookie(sessionCookieName)

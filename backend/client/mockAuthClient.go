@@ -47,6 +47,10 @@ func (m *MockAuthClient) ValidateSession(ctx context.Context, token string) (Val
 	}, nil
 }
 
+func (m *MockAuthClient) Check(ctx context.Context) error {
+	return nil
+}
+
 func (m *MockAuthClient) LogoutUser(ctx context.Context, token string) error {
 	return nil
 }
