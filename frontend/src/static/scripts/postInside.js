@@ -84,11 +84,11 @@ function renderComment(comment, isOwner, isLoggedIn) {
                         <button class="likes ${comment.is_liked ? "choosed" : ""}">${comment.likes}</button>
                         <button class="dislikes ${comment.is_disliked ? "choosed" : ""}">${comment.dislikes}</button>
                     </div>
-                    <div class="reply">
-                        ${isOwner ? '<button class="blue_empty_btn btn_update">Edit</button>' : ""}
-						${isOwner ? '<button class="delete btn_delete">Delete</button>' : ""}
-                        ${isLoggedIn ? '<button class="blue_empty_btn btn_reply">Reply</button>' : ""}
-                    </div>
+                    <!-- <div class="reply"> -->
+                        <!-- ${isOwner ? '<button class="blue_empty_btn btn_update">Edit</button>' : ""} -->
+						            <!-- ${isOwner ? '<button class="delete btn_delete">Delete</button>' : ""} -->
+                        <!-- ${isLoggedIn ? '<button class="blue_empty_btn btn_reply">Reply</button>' : ""} -->
+                    <!-- </div> -->
                 </div>
             </article>`;
   container.insertAdjacentHTML("beforeend", newEl);
