@@ -217,7 +217,7 @@ func (repo *SQLitePostRepository) ReplaceFieldsInPost(ctx context.Context, field
 	}
 
 	query := `
-		UPDATE posts
+		UPDATE post
 		SET ` + strings.Join(setFields, ", ") + `
 		WHERE id = ?
 		RETURNING title, category_id
@@ -595,6 +595,7 @@ func (repo *SQLitePostRepository) findAuthorsForPosts(ctx context.Context, autho
 		}
 
 		userInfo := model.UserShortInfo{
+			ID:             userId,
 			UserName:       userName,
 			ProfilePicture: profilePic.String,
 		}
