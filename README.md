@@ -50,8 +50,8 @@ The browser never talks to `auth`. Email and passwords exist only in the auth se
 Requirements: Git and Docker with Docker Compose v2. Nothing else is needed, everything is built inside the containers.
 
 ```bash
-git clone https://gitea.kood.tech/vsevolodbondar/forum.git
-cd forum
+git clone https://gitea.kood.tech/vsevolodbondar/book-forum.git
+cd book-forum
 cp auth/.env.example auth/.env
 docker compose up --build
 ```
