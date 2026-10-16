@@ -25,11 +25,14 @@ func (ur *SQLiteUserRepository) GetAllUsers(ctx context.Context, params model.Ge
 		Size:  params.Size,
 	}
 
-	err := ur.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM user`).Scan(&result.Total)
+	total := 0
+	err := ur.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM user`).Scan(&total)
 	if err != nil {
 		slog.Error("failed to count users", "err", err)
 		return nil, custom_err.ErrGetUsers
 	}
+
+	result.TotalPages = (total + params.Size - 1) / params.Size
 
 	offset := (params.Page - 1) * params.Size
 	query := `

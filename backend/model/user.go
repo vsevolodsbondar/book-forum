@@ -40,8 +40,8 @@ type UserShortInfo struct {
 }
 
 type AllUsers struct {
-	Users []UserShortInfo `json:"users"`
-	Page  int             `json:"page"`
-	Size  int             `json:"size"`
-	Total int             `json:"total"`
+	Users      []UserShortInfo `json:"users"`
+	Page       int             `json:"page"`
+	Size       int             `json:"size"`
+	TotalPages int             `json:"totalPages"`
 }

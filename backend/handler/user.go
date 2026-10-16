@@ -117,19 +117,22 @@ func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) error 
 	page := r.URL.Query().Get("page")
 	size := r.URL.Query().Get("size")
 	ctx := r.Context()
+
 	pageInt, sizeInt := 1, 20
 	if page != "" {
-		pageInt, err := strconv.Atoi(page)
-		if err != nil || pageInt < 1 {
-			return fmt.Errorf("%w: invalid id", custom_err.ErrInvalidInput)
+		parsedPage, err := strconv.Atoi(page)
+		if err != nil || parsedPage < 1 {
+			return fmt.Errorf("%w: invalid page", custom_err.ErrInvalidInput)
 		}
+		pageInt = parsedPage
 	}
 
 	if size != "" {
-		sizeInt, err := strconv.Atoi(size)
-		if err != nil || sizeInt <= 0 {
+		parsedSize, err := strconv.Atoi(size)
+		if err != nil || parsedSize <= 0 {
 			return fmt.Errorf("%w: invalid size number", custom_err.ErrInvalidInput)
 		}
+		sizeInt = parsedSize
 	}
 
 	GetAllUsersParams := model.GetAllUsersDTO{Page: pageInt, Size: sizeInt}
