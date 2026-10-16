@@ -12,28 +12,54 @@
 
 
 const usersContainer = document.querySelector("#users");
+const seeMoreBtn = document.querySelector(".see-more");
 
-async function getUsers() {
+let currentPage = 1;
+
+async function getUsers({ append = false } = {}) {
+  const page = append ? currentPage + 1 : 1;
+
   try {
-    const response = await fetch("http://localhost:8080/users");
-    
+    const response = await fetch(
+      `http://localhost:8080/users?page=${page}&size=5`,
+    );
+
+    if (response.status === 404) {
+      if (!append) {
+        usersContainer.textContent = "No users yet";
+      }
+      seeMoreBtn.style.display = "none";
+      return;
+    }
+
     if (!response.ok) {
       throw new Error(`Failed to fetch users: ${response.status}`);
     }
 
     const data = await response.json();
+
+    // Clear the previous page only when loading from the beginning.
+    if (!append) {
+      usersContainer.replaceChildren();
+    }
+
     renderUsers(data.users);
 
+    currentPage = page;
+
+    // Hide the button when there are no more pages.
+    seeMoreBtn.style.display =
+      page < data.totalPages ? "block" : "none";
   } catch (error) {
     console.error("Error loading users:", error);
-
-    usersContainer.textContent = "Failed to load users.";
   }
 }
 
-function renderUsers(users) {
-  usersContainer.replaceChildren();
+seeMoreBtn.addEventListener("click", () => {
+  getUsers({ append: true });
+});
 
+function renderUsers(users) {
   for (const user of users) {
     const userLink = document.createElement("a");
     userLink.className = "user";
