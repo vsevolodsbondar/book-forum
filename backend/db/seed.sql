@@ -84,7 +84,7 @@ VALUES
 -- COMMENTS
 -- =========================
 
--- Post 1
+-- Post 1 (author: Alice, user_id = 1)
 INSERT INTO comment
 (id, text, post_id, parent_comment_id, user_id)
 VALUES
@@ -92,7 +92,7 @@ VALUES
     'I highly recommend The Name of the Wind.',
     1,
     NULL,
-    2),
+    1),
 
 (2,
     'I agree! The world building is fantastic.',
@@ -113,7 +113,7 @@ VALUES
     1);
 
 
--- Post 2
+-- Post 2 (author: Bob, user_id = 2)
 INSERT INTO comment
 (id, text, post_id, parent_comment_id, user_id)
 VALUES
@@ -121,7 +121,7 @@ VALUES
     'Project Hail Mary is probably my favorite recent sci-fi book.',
     2,
     NULL,
-    1),
+    2),
 
 (6,
     'Same here. The science was surprisingly interesting.',
@@ -136,7 +136,7 @@ VALUES
     6);
 
 
--- Post 3
+-- Post 3 (author: Charlie, user_id = 3)
 INSERT INTO comment
 (id, text, post_id, parent_comment_id, user_id)
 VALUES
@@ -144,7 +144,7 @@ VALUES
     'For me it was Sapiens. It changed how I look at human history.',
     3,
     NULL,
-    4),
+    3),
 
 (9,
     'That book definitely gives you a lot to think about.',
@@ -159,7 +159,7 @@ VALUES
     2);
 
 
--- Post 4
+-- Post 4 (author: Diana, user_id = 4)
 INSERT INTO comment
 (id, text, post_id, parent_comment_id, user_id)
 VALUES
@@ -167,7 +167,7 @@ VALUES
     'Definitely The Count of Monte Cristo.',
     4,
     NULL,
-    6),
+    4),
 
 (12,
     'Great choice. It is a huge book but absolutely worth it.',
@@ -182,7 +182,7 @@ VALUES
     1);
 
 
--- Post 5
+-- Post 5 (author: Eve, user_id = 5)
 INSERT INTO comment
 (id, text, post_id, parent_comment_id, user_id)
 VALUES
@@ -190,7 +190,7 @@ VALUES
     'Try And Then There Were None by Agatha Christie.',
     5,
     NULL,
-    2),
+    5),
 
 (15,
     'That is one of my favorites!',
@@ -205,7 +205,7 @@ VALUES
     6);
 
 
--- Post 6
+-- Post 6 (author: Frank, user_id = 6)
 INSERT INTO comment
 (id, text, post_id, parent_comment_id, user_id)
 VALUES
@@ -213,7 +213,7 @@ VALUES
     'Middle-earth is still my favorite fantasy world.',
     6,
     NULL,
-    1),
+    6),
 
 (18,
     'For me it is the Cosmere.',
