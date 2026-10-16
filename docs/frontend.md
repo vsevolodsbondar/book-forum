@@ -26,7 +26,7 @@ frontend/
 ├── createPost.html     # form for a new post
 ├── myPosts.html        # posts of a user
 ├── login.html          # login and registration forms (one page, two forms)
-├── profile.html        # user profile (not implemented yet)
+├── profile.html        # user profile (`?id=` or the logged in user)
 ├── users.html          # list of users (not implemented yet)
 ├── Dockerfile          # nginx:alpine, copies the folder to /usr/share/nginx/html
 ├── biome.json          # formatter / linter settings
@@ -41,13 +41,13 @@ frontend/
 
 | Page | Script | What it does |
 |---|---|---|
-| every page | `header.js` | Asks `/me` who is logged in, renders the header (guest: Register / Login; user: Write a post, avatar, Log out), adds "Create post" and "My posts" to the menu, handles **logout**. Exports `getUserID()` used by other scripts. |
-| `index.html` | `allPosts.js` | Renders post cards. Filters: **New** (newest first), category `<select>` (filled from `/categories`, filters on the backend). **See more** button loads the next page and appends it. |
-| `postInside.html` | `postInside.js` | Renders the post and its comments, creates / edits / deletes a comment, deletes the post (only for the author). Like / dislike state is rendered, clicking is not implemented yet. |
-| `createPost.html` | `createPost.js` | Loads categories, sends a new post, redirects to `postInside.html?id=<new id>`. |
-| `myPosts.html` | `myPosts.js` | Posts of a user (`?id=` or the logged in user), same cards as the all posts page. |
-| `login.html` | `login.js` | Switches between the login and the registration form, sends login / registration, shows error messages. |
-| `profile.html` | `profile.js` | Placeholder. |
+| every page | `header.js` | Asks `/me` who is logged in, renders the header (guest: Register / Login; user: Write a post, avatar linked to `profile.html?id=`, Log out), adds "Create post" and "My posts" to the menu (only if the menu does not have them yet), handles **logout**. Exports `getUserID()` used by other scripts. |
+| `index.html` | `allPosts.js` | Renders post cards. Filters above the list: **Newest** / **Oldest** (sorting), category `<select>` (filled from `/categories`), and, for logged in users only, **Liked posts** / **Disliked posts**. All filters are done by the backend. **See more** button loads the next page and appends it. See "Filters on the posts page" below. |
+| `postInside.html` | `postInside.js` | Renders the post and its comments, creates / edits / deletes a comment, deletes the post (only for the author). Like / dislike buttons work (see "Likes and dislikes" below). A guest can read the post and the comments. |
+| `createPost.html` | `createPost.js` | Loads categories, sends a new post, redirects to `postInside.html?id=<new id>`. Highlights "Create post" in the menu. |
+| `myPosts.html` | `myPosts.js` | Posts of a user (`?id=` or the logged in user), same cards as the all posts page. Highlights "My posts" in the menu. |
+| `login.html` | `login.js` | Switches between the login and the registration form, sends login / registration, shows error messages. After a successful login the user goes to `index.html`; after a successful registration the page reloads (`login.html`) and opens on the login form. |
+| `profile.html` | `profile.js` | Profile of a user: `?id=` or the logged in user. Texts are inserted with `textContent`. Shows "User not found" for 404. |
 | `users.html` | `users.js` | Placeholder. |
 
 ## Backend endpoints used
@@ -55,19 +55,57 @@ frontend/
 | Method and path | Used by | Notes |
 |---|---|---|
 | `GET /me` | `header.js` | Returns the id of the logged in user, 401 for a guest (expected). |
-| `GET /users/{id}` | `header.js` | Data for the header. |
+| `GET /users/{id}` | `header.js`, `profile.js` | Data for the header and for the profile page. 404 if the user does not exist in the backend database. |
 | `POST /users` | `login.js` | Registration. Body: `email`, `password`, `username`, `description`. |
 | `POST /login` | `login.js` | Body: `email`, `password`. The server sets the `session_id` cookie. |
 | `POST /logout` | `header.js` | Server deletes the session and clears the cookie (204). |
-| `GET /posts` | `allPosts.js`, `myPosts.js` | Query: `byLatest=true`, `page`, `search=true&field=categoryId\|authorId&value=...`. Response: `posts`, `page`, `pageSize`, `totalPages`. 404 means "no posts". |
-| `GET /posts/{id}/comments` | `postInside.js` | Post with all comments. |
+| `GET /posts` | `allPosts.js`, `myPosts.js` | Query: `byLatest=true\|false`, `page`, `search=true&field=categoryId\|authorId\|likedBy\|dislikedBy&value=...`. Response: `posts`, `page`, `pageSize`, `totalPages`. 404 means "no posts". |
+| `GET /posts/{id}/comments` | `postInside.js` | Post with all comments. The session is optional: a guest gets the same data with `is_liked` / `is_disliked` equal to `false`. 404 if the post does not exist. |
 | `POST /posts` | `createPost.js` | Body: `title`, `category_id`, `init_comment_text`. |
 | `DELETE /posts/{id}` | `postInside.js` | Only for the author. |
 | `POST /posts/{id}/comments` | `postInside.js` | Create a comment. |
-| `GET /comments/{id}` | `postInside.js` | Used to render a created or updated comment. |
+| `GET /comments/{id}` | `postInside.js` | Used to render a created or updated comment, and after deleting a comment to check whether it was removed (404 is expected and means "removed"; the browser prints it in red in the console). |
 | `PATCH /comments/{id}` | `postInside.js` | Edit a comment. |
 | `DELETE /comments/{id}` | `postInside.js` | Delete a comment (or turn it into "Deleted message" if it has replies). |
 | `GET /categories` | `allPosts.js`, `createPost.js` | Items: `{ id, category_name }`. |
+| `POST /reaction` | `postInside.js` | Create a like or dislike. Body: `comment_id`, `like` (`1` or `-1`). 201 without a body. |
+| `PATCH /reaction` | `postInside.js` | Change the reaction to the opposite one. Same body. 200 without a body. |
+| `DELETE /reaction` | `postInside.js` | Remove the reaction. Same body. 204. |
+
+## Filters on the posts page
+
+`allPosts.js` keeps the state of the filters in variables (`byLatest`, `reactionField`) and builds the query in `buildQuery(page)`, so the same state is used by the filters, by the category select and by **See more**.
+
+| Control | Query sent to `GET /posts` | Who sees it |
+|---|---|---|
+| Newest (default) | `byLatest=true` | everyone |
+| Oldest | `byLatest=false` | everyone |
+| Category select | `search=true&field=categoryId&value=<id>` | everyone |
+| Liked posts | `search=true&field=likedBy&value=<user id>` | logged in users only |
+| Disliked posts | `search=true&field=dislikedBy&value=<user id>` | logged in users only |
+
+* The backend supports only one `search` field at a time, so a category and "Liked / Disliked posts" cannot be combined: choosing one resets the other.
+* "Liked posts" are the posts whose **first comment (the post text)** the user liked; "Disliked posts" work the same way with a dislike.
+* The "Liked / Disliked posts" buttons are hidden by default and shown by `allPosts.js` when `getUserID()` returns an id.
+
+## Likes and dislikes
+
+* A reaction belongs to a comment (the post text is the first comment). Values: **like = `1`, dislike = `-1`**. A user has at most one reaction per comment.
+* The buttons `.likes` / `.dislikes` are rendered with the class `choosed` when the current user has already reacted (`is_liked` / `is_disliked` from the backend).
+* One click handler is attached to `document` (event delegation, because comments are rendered later). The request depends on the current state of the buttons of that comment:
+
+| State before the click | Clicked | Request | Result in the page |
+|---|---|---|---|
+| no reaction | like / dislike | `POST /reaction` | button gets `choosed`, its counter +1 |
+| the same button is `choosed` | the same button | `DELETE /reaction` | `choosed` removed, counter -1 |
+| the opposite button is `choosed` | the other button | `PATCH /reaction` | `choosed` moves, counter -1 on the old button, +1 on the new one |
+
+* The backend answers without a body, so the counters are updated locally after a successful response.
+* A guest (401 / 403) is redirected to `login.html`.
+
+## Menu highlight
+
+The menu items "Create post" and "My posts" are added by `header.js` after the `/me` request, so they do not exist when `createPost.js` / `myPosts.js` start. These scripts wait for the item with a `MutationObserver` and add the class `choosed` to its `<li>` when it appears. "Posts" is highlighted in `index.html` directly.
 
 ## Sessions and cookies
 
@@ -126,12 +164,14 @@ npm run dev
 
 ## Known limitations and TODO
 
-* Like / dislike buttons are rendered but clicking them does nothing (the reaction endpoints are not ready).
-* `profile.html` and `users.html` are placeholders.
+* `users.html` (list of users) is a placeholder; `users.js` has no code yet.
+* The profile page shows only the username, name and description; there is no button to edit the profile yet.
+* Only one search filter works at a time (see "Filters on the posts page").
 * Avatar upload is not connected: the file field exists, but the backend expects a string in `profilepic`.
-* "Popular" and "Most comments" filters need a `sort` parameter on the backend.
+* "Popular" and "Most comments" sorting is not possible: the backend sorts only by date (`byLatest`).
 * Post cards show the category name; the filter is by category only (no search yet).
 * The links `login.html#reg` / `#login` in the header are not handled, the page always opens on the login form.
 * The API address `http://localhost:8080` is written directly in the scripts; it should be moved into one constant.
 * User text is inserted with `innerHTML` in templates (titles, comments, usernames). It must be escaped or inserted with `textContent` to avoid XSS.
-* After a successful registration the user should see a message and the login form (the success message is not added yet).
+* After a successful registration the page just reloads on the login form; there is no "You are registered" message.
+* If the database is recreated, an old `session_id` cookie in the browser can point to a user that does not exist any more (`GET /users/{id}` returns 404 and the header stays empty). Delete the cookie or log in again.
