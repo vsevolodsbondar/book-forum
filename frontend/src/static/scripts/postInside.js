@@ -89,6 +89,7 @@ function renderComment(comment, isOwner, isLoggedIn) {
 						            <!-- ${isOwner ? '<button class="delete btn_delete">Delete</button>' : ""} -->
                         <!-- ${isLoggedIn ? '<button class="blue_empty_btn btn_reply">Reply</button>' : ""} -->
                     <!-- </div> -->
+                </div>
             </article>`;
   container.insertAdjacentHTML("beforeend", newEl);
 }
