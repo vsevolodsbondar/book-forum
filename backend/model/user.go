@@ -34,7 +34,7 @@ type GetAllUsersDTO struct {
 }
 
 type UserShortInfo struct {
-	ID             int
+	ID             int64  `json:"id"`
 	UserName       string `json:"username"`
 	ProfilePicture string `json:"profilepic"`
 }
