@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"forum_backend/custom_err"
-	"forum_backend/model"
 	"log/slog"
 	"time"
+
+	"forum_backend/custom_err"
+	"forum_backend/model"
 )
 
 type SQLiteUserRepository struct {
@@ -102,7 +103,8 @@ func (ur *SQLiteUserRepository) CreateUser(ctx context.Context, user *model.User
 	query := `INSERT INTO user (id, user_name, profile_picture, name, description, created_at, last_seen)
 				VALUES (?, ?, ?, ?, ?, ?, ?)`
 
-	_, err := ur.db.ExecContext(ctx, query,
+	_, err := ur.db.ExecContext(
+		ctx, query,
 		user.ID,
 		user.UserName,
 		user.ProfilePicture,
@@ -131,7 +133,8 @@ func (ur *SQLiteUserRepository) UpdateUser(ctx context.Context, id int64, input 
 		WHERE id = ?
 	`
 
-	res, err := ur.db.ExecContext(ctx, query,
+	res, err := ur.db.ExecContext(
+		ctx, query,
 		input.UserName,
 		input.ProfilePicture,
 		input.Name,
@@ -173,4 +176,10 @@ func (ur *SQLiteUserRepository) DeleteUser(ctx context.Context, id int64) error 
 	}
 
 	return nil
+}
+
+func (ur *SQLiteUserRepository) CheckUsernameAvailability(ctx context.Context, username string) (bool, error) {
+	var userCount int
+	err := ur.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM user WHERE user_name = ?`, username).Scan(&userCount)
+	return userCount == 0, err
 }
