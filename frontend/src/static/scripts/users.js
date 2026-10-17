@@ -10,11 +10,28 @@
 // </a>`
 // you need to add button update only for owner of user profile
 
+import { getUserID } from "./header.js";
 
+const usersPage = document.querySelector("#users-page");
 const usersContainer = document.querySelector("#users");
 const seeMoreBtn = document.querySelector(".see-more");
 
 let currentPage = 1;
+
+async function initUsersPage() {
+  const userID = await getUserID();
+
+  if (userID === null) {
+    window.location.replace("index.html");
+    return;
+  }
+
+  usersPage.hidden = false;
+  getUsers();
+}
+
+
+initUsersPage();
 
 async function getUsers({ append = false } = {}) {
   const page = append ? currentPage + 1 : 1;
@@ -102,5 +119,3 @@ function renderUsers(users) {
     usersContainer.append(userLink);
   }
 }
-
-getUsers();

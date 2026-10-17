@@ -13,12 +13,15 @@ export async function getUserID() {
     return null;
   }
 }
-//
+
+const usersNavItem = document.querySelector("#users-nav-item");
+
 async function checkIsUserLoggedIn() {
   try {
     const userID = await getUserID();
     if (userID === null) {
       renderLoggedOutHeader();
+      usersNavItem?.remove();
       return;
     }
     const responseUser = await fetch(`http://localhost:8080/users/${userID}`);

@@ -110,11 +110,17 @@ func (dto *SearchPostsDTO) Validate() error {
 				custom_err.ErrInvalidInput,
 			)
 		}
-
 	case "categoryId":
 		if dto.SearchValue == nil {
 			return fmt.Errorf(
 				"%w: category_id search value cannot be empty",
+				custom_err.ErrInvalidInput,
+			)
+		}
+	case "title":
+		if dto.SearchValue == nil || len(strings.TrimSpace(*dto.SearchValue)) < 3 {
+			return fmt.Errorf(
+				"%w: title search value must be at least 3 characters",
 				custom_err.ErrInvalidInput,
 			)
 		}
