@@ -290,6 +290,10 @@ func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.Se
 				WHERE user_id = ? AND type_of_like = ?
 			) `
 			args = append(args, dto.SearchValue, reaction)
+
+		case "title":
+			query += `WHERE title LIKE ? COLLATE NOCASE`
+			args = append(args, "%"+*dto.SearchValue+"%")
 		}
 	}
 
@@ -637,7 +641,11 @@ func (repo *SQLitePostRepository) CountPosts(ctx context.Context, dto model.Sear
 				WHERE user_id = ? AND type_of_like = ?
 			) `
 			args = append(args, dto.SearchValue, reaction)
+		case "title":
+			query += `WHERE title LIKE ? COLLATE NOCASE`
+			args = append(args, "%"+*dto.SearchValue+"%")
 		}
+
 	}
 
 	var total int
