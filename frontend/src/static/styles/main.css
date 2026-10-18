@@ -723,9 +723,7 @@ textarea:disabled {
   padding: 0;
   border: none;
   outline: none;
-  background: transparent;
   color: #202124;
-  font-family: inherit;
   font-size: 16px;
 }
 
