@@ -5,6 +5,7 @@ const titleEl = section.querySelector(".user_title");
 const nameEl = section.querySelector(".user_name");
 const descEl = section.querySelector(".description");
 const avatarEl = section.querySelector(".author_img");
+const editProfileBtn = document.querySelector("#editProfile");
 
 async function getUser() {
   try {
@@ -25,6 +26,12 @@ async function getUser() {
       throw new Error(`Error HTTP: ${response.status}`);
     }
     const user = await response.json();
+
+    const loggedInUserID = await getUserID();
+
+    if (String(loggedInUserID) === String(userID)) {
+        editProfileBtn.style.display = "inline-block";
+    }
 
     // textContent (not innerHTML), so the text of the user can't inject HTML
     titleEl.textContent = `@${user.username}`;
