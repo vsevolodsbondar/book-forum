@@ -58,6 +58,35 @@
           <select name="category" class="tags_item">
             <option value="">Filter by category</option>
           </select>
+          <div id="searchBoxContainer">
+            <form>
+              <div class="search-bar">
+                <input 
+                  id="searchString" 
+                  class="search-bar-input"
+                  name="searchString" 
+                  type="search" 
+                  maxlength="100" 
+                  minlength="3"
+                  placeholder="Search post by name..."
+                  required
+                  autocomplete="off"
+                >
+                <button 
+                  type="submit" 
+                  class="search-bar-submit" 
+                  aria-label="Search" 
+                  title="Search"
+                >
+                <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                </button>
+              </div>
+            </form>
+          </div>
         </article>
         <article class="posts"></article>
         <button
@@ -67,6 +96,7 @@
         >
           See more
         </button>
+
       </section>
     </main>
     <script type="module" src="/src/static/scripts/header.js"></script>

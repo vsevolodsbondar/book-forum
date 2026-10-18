@@ -2,6 +2,11 @@ import { getUserID } from "./header.js";
 
 const postsContainer = document.querySelector(".posts");
 const categorySelect = document.querySelector("select[name='category']");
+const searchStringValue = document.querySelector("select[name='searchString']")
+//for search
+const searchForm = document.querySelector("#searchBoxContainer form");
+const searchInput = document.querySelector("#searchString");
+
 const seeMoreBtn = document.querySelector(".see-more");
 let currentPage = 1;
 //get info about posts
@@ -12,6 +17,7 @@ let reactionField = null; // "likedBy", "dislikedBy" or null
 let userID = null;
 function buildQuery(page) {
   const params = new URLSearchParams({ byLatest, page });
+
   if (reactionField) {
     params.set("search", "true");
     params.set("field", reactionField);
@@ -20,9 +26,50 @@ function buildQuery(page) {
     params.set("search", "true");
     params.set("field", "categoryId");
     params.set("value", categorySelect.value);
+  } else if (searchInput.value.trim() !== "") {
+    params.set("search", "true");
+    params.set("field", "title");
+    params.set("value", searchInput.value.trim());
   }
+
   return params.toString();
 }
+
+searchForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const searchValue = searchInput.value.trim();
+
+  if (searchValue.length < 3) {
+    searchInput.setCustomValidity(
+      "Enter at least 3 characters to search",
+    );
+    searchInput.reportValidity();
+    return;
+  }
+
+  searchInput.setCustomValidity("");
+
+  // Search by title replaces category/reaction filtering.
+  categorySelect.value = "";
+  reactionField = null;
+
+  filters
+    .querySelectorAll("button[data-filter]")
+    .forEach((button) => button.classList.remove("choosed"));
+
+  filters
+    .querySelector(
+      `[data-filter="${byLatest === "true" ? "new" : "old"}"]`,
+    )
+    .classList.add("choosed");
+
+  getPostData();
+});
+
+searchInput.addEventListener("input", () => {
+  searchInput.setCustomValidity("");
+});
 
 async function getPostData({ append = false } = {}) {
   // append = true -> load the next page and add it below the existing posts
@@ -62,9 +109,15 @@ filters.addEventListener("click", (event) => {
   filters
     .querySelectorAll("button")
     .forEach((b) => b.classList.remove("choosed"));
+
   btn.classList.add("choosed");
 
   const filter = btn.dataset.filter;
+
+  // Resetштп  other filters when switching the post filter.
+  searchInput.value = "";
+  categorySelect.value = "";
+
   reactionField =
     filter === "liked" ? "likedBy" : filter === "disliked" ? "dislikedBy" : null;
   if (reactionField) {
@@ -85,6 +138,7 @@ async function showLikedButton() {
   }
 }
 showLikedButton();
+
 // fill the category <select> with categories from the backend
 async function loadCategories() {
   try {
@@ -106,7 +160,9 @@ async function loadCategories() {
 loadCategories();
 // choosing a category asks the backend for posts of that category only
 categorySelect.addEventListener("change", () => {
+  searchInput.value = "";
   reactionField = null;
+
   filters
     .querySelectorAll("button")
     .forEach((b) => b.classList.remove("choosed"));
