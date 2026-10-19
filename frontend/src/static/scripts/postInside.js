@@ -4,6 +4,11 @@ const form = document.querySelector(".message");
 //api to post by id
 const params = new URLSearchParams(window.location.search);
 const postID = params.get("id");
+const postInside = document.querySelector(".post-inside");
+postInside.hidden = true;
+const errorNonExistent = document.querySelector(".comments_non_existent");
+errorNonExistent.hidden = true;
+
 async function getPostData() {
   try {
     const userID = await getUserID();
@@ -19,6 +24,11 @@ async function getPostData() {
       throw new Error(`Error HTTP: ${response.status}`);
     }
     const postData = await response.json();
+
+    if (!postData.comments || postData.comments.length === 0) {
+      throw new Error("Post has no initial comment");
+    }
+
     let isLoggedIn = true;
     let isOwner = false;
     if (userID === postData.comments[0].user_id) {
@@ -28,7 +38,11 @@ async function getPostData() {
       isLoggedIn = false;
     }
     renderPostData(postData, isOwner, isLoggedIn, userID);
+    postInside.hidden = false;
+    errorNonExistent.hidden = true;
   } catch (error) {
+    postInside.hidden = true;
+    errorNonExistent.hidden = false;
     console.log("the error was catched", error);
     showPostError("Could not load the post. Please try again later.");
   }
@@ -201,7 +215,7 @@ async function createComment(form, postID, parentID = null) {
   }
 }
 // click events on update button
-const postInside = document.querySelector(".post-inside");
+// const postInside = document.querySelector(".post-inside");
 postInside.addEventListener("click", (event) => {
   const btn = event.target.closest(".btn_update");
   if (!btn) return;
