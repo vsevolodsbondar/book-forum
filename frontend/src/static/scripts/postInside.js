@@ -11,6 +11,10 @@ async function getPostData() {
       `http://localhost:8080/posts/${postID}/comments`,
       { credentials: "include" },
     );
+    if (response.status === 404) {
+      showPostError("Post not found");
+      return;
+    }
     if (!response.ok) {
       throw new Error(`Error HTTP: ${response.status}`);
     }
@@ -26,7 +30,14 @@ async function getPostData() {
     renderPostData(postData, isOwner, isLoggedIn, userID);
   } catch (error) {
     console.log("the error was catched", error);
+    showPostError("Could not load the post. Please try again later.");
   }
+}
+// replaces the empty page skeleton with a message
+function showPostError(text) {
+  document.querySelector(".post-inside").innerHTML = `
+    <p class="form_error">${text}</p>
+    <a href="index.html">Back to all posts</a>`;
 }
 getPostData();
 
@@ -126,10 +137,25 @@ function formatDate(isoString) {
   });
 }
 //click function for creating a new comment
+// shows a red message at the top of a comment form
+function showFormError(form, text) {
+  let el = form.querySelector(".form_error");
+  if (!el) {
+    el = document.createElement("p");
+    el.className = "form_error";
+    form.prepend(el);
+  }
+  el.textContent = text;
+}
+function clearFormError(form) {
+  form.querySelector(".form_error")?.remove();
+}
 async function createComment(form, postID, parentID = null) {
+  clearFormError(form);
   const textValue = form.querySelector(".message_field").value.trim();
   // don't send empty comment
   if (textValue === "") {
+    showFormError(form, "Comment cannot be empty");
     return;
   }
   const data = {
@@ -165,6 +191,13 @@ async function createComment(form, postID, parentID = null) {
     renderComment(fullComment, true, true);
   } catch (error) {
     console.error("Error creating comment:", error);
+    // fetch throws TypeError when the server does not answer at all
+    showFormError(
+      form,
+      error instanceof TypeError
+        ? "Server is not available. Please try again later."
+        : "Could not send the comment. Please try again.",
+    );
   }
 }
 // click events on update button

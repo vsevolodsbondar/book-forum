@@ -445,6 +445,10 @@ textarea:disabled {
 .reply-form {
     margin-top: 12px;
 }
+.message .form_error {
+    width: 100%;
+    text-align: left;
+}
 
 /* form to publish post */
 .newPost {
