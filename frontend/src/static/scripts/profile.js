@@ -5,6 +5,7 @@ const titleEl = section.querySelector(".user_title");
 const nameEl = section.querySelector(".user_name");
 const descEl = section.querySelector(".description");
 const avatarEl = section.querySelector(".author_img");
+const createdEl = section.querySelector(".created_at");
 const editProfileBtn = document.querySelector("#editProfile");
 
 async function getUser() {
@@ -29,7 +30,7 @@ async function getUser() {
 
     const loggedInUserID = await getUserID();
 
-    if (String(loggedInUserID) === String(userID)) {
+    if (editProfileBtn && String(loggedInUserID) === String(userID)) {
         editProfileBtn.style.display = "inline-block";
     }
 
@@ -37,6 +38,14 @@ async function getUser() {
     titleEl.textContent = `@${user.username}`;
     nameEl.textContent = user.name;
     descEl.textContent = user.description;
+    if (user.created_at) {
+      const date = new Date(user.created_at).toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+      createdEl.textContent = `Member since ${date}`;
+    }
     avatarEl.src = "/src/static/imgs/default.jpg";
     avatarEl.alt = `photo of ${user.username}`;
   } catch (error) {
