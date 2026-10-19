@@ -596,6 +596,9 @@ textarea:disabled {
 .user-profile .user_name {
     color: var(--font-color-grey);
 }
+.user-profile .created_at {
+    color: var(--font-color-grey);
+}
 .user-profile .description {
     margin-top: 0;
     width: 100%;
