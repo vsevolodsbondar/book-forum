@@ -40,7 +40,7 @@ func ShouldRetry(err error, safeToRetry bool) bool {
 		return safeToRetry
 	}
 
-	// any other case, example -> do not retry
+	// any other case -> do not retry
 	return false
 }
 
