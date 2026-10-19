@@ -300,6 +300,10 @@ textarea:disabled {
     justify-content: flex-start;
     gap: 15px;
 }
+.stats button:disabled {
+    opacity: 1;
+    cursor: default;
+}
 .stats p,
 .stats button {
     position: relative;
@@ -613,7 +617,7 @@ textarea:disabled {
         background-color: var(--font-color-blue);
         color: var(--font-white-color);
     }
-    .comment .stats button:hover {
+    .comment .stats button:not(:disabled):hover {
         color: var(--font-color-orange);
     }
     .blue_empty_btn:hover {

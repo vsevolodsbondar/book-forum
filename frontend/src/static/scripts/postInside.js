@@ -52,8 +52,8 @@ function renderPostData(data, isOwner, isLoggedIn, userID) {
                     </div>
                     ${isOwner ? '<button class="delete delete-post">Delete the post</button>' : ""}
                     <div class="stats">
-                        <button class="likes ${data.comments[0].is_liked ? "choosed" : ""}">${data.comments[0].likes}</button>
-                        <button class="dislikes ${data.comments[0].is_disliked ? "choosed" : ""}">${data.comments[0].dislikes}</button>
+                        <button class="likes ${data.comments[0].is_liked ? "choosed" : ""}" ${isLoggedIn ? "" : "disabled"}>${data.comments[0].likes}</button>
+                        <button class="dislikes ${data.comments[0].is_disliked ? "choosed" : ""}" ${isLoggedIn ? "" : "disabled"}>${data.comments[0].dislikes}</button>
                     </div>
                 </div>`;
   renderAllComments(data, userID, isLoggedIn);
@@ -85,8 +85,8 @@ function renderComment(comment, isOwner, isLoggedIn) {
                 <p class="description">${comment.text}</p>
                 <div class="post-footer">
                     <div class="stats">
-                        <button class="likes ${comment.is_liked ? "choosed" : ""}">${comment.likes}</button>
-                        <button class="dislikes ${comment.is_disliked ? "choosed" : ""}">${comment.dislikes}</button>
+                        <button class="likes ${comment.is_liked ? "choosed" : ""}" ${isLoggedIn ? "" : "disabled"}>${comment.likes}</button>
+                        <button class="dislikes ${comment.is_disliked ? "choosed" : ""}" ${isLoggedIn ? "" : "disabled"}>${comment.dislikes}</button>
                     </div>
                     <div class="reply">
                         ${isLoggedIn && isOwner ? '<button class="blue_empty_btn btn_update">Edit</button>' : ""}
