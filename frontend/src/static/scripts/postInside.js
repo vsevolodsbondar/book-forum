@@ -241,10 +241,17 @@ postInside.addEventListener("click", (event) => {
     updateForm.remove();
   });
   submitBtn.addEventListener("click", async () => {
+    clearFormError(updateForm);
     const trimmed = comment
       .querySelector(".update-form .message_field")
       .value.trim();
-    if (trimmed === "") return;
+    if (trimmed === "") {
+      showFormError(
+        updateForm,
+        "Comment cannot be empty. Use Delete to remove it.",
+      );
+      return;
+    }
 
     const closeForm = () => {
       footer.style.display = "flex";
@@ -276,6 +283,12 @@ postInside.addEventListener("click", (event) => {
       closeForm();
     } catch (error) {
       console.error("Error updating comment:", error);
+      showFormError(
+        updateForm,
+        error instanceof TypeError
+          ? "Server is not available. Please try again later."
+          : "Could not update the comment. Please try again.",
+      );
     }
   });
 });
