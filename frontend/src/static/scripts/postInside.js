@@ -86,6 +86,11 @@ function renderPostData(data, isOwner, isLoggedIn, userID) {
       event.preventDefault();
       createComment(form, postID);
     });
+    // Cancel clears the field and the error message
+    form.querySelector(".shadow_btn").addEventListener("click", () => {
+      form.querySelector(".message_field").value = "";
+      clearFormError(form);
+    });
   }
 }
 function renderComment(comment, isOwner, isLoggedIn) {
