@@ -18,6 +18,8 @@ async function getPostData() {
     );
     if (response.status === 404) {
       showPostError("Post not found");
+      postInside.hidden = true;
+      errorNonExistent.hidden = false;
       return;
     }
     if (!response.ok) {
