@@ -29,7 +29,7 @@ async function getUser() {
 
     const loggedInUserID = await getUserID();
 
-    if (String(loggedInUserID) === String(userID)) {
+    if (editProfileBtn && String(loggedInUserID) === String(userID)) {
         editProfileBtn.style.display = "inline-block";
     }
 
