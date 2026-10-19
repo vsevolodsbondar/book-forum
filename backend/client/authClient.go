@@ -167,17 +167,8 @@ func (c *AuthHTTPClient) doRequestOnce(ctx context.Context, params AuthClientReq
 
 	if resp.StatusCode != params.ExpectedStatus {
 		var responseError ResponseError
+		_ = json.NewDecoder(resp.Body).Decode(&responseError)
 
-		if err := json.NewDecoder(resp.Body).Decode(&responseError); err != nil {
-			return fmt.Errorf(
-				"auth service returned status %d. %w: %w",
-				resp.StatusCode,
-				e.ErrJSONDecodeFailed,
-				err,
-			)
-		}
-
-		//that way we do not lose the statuscode
 		return &AuthStatusError{
 			Status: resp.StatusCode,
 			Err:    mapAuthError(resp.StatusCode, responseError),

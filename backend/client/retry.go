@@ -22,20 +22,25 @@ func (e *AuthStatusError) Unwrap() error {
 }
 
 func ShouldRetry(err error, safeToRetry bool) bool {
-	//user has left no need to retry
+	// user has left, no need to retry
 	if errors.Is(err, context.Canceled) {
 		return false
 	}
 
 	var statusErr *AuthStatusError
 	if errors.As(err, &statusErr) {
-		if statusErr.Status > 500 {
+		if statusErr.Status >= 500 {
 			return safeToRetry
 		}
 		return false
 	}
 
-	//if no response from auth AT ALL
+	// attempt timeout kaput
+	if errors.Is(err, context.DeadlineExceeded) {
+		return safeToRetry
+	}
+
+	// any other case, example -> do not retry
 	return false
 }
 
@@ -45,7 +50,7 @@ const (
 )
 
 func buildBackoff(attempt int) time.Duration {
-	delay := 100 * time.Millisecond
+	delay := 500 * time.Millisecond
 
 	//bigger delay for every attempt
 	for i := 0; i < attempt; i++ {
@@ -57,10 +62,11 @@ func buildBackoff(attempt int) time.Duration {
 func sleepCtx(ctx context.Context, d time.Duration) error {
 	t := time.NewTimer(d)
 	defer t.Stop()
+	//sleep until either of two happens
 	select {
-	case <-t.C:
+	case <-t.C: //Timer is DONE
 		return nil
-	case <-ctx.Done():
+	case <-ctx.Done(): //whole context is done
 		return ctx.Err()
 	}
 }
