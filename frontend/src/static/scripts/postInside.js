@@ -16,6 +16,10 @@ async function getPostData() {
       `http://localhost:8080/posts/${postID}/comments`,
       { credentials: "include" },
     );
+    if (response.status === 404) {
+      showPostError("404. This post doesn't exist");
+      return;
+    }
     if (!response.ok) {
       throw new Error(`Error HTTP: ${response.status}`);
     }
@@ -37,10 +41,15 @@ async function getPostData() {
     postInside.hidden = false;
     errorNonExistent.hidden = true;
   } catch (error) {
-    postInside.hidden = true;
-    errorNonExistent.hidden = false;
     console.log("the error was catched", error);
+    showPostError("Could not load the post. Please try again later.");
   }
+}
+// hides the post and shows a message instead
+function showPostError(text) {
+  postInside.hidden = true;
+  errorNonExistent.textContent = text;
+  errorNonExistent.hidden = false;
 }
 getPostData();
 
@@ -66,8 +75,8 @@ function renderPostData(data, isOwner, isLoggedIn, userID) {
                     </div>
                     ${isOwner ? '<button class="delete delete-post">Delete the post</button>' : ""}
                     <div class="stats">
-                        <button class="likes ${data.comments[0].is_liked ? "choosed" : ""}">${data.comments[0].likes}</button>
-                        <button class="dislikes ${data.comments[0].is_disliked ? "choosed" : ""}">${data.comments[0].dislikes}</button>
+                        <button class="likes ${data.comments[0].is_liked ? "choosed" : ""}" ${isLoggedIn ? "" : "disabled"}>${data.comments[0].likes}</button>
+                        <button class="dislikes ${data.comments[0].is_disliked ? "choosed" : ""}" ${isLoggedIn ? "" : "disabled"}>${data.comments[0].dislikes}</button>
                     </div>
                 </div>`;
   renderAllComments(data, userID, isLoggedIn);
@@ -77,13 +86,21 @@ function renderPostData(data, isOwner, isLoggedIn, userID) {
       event.preventDefault();
       createComment(form, postID);
     });
+    // Cancel clears the field and the error message
+    form.querySelector(".shadow_btn").addEventListener("click", () => {
+      form.querySelector(".message_field").value = "";
+      clearFormError(form);
+    });
   }
 }
 function renderComment(comment, isOwner, isLoggedIn) {
-  console.log("called renderComment")
-  const container = document.querySelector(".comment-container");
+  // list of replies of the parent comment; null for top-level comments
+  // and for comments to the post itself (the init article has no such list)
+  const parentList = comment.parent_comment_id
+    ? document.querySelector(`[id="${comment.parent_comment_id}"] > .replies-list`)
+    : null;
   const newEl = `
-        <article id="${comment.id}" class="comment">
+        <article id="${comment.id}" class="comment${parentList ? " replies" : ""}">
                 <div class="author">
                     <div class="image-container">
                         <img class="author_img" src="/src/static/imgs/default.jpg" alt="photo of ${comment.user_for_comment.username}">
@@ -96,17 +113,22 @@ function renderComment(comment, isOwner, isLoggedIn) {
                 <p class="description">${comment.text}</p>
                 <div class="post-footer">
                     <div class="stats">
-                        <button class="likes ${comment.is_liked ? "choosed" : ""}">${comment.likes}</button>
-                        <button class="dislikes ${comment.is_disliked ? "choosed" : ""}">${comment.dislikes}</button>
+                        <button class="likes ${comment.is_liked ? "choosed" : ""}" ${isLoggedIn ? "" : "disabled"}>${comment.likes}</button>
+                        <button class="dislikes ${comment.is_disliked ? "choosed" : ""}" ${isLoggedIn ? "" : "disabled"}>${comment.dislikes}</button>
                     </div>
-                    <!-- <div class="reply"> -->
-                        <!-- ${isOwner ? '<button class="blue_empty_btn btn_update">Edit</button>' : ""} -->
-						            <!-- ${isOwner ? '<button class="delete btn_delete">Delete</button>' : ""} -->
-                        <!-- ${isLoggedIn ? '<button class="blue_empty_btn btn_reply">Reply</button>' : ""} -->
-                    <!-- </div> -->
+                    <div class="reply">
+                        ${isLoggedIn && isOwner ? '<button class="blue_empty_btn btn_update">Edit</button>' : ""}
+						            ${isLoggedIn && isOwner ? '<button class="delete btn_delete">Delete</button>' : ""}
+                        ${isLoggedIn && !parentList ? '<button class="blue_empty_btn btn_reply">Reply</button>' : ""}
+                    </div>
                 </div>
+                <div class="replies-list"></div>
             </article>`;
-  container.insertAdjacentHTML("beforeend", newEl);
+  // a reply goes inside the .replies-list of its parent, other comments go to the main list
+  (parentList ?? document.querySelector(".comment-container")).insertAdjacentHTML(
+    "beforeend",
+    newEl,
+  );
 }
 function renderAllComments(data, userID, isLoggedIn) {
   for (let i = 1; i < data.comments.length; i++) {
@@ -132,15 +154,30 @@ function formatDate(isoString) {
   });
 }
 //click function for creating a new comment
-async function createComment(form, postID) {
+// shows a red message at the top of a comment form
+function showFormError(form, text) {
+  let el = form.querySelector(".form_error");
+  if (!el) {
+    el = document.createElement("p");
+    el.className = "form_error";
+    form.prepend(el);
+  }
+  el.textContent = text;
+}
+function clearFormError(form) {
+  form.querySelector(".form_error")?.remove();
+}
+async function createComment(form, postID, parentID = null) {
+  clearFormError(form);
   const textValue = form.querySelector(".message_field").value.trim();
   // don't send empty comment
   if (textValue === "") {
-    return;
+    showFormError(form, "Comment cannot be empty");
+    return false;
   }
   const data = {
     text: textValue,
-    parent_comment_id: null,
+    parent_comment_id: parentID,
   };
   try {
     const response = await fetch(
@@ -169,8 +206,17 @@ async function createComment(form, postID) {
 
     form.querySelector(".message_field").value = "";
     renderComment(fullComment, true, true);
+    return true;
   } catch (error) {
     console.error("Error creating comment:", error);
+    // fetch throws TypeError when the server does not answer at all
+    showFormError(
+      form,
+      error instanceof TypeError
+        ? "Server is not available. Please try again later."
+        : "Could not send the comment. Please try again.",
+    );
+    return false;
   }
 }
 // click events on update button
@@ -200,10 +246,17 @@ postInside.addEventListener("click", (event) => {
     updateForm.remove();
   });
   submitBtn.addEventListener("click", async () => {
+    clearFormError(updateForm);
     const trimmed = comment
       .querySelector(".update-form .message_field")
       .value.trim();
-    if (trimmed === "") return;
+    if (trimmed === "") {
+      showFormError(
+        updateForm,
+        "Comment cannot be empty. Use Delete to remove it.",
+      );
+      return;
+    }
 
     const closeForm = () => {
       footer.style.display = "flex";
@@ -235,7 +288,42 @@ postInside.addEventListener("click", (event) => {
       closeForm();
     } catch (error) {
       console.error("Error updating comment:", error);
+      showFormError(
+        updateForm,
+        error instanceof TypeError
+          ? "Server is not available. Please try again later."
+          : "Could not update the comment. Please try again.",
+      );
     }
+  });
+});
+// click on Reply: show a form under this comment
+postInside.addEventListener("click", (event) => {
+  const btn = event.target.closest(".btn_reply");
+  if (!btn) return;
+
+  const comment = btn.closest(".comment");
+
+  // one reply form per comment: if it is already open, do nothing
+  if (comment.querySelector(".reply-form")) return;
+
+  const elReply = `<div class="message reply-form">
+                <textarea class="message_field input" placeholder="Write your reply"></textarea>
+                <div class="btn-container">
+                    <button class="shadow_btn cancel">Cancel</button>
+                    <button class="main_btn submit">Send</button>
+                </div>
+            </div>`;
+
+  comment.insertAdjacentHTML("beforeend", elReply);
+
+  const replyForm = comment.querySelector(".reply-form");
+  replyForm.querySelector(".cancel").addEventListener("click", () => {
+    replyForm.remove();
+  });
+  replyForm.querySelector(".submit").addEventListener("click", async () => {
+    const sent = await createComment(replyForm, postID, Number(comment.id));
+    if (sent) replyForm.remove();
   });
 });
 // click on delete button of a comment

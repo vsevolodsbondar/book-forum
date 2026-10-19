@@ -34,6 +34,9 @@ async function checkIsUserLoggedIn() {
     renderLoggedInNav(userData);
   } catch (error) {
     console.log("the error was catched", error);
+    // something went wrong while loading the user: show the usual guest header
+    renderLoggedOutHeader();
+    usersNavItem?.remove();
   }
 }
 checkIsUserLoggedIn();
