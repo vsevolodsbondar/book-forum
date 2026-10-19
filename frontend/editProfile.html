@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Forum</title>
+        <link rel="stylesheet" href="./src/static/styles/main.css" />
+        <link
+            rel="icon"
+            href="./src/static/imgs/icons/books.ico"
+            type="image/x-icon"
+        />
+    </head>
+    <body>
+        <header class="header">
+            <a href="index.html" class="logo" aria-label="logo of forum"></a>
+            <div class="header-btn"></div>
+        </header>
+        <main class="main">
+            <section class="sidebar">
+                <nav class="nav">
+                    <h2 class="nav_title">MENU</h2>
+                    <ul class="nav-list">
+                        <li>
+                            <a class="nav-list_item" href="index.html">Posts</a>
+                        </li>
+                    </ul>
+                </nav>
+            </section>
+            <section class="create-post">
+                <form class="newPost" id="editProfile">
+                    <div class="profileRow">
+                        <label>Username:</label>
+                        <input
+                            class="input"
+                            id="username"
+                            name="username"
+                            type="text"
+                            style="width:33%"
+                            ></input>
+                    </div>
+                    <div class="profileRow">
+                        <label>Real name:</label>
+                        <input
+                            class="input"
+                            id="name"
+                            name="name"
+                            style="width:33%"
+                            ></input>
+                    </div>
+                    <div class="profileRow textareaRow">
+                        <label for="description">Description:</label>
+                        <textarea
+                            class="input"
+                            id="description"
+                            name="description"
+                            placeholder="Tell something about yourself!"
+                            name="description"
+                        ></textarea>
+                    </div>
+                    <p class="form_error" role="alert"></p>
+                    <div class="btn-container" style="width: 100%">
+                        <button type="submit" class="main_btn">Save</button>
+                    </div>
+                </form>
+            </section>
+        </main>
+        <script type="module" src="/src/static/scripts/editProfile.js"></script>
+        <script type="module" src="/src/static/scripts/header.js"></script>
+    </body>
+</html>

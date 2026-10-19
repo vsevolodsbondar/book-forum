@@ -11,14 +11,18 @@ type ErrorResponse struct {
 // return fmt.Errorf("%w: %w", ErrInvalidInput, err) OR
 // return just base error without context "return error.ErrInvalidInput"
 var (
-	//input validation related status 400
-	ErrInvalidID       = errors.New("id must be a positive integer")
-	ErrEmptyUsername   = errors.New("username cannot be empty")
-	ErrUsernameTooLong = errors.New("username must be at most 32 characters")
-	ErrDescTooLong     = errors.New("description must be at most 500 characters")
-	//db malfunction related status 500
+	// input validation related status 400
+	ErrInvalidID        = errors.New("id must be a positive integer")
+	ErrEmptyUsername    = errors.New("username cannot be empty")
+	ErrInvalidUsername  = errors.New("username must only contain alphanumeric characters and underscores")
+	ErrUsernameTooLong  = errors.New("username must be at most 30 characters")
+	ErrUsernameTooShort = errors.New("username must be at least 3 characters")
+	ErrNameTooLong      = errors.New("name must be at most 32 characters")
+	ErrDescTooLong      = errors.New("description must be at most 500 characters")
+	// db malfunction related status 500
 	ErrGetRowsAffected       = errors.New("failed to get rows affected")
 	ErrGetUser               = errors.New("failed to get user")
+	ErrGetUsers              = errors.New("failed to get users")
 	ErrCreateUser            = errors.New("failed to create user")
 	ErrUpdateUser            = errors.New("failed to update user")
 	ErrDeleteUser            = errors.New("failed to delete user")
@@ -26,13 +30,13 @@ var (
 	ErrCreateReaction        = errors.New("failed to create reaction")
 	ErrUpdateReaction        = errors.New("failed to update reaction")
 	ErrDeleteReaction        = errors.New("failed to delete reaction")
-	//not found status 404
+	// not found status 404
 	ErrPostNotFound     = errors.New("post not found")
 	ErrCommentNotFound  = errors.New("comment not found")
 	ErrCategoryNotFound = errors.New("category not found")
 	ErrUserNotFound     = errors.New("user not found")
 	ErrReactionNotFound = errors.New("reaction not found")
-	//probably should be more specific, but atm do not know it yet
+	// probably should be more specific, but atm do not know it yet
 	ErrInvalidInput      = errors.New("invalid input")
 	ErrExpiredSession    = errors.New("session expired")
 	ErrAuthService       = errors.New("error occured on auth side")

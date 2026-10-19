@@ -41,13 +41,29 @@ func (repo *SQLitePostRepository) GetAll(ctx context.Context, dto model.SearchPo
 }
 
 func (repo *SQLitePostRepository) CreatePost(ctx context.Context, dto m.CreatePostDTO) (*model.PostCreatedDTO, error) {
+	post := model.PostCreatedDTO{}
+
+	category, err := repo.findCategoriesForPosts(ctx, []int64{*dto.CategoryID})
+	if err != nil {
+		return nil, err
+	}
+
+	categoryName, exists := category[*dto.CategoryID]
+	if !exists {
+		return nil, fmt.Errorf(
+			"%w: category %d does not exist",
+			custom_err.ErrInvalidInput,
+			*dto.CategoryID,
+		)
+	}
+
+	post.CategoryName = categoryName
+
 	tx, err := repo.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
-
-	//1.check if user exists
 
 	query := `
 		INSERT INTO post (title, author_id, category_id) 
@@ -70,8 +86,6 @@ func (repo *SQLitePostRepository) CreatePost(ctx context.Context, dto m.CreatePo
 	if err != nil {
 		return nil, err
 	}
-
-	post := model.PostCreatedDTO{}
 
 	updInitCommentID := `
 		UPDATE post 
@@ -104,22 +118,14 @@ func (repo *SQLitePostRepository) CreatePost(ctx context.Context, dto m.CreatePo
 
 	post.InitCommentText = &comment.Text
 
-	// 4. Commit everything
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 
-	// 5. Category name from different table
-	category, err := repo.findCategoriesForPosts(ctx, []int64{*dto.CategoryID})
-	if err != nil {
-		return nil, err
-	}
-	post.CategoryName = category[*dto.CategoryID]
-
 	return &post, nil
 }
 
-func (repo *SQLitePostRepository) DeleteByID(ctx context.Context, dto m.DeletePostRequest) (bool, error) {
+func (repo *SQLitePostRepository) DeleteByID(ctx context.Context, dto m.DeletePostDTO) (bool, error) {
 	query := `
 		DELETE FROM post
 		WHERE id = ? AND author_id = ?
@@ -198,6 +204,50 @@ func (repo *SQLitePostRepository) GetByID(ctx context.Context, postID int64) (*m
 	return &posts[0], nil
 }
 
+func (repo *SQLitePostRepository) ReplaceFieldsInPost(ctx context.Context, fields map[string]any, postID int64) (*model.PatchResultDTO, error) {
+	setFields := make([]string, 0, len(fields))
+	args := make([]any, 0, len(fields))
+
+	allowedFields := map[string]bool{
+		"title":       true,
+		"category_id": true,
+	}
+
+	for field, value := range fields {
+		if !allowedFields[field] {
+			return nil, custom_err.ErrInvalidInput
+		}
+
+		setFields = append(setFields, field+" = ?")
+		args = append(args, value)
+	}
+
+	query := `
+		UPDATE post
+		SET ` + strings.Join(setFields, ", ") + `
+		WHERE id = ?
+		RETURNING title, category_id
+	`
+
+	args = append(args, postID)
+
+	var res m.PatchResultDTO
+	err := repo.db.QueryRowContext(ctx, query, args...).Scan(
+		&res.Title,
+		&res.CategoryID,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return &model.PatchResultDTO{}, custom_err.ErrPostNotFound
+		}
+
+		return &model.PatchResultDTO{}, err
+	}
+
+	return &res, nil
+}
+
 func (repo *SQLitePostRepository) createCommentTx(ctx context.Context, comment *model.CreateCommentRequest, tx *sql.Tx) (*model.Comment, error) {
 	query := `
 		INSERT INTO comment (text, post_id, user_id)
@@ -235,6 +285,21 @@ func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.Se
 		case "categoryId":
 			query += `WHERE category_id = ? `
 			args = append(args, dto.SearchValue)
+
+		case "likedBy", "dislikedBy":
+			reaction := 1
+			if *dto.SearchField == "dislikedBy" {
+				reaction = -1
+			}
+			query += `WHERE init_comment_id IN (
+				SELECT comment_id FROM likes
+				WHERE user_id = ? AND type_of_like = ?
+			) `
+			args = append(args, dto.SearchValue, reaction)
+
+		case "title":
+			query += `WHERE title LIKE ? COLLATE NOCASE`
+			args = append(args, "%"+*dto.SearchValue+"%")
 		}
 	}
 
@@ -540,6 +605,7 @@ func (repo *SQLitePostRepository) findAuthorsForPosts(ctx context.Context, autho
 		}
 
 		userInfo := model.UserShortInfo{
+			ID:             userId,
 			UserName:       userName,
 			ProfilePicture: profilePic.String,
 		}
@@ -570,7 +636,22 @@ func (repo *SQLitePostRepository) CountPosts(ctx context.Context, dto model.Sear
 		case "categoryId":
 			query += `WHERE category_id = ? `
 			args = append(args, dto.SearchValue)
+
+		case "likedBy", "dislikedBy":
+			reaction := 1
+			if *dto.SearchField == "dislikedBy" {
+				reaction = -1
+			}
+			query += `WHERE init_comment_id IN (
+				SELECT comment_id FROM likes
+				WHERE user_id = ? AND type_of_like = ?
+			) `
+			args = append(args, dto.SearchValue, reaction)
+		case "title":
+			query += `WHERE title LIKE ? COLLATE NOCASE`
+			args = append(args, "%"+*dto.SearchValue+"%")
 		}
+
 	}
 
 	var total int

@@ -34,14 +34,14 @@ type GetAllUsersDTO struct {
 }
 
 type UserShortInfo struct {
-	ID             int
+	ID             int64  `json:"id"`
 	UserName       string `json:"username"`
 	ProfilePicture string `json:"profilepic"`
 }
 
 type AllUsers struct {
-	Users []UserShortInfo `json:"users"`
-	Page  int             `json:"page"`
-	Size  int             `json:"size"`
-	Total int             `json:"total"`
+	Users      []UserShortInfo `json:"users"`
+	Page       int             `json:"page"`
+	Size       int             `json:"size"`
+	TotalPages int             `json:"totalPages"`
 }

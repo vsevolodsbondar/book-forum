@@ -1,42 +1,52 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Forum</title>
-    <link rel="stylesheet" href="./src/static/styles/main.css">
-    <link rel="stylesheet" href="./src/static/styles/login.css">
-    <link rel="icon" href="./src/static/imgs/icons/books.ico" type="image/x-icon">
+    <link rel="stylesheet" href="./src/static/styles/main.css" />
+    <link
+      rel="icon"
+      href="./src/static/imgs/icons/books.ico"
+      type="image/x-icon"
+    />
   </head>
   <body>
     <header class="header">
-        <a href="index.html" class="logo" aria-label="logo of forum"></a>
-        <div class="header-btn"></div>
-        
+      <a href="index.html" class="logo" aria-label="logo of forum"></a>
+      <div class="header-btn"></div>
     </header>
     <main class="main">
-         <section class="sidebar">
-            <nav class="nav">
-                <h2 class="nav_title">MENU</h2>
-                <ul class="nav-list">
-                    <li class="choosed"><a class="nav-list_item" href="index.html">Posts</a></li>
-                    <li><a class="nav-list_item" href="users.html">Users</a></li>
-                </ul>
-            </nav>
-         </section>
-         <section class="post-inside">
-            <article class="comment init"></article>
-            <h2 class="comments_title">Comments</h2>
-            <form class="message">
-                <textarea class="message_field input" placeholder="Write your comment to the post"></textarea>
-                <div class="btn-container">
-                    <button type="button" class="shadow_btn">Cancel</button>
-                    <button type="button" class="main_btn">Submit</button>
-                </div>
-            </form>
-            <div class="comment-container"></div>
-         </section>
+      <section class="sidebar">
+        <nav class="nav">
+          <h2 class="nav_title">MENU</h2>
+          <ul class="nav-list">
+            <li class="choosed">
+              <a class="nav-list_item" href="index.html">Posts</a>
+            </li>
+            <li><a class="nav-list_item" href="users.html">Users</a></li>
+          </ul>
+        </nav>
+      </section>
+      <h2 class="comments_non_existent" hidden>
+        404. This post doesn't exist
+      </h2>
+      <section class="post-inside">
+        <article class="comment init"></article>
+        <h2 class="comments_title">Comments</h2>
+        <form class="message">
+          <textarea
+            class="message_field input"
+            placeholder="Write your comment to the post"
+          ></textarea>
+          <div class="btn-container">
+            <button type="button" class="shadow_btn">Cancel</button>
+            <button type="button" class="main_btn">Submit</button>
+          </div>
+        </form>
+        <div class="comment-container"></div>
+      </section>
     </main>
     <script type="module" src="/src/static/scripts/header.js"></script>
     <script type="module" src="/src/static/scripts/postInside.js"></script>

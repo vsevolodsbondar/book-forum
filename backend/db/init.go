@@ -24,12 +24,33 @@ func Init(isSeeding bool) (*sql.DB, error) {
 	}
 
 	if isSeeding {
-		if err := seedDB(data); err != nil {
+		seeded, err := isDatabaseSeeded(data)
+		if err != nil {
 			data.Close()
 			return nil, err
+		}
+
+		if !seeded {
+			if err := seedDB(data); err != nil {
+				data.Close()
+				return nil, err
+			}
+		} else {
+			fmt.Println("Seed data already exists, skipping seeding")
 		}
 	}
 
 	fmt.Println("Connected to SQLite")
 	return data, nil
+}
+
+func isDatabaseSeeded(db *sql.DB) (bool, error) {
+	var count int
+
+	err := db.QueryRow("SELECT COUNT(*) FROM user").Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("failed to check seed data: %w", err)
+	}
+
+	return count > 0, nil
 }

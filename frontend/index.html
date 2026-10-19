@@ -25,21 +25,78 @@
             <li class="choosed">
               <a class="nav-list_item" href="index.html">Posts</a>
             </li>
-            <li><a class="nav-list_item" href="users.html">Users</a></li>
+            <li id="users-nav-item">
+              <a class="nav-list_item" href="users.html">Users</a>
+            </li>
           </ul>
         </nav>
       </section>
       <section class="main-section">
         <article class="tags">
           <button type="button" class="tags_item choosed" data-filter="new">
-            New
+            Newest
+          </button>
+          <button type="button" class="tags_item" data-filter="old">
+            Oldest
+          </button>
+          <button
+            type="button"
+            class="tags_item"
+            data-filter="liked"
+            style="display: none"
+          >
+            Liked posts
+          </button>
+          <button
+            type="button"
+            class="tags_item"
+            data-filter="disliked"
+            style="display: none"
+          >
+            Disliked posts
           </button>
           <select name="category" class="tags_item">
             <option value="">Filter by category</option>
           </select>
+          <div id="searchBoxContainer">
+            <form>
+              <div class="search-bar">
+                <input 
+                  id="searchString" 
+                  class="search-bar-input"
+                  name="searchString" 
+                  type="search" 
+                  maxlength="100" 
+                  minlength="3"
+                  placeholder="Search post by name..."
+                  required
+                  autocomplete="off"
+                >
+                <button 
+                  type="submit" 
+                  class="search-bar-submit" 
+                  aria-label="Search" 
+                  title="Search"
+                >
+                <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                </button>
+              </div>
+            </form>
+          </div>
         </article>
         <article class="posts"></article>
-        <button type="button" class="blue_empty_btn see-more" style="display: none; margin: 20px auto 0">See more</button>
+        <button
+          type="button"
+          class="blue_empty_btn see-more"
+          style="display: none; margin: 20px auto 0"
+        >
+          See more
+        </button>
+
       </section>
     </main>
     <script type="module" src="/src/static/scripts/header.js"></script>

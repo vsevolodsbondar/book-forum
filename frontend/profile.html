@@ -1,41 +1,59 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Forum</title>
-    <link rel="stylesheet" href="./src/static/styles/main.css">
-    <link rel="stylesheet" href="./src/static/styles/login.css">
-    <link rel="icon" href="./src/static/imgs/icons/books.ico" type="image/x-icon">
+    <link rel="stylesheet" href="./src/static/styles/main.css" />
+    <link
+      rel="icon"
+      href="./src/static/imgs/icons/books.ico"
+      type="image/x-icon"
+    />
   </head>
   <body>
     <header class="header">
-        <a href="index.html" class="logo" aria-label="logo of forum"></a>
-        <div class="header-btn"> </div>   
+      <a href="index.html" class="logo" aria-label="logo of forum"></a>
+      <div class="header-btn"></div>
     </header>
     <main class="main">
-         <section class="sidebar">
-            <nav class="nav">
-                <h2 class="nav_title">MENU</h2>
-                <ul class="nav-list">
-                    <li><a class="nav-list_item" href="index.html">Posts</a></li>
-                    <li class="choosed"><a class="nav-list_item" href="users.html">Users</a></li>
-                </ul>
-            </nav>
-         </section>
-        <section class="user-profile">
-            <div class="profile">
-                <div class="image-container">
-                    <img class="author_img" src="./src/static/imgs/photo.jpeg" alt="user">
-                </div>
-            </div>
-            <div>
-            <h2 class="user_title">@pupupu</h2>
-            <p class="user_name">PuPu Pupushechnaja</p>
-            <p class="description">I'm great pupu reader.</p>
-            </div>
-        </section>
+      <section class="sidebar">
+        <nav class="nav">
+          <h2 class="nav_title">MENU</h2>
+          <ul class="nav-list">
+            <li><a class="nav-list_item" href="index.html">Posts</a></li>
+             <li class="choosed">
+               <a class="nav-list_item" href="users.html">Users</a>
+             </li>
+          </ul>
+        </nav>
+      </section>
+      <section class="user-profile">
+        <div class="profile">
+          <div class="image-container">
+            <img
+              class="author_img"
+              src="./src/static/imgs/photo.jpeg"
+              alt="user"
+            />
+          </div>
+        </div>
+        <div>
+          <h2 class="user_title"></h2>
+          <p class="user_name"></p>
+          <p class="description"></p>
+          <p class="created_at"></p>
+        </div>
+        <a
+          class="edit-profile-button"
+          style="width: 7.5rem; display: none"
+          id="editProfile"
+          href="editProfile.html"
+        >
+          Edit profile
+        </a>
+      </section>
     </main>
     <script type="module" src="/src/static/scripts/header.js"></script>
     <script type="module" src="/src/static/scripts/profile.js"></script>

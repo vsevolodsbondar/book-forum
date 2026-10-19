@@ -72,9 +72,21 @@ type PostCreatedDTO struct {
 	CreatedAt       time.Time `json:"created_at"`
 }
 
-type DeletePostRequest struct {
+type DeletePostDTO struct {
 	PostID int64
 	UserID int64
+}
+
+type PatchPostDTO struct {
+	PostID      int64
+	UserID      int64
+	NewTitle    *string `json:"new_title"`
+	NewCategory *int64  `json:"new_category"`
+}
+
+type PatchResultDTO struct {
+	Title      *string
+	CategoryID *int64
 }
 
 func (dto *SearchPostsDTO) Validate() error {
@@ -98,7 +110,6 @@ func (dto *SearchPostsDTO) Validate() error {
 				custom_err.ErrInvalidInput,
 			)
 		}
-
 	case "categoryId":
 		if dto.SearchValue == nil {
 			return fmt.Errorf(
@@ -106,13 +117,42 @@ func (dto *SearchPostsDTO) Validate() error {
 				custom_err.ErrInvalidInput,
 			)
 		}
-
+	case "title":
+		if dto.SearchValue == nil || len(strings.TrimSpace(*dto.SearchValue)) < 3 {
+			return fmt.Errorf(
+				"%w: title search value must be at least 3 characters",
+				custom_err.ErrInvalidInput,
+			)
+		}
+	case "likedBy", "dislikedBy":
+		if dto.SearchValue == nil {
+			return fmt.Errorf(
+				"%w: liked_by search value cannot be empty",
+				custom_err.ErrInvalidInput,
+			)
+		}
 	default:
 		return fmt.Errorf(
 			"%w: unsupported search field %q",
 			custom_err.ErrInvalidInput,
 			*dto.SearchField,
 		)
+	}
+
+	return nil
+}
+
+func (dto *PatchPostDTO) Validate() error {
+	if dto.NewTitle != nil {
+		if strings.TrimSpace(*dto.NewTitle) == "" {
+			return fmt.Errorf("%w: title can't be empty", custom_err.ErrInvalidInput)
+		}
+	}
+
+	if dto.NewCategory != nil {
+		if *dto.NewCategory <= 0 {
+			return fmt.Errorf("%w: category_id must be greater than 0", custom_err.ErrInvalidInput)
+		}
 	}
 
 	return nil
