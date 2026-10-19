@@ -84,11 +84,11 @@ function renderComment(comment, isOwner, isLoggedIn) {
                         <button class="likes ${comment.is_liked ? "choosed" : ""}">${comment.likes}</button>
                         <button class="dislikes ${comment.is_disliked ? "choosed" : ""}">${comment.dislikes}</button>
                     </div>
-                    <!-- <div class="reply"> -->
-                        <!-- ${isOwner ? '<button class="blue_empty_btn btn_update">Edit</button>' : ""} -->
-						            <!-- ${isOwner ? '<button class="delete btn_delete">Delete</button>' : ""} -->
-                        <!-- ${isLoggedIn ? '<button class="blue_empty_btn btn_reply">Reply</button>' : ""} -->
-                    <!-- </div> -->
+                    <div class="reply">
+                        ${isLoggedIn && isOwner ? '<button class="blue_empty_btn btn_update">Edit</button>' : ""}
+						            ${isLoggedIn && isOwner ? '<button class="delete btn_delete">Delete</button>' : ""}
+                        ${isLoggedIn ? '<button class="blue_empty_btn btn_reply">Reply</button>' : ""}
+                    </div>
                 </div>
             </article>`;
   container.insertAdjacentHTML("beforeend", newEl);
@@ -221,6 +221,31 @@ postInside.addEventListener("click", (event) => {
     } catch (error) {
       console.error("Error updating comment:", error);
     }
+  });
+});
+// click on Reply: show a form under this comment
+postInside.addEventListener("click", (event) => {
+  const btn = event.target.closest(".btn_reply");
+  if (!btn) return;
+
+  const comment = btn.closest(".comment");
+
+  // one reply form per comment: if it is already open, do nothing
+  if (comment.querySelector(".reply-form")) return;
+
+  const elReply = `<div class="message reply-form">
+                <textarea class="message_field input" placeholder="Write your reply"></textarea>
+                <div class="btn-container">
+                    <button class="shadow_btn cancel">Cancel</button>
+                    <button class="main_btn submit">Send</button>
+                </div>
+            </div>`;
+
+  comment.insertAdjacentHTML("beforeend", elReply);
+
+  const replyForm = comment.querySelector(".reply-form");
+  replyForm.querySelector(".cancel").addEventListener("click", () => {
+    replyForm.remove();
   });
 });
 // click on delete button of a comment
