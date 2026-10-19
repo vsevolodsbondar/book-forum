@@ -41,13 +41,29 @@ func (repo *SQLitePostRepository) GetAll(ctx context.Context, dto model.SearchPo
 }
 
 func (repo *SQLitePostRepository) CreatePost(ctx context.Context, dto m.CreatePostDTO) (*model.PostCreatedDTO, error) {
+	post := model.PostCreatedDTO{}
+
+	category, err := repo.findCategoriesForPosts(ctx, []int64{*dto.CategoryID})
+	if err != nil {
+		return nil, err
+	}
+
+	categoryName, exists := category[*dto.CategoryID]
+	if !exists {
+		return nil, fmt.Errorf(
+			"%w: category %d does not exist",
+			custom_err.ErrInvalidInput,
+			*dto.CategoryID,
+		)
+	}
+
+	post.CategoryName = categoryName
+
 	tx, err := repo.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
-
-	//1.check if user exists
 
 	query := `
 		INSERT INTO post (title, author_id, category_id) 
@@ -70,8 +86,6 @@ func (repo *SQLitePostRepository) CreatePost(ctx context.Context, dto m.CreatePo
 	if err != nil {
 		return nil, err
 	}
-
-	post := model.PostCreatedDTO{}
 
 	updInitCommentID := `
 		UPDATE post 
@@ -104,17 +118,9 @@ func (repo *SQLitePostRepository) CreatePost(ctx context.Context, dto m.CreatePo
 
 	post.InitCommentText = &comment.Text
 
-	// 4. Commit everything
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
-
-	// 5. Category name from different table
-	category, err := repo.findCategoriesForPosts(ctx, []int64{*dto.CategoryID})
-	if err != nil {
-		return nil, err
-	}
-	post.CategoryName = category[*dto.CategoryID]
 
 	return &post, nil
 }
