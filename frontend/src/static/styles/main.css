@@ -740,3 +740,6 @@ textarea:disabled {
   justify-content: center;	
   margin-top: 10%;
 }
+.comments_non_existent[hidden] {
+  display: none;
+}

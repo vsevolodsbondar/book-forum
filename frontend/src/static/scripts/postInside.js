@@ -17,7 +17,7 @@ async function getPostData() {
       { credentials: "include" },
     );
     if (response.status === 404) {
-      showPostError("Post not found");
+      showPostError("404. This post doesn't exist");
       return;
     }
     if (!response.ok) {
@@ -41,17 +41,15 @@ async function getPostData() {
     postInside.hidden = false;
     errorNonExistent.hidden = true;
   } catch (error) {
-    postInside.hidden = true;
-    errorNonExistent.hidden = false;
     console.log("the error was catched", error);
     showPostError("Could not load the post. Please try again later.");
   }
 }
-// replaces the empty page skeleton with a message
+// hides the post and shows a message instead
 function showPostError(text) {
-  document.querySelector(".post-inside").innerHTML = `
-    <p class="form_error">${text}</p>
-    <a href="index.html">Back to all posts</a>`;
+  postInside.hidden = true;
+  errorNonExistent.textContent = text;
+  errorNonExistent.hidden = false;
 }
 getPostData();
 
@@ -170,7 +168,7 @@ async function createComment(form, postID, parentID = null) {
   // don't send empty comment
   if (textValue === "") {
     showFormError(form, "Comment cannot be empty");
-    return;
+    return false;
   }
   const data = {
     text: textValue,
@@ -203,6 +201,7 @@ async function createComment(form, postID, parentID = null) {
 
     form.querySelector(".message_field").value = "";
     renderComment(fullComment, true, true);
+    return true;
   } catch (error) {
     console.error("Error creating comment:", error);
     // fetch throws TypeError when the server does not answer at all
@@ -212,6 +211,7 @@ async function createComment(form, postID, parentID = null) {
         ? "Server is not available. Please try again later."
         : "Could not send the comment. Please try again.",
     );
+    return false;
   }
 }
 // click events on update button
@@ -304,8 +304,8 @@ postInside.addEventListener("click", (event) => {
     replyForm.remove();
   });
   replyForm.querySelector(".submit").addEventListener("click", async () => {
-    await createComment(replyForm, postID, Number(comment.id));
-    replyForm.remove();
+    const sent = await createComment(replyForm, postID, Number(comment.id));
+    if (sent) replyForm.remove();
   });
 });
 // click on delete button of a comment
