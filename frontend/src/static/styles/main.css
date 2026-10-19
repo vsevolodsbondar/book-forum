@@ -1202,3 +1202,9 @@ textarea:disabled {
   width: 20px;
   height: 20px;
 }
+
+.comments_non_existent {
+  display: flex;
+  justify-content: center;	
+  margin-top: 10%;
+}
