@@ -66,9 +66,13 @@ function renderPostData(data, isOwner, isLoggedIn, userID) {
   }
 }
 function renderComment(comment, isOwner, isLoggedIn) {
-  const container = document.querySelector(".comment-container");
+  // list of replies of the parent comment; null for top-level comments
+  // and for comments to the post itself (the init article has no such list)
+  const parentList = comment.parent_comment_id
+    ? document.querySelector(`[id="${comment.parent_comment_id}"] > .replies-list`)
+    : null;
   const newEl = `
-        <article id="${comment.id}" class="comment">
+        <article id="${comment.id}" class="comment${parentList ? " replies" : ""}">
                 <div class="author">
                     <div class="image-container">
                         <img class="author_img" src="/src/static/imgs/default.jpg" alt="photo of ${comment.user_for_comment.username}">
@@ -87,11 +91,16 @@ function renderComment(comment, isOwner, isLoggedIn) {
                     <div class="reply">
                         ${isLoggedIn && isOwner ? '<button class="blue_empty_btn btn_update">Edit</button>' : ""}
 						            ${isLoggedIn && isOwner ? '<button class="delete btn_delete">Delete</button>' : ""}
-                        ${isLoggedIn ? '<button class="blue_empty_btn btn_reply">Reply</button>' : ""}
+                        ${isLoggedIn && !parentList ? '<button class="blue_empty_btn btn_reply">Reply</button>' : ""}
                     </div>
                 </div>
+                <div class="replies-list"></div>
             </article>`;
-  container.insertAdjacentHTML("beforeend", newEl);
+  // a reply goes inside the .replies-list of its parent, other comments go to the main list
+  (parentList ?? document.querySelector(".comment-container")).insertAdjacentHTML(
+    "beforeend",
+    newEl,
+  );
 }
 function renderAllComments(data, userID, isLoggedIn) {
   for (let i = 1; i < data.comments.length; i++) {
@@ -117,7 +126,7 @@ function formatDate(isoString) {
   });
 }
 //click function for creating a new comment
-async function createComment(form, postID) {
+async function createComment(form, postID, parentID = null) {
   const textValue = form.querySelector(".message_field").value.trim();
   // don't send empty comment
   if (textValue === "") {
@@ -125,7 +134,7 @@ async function createComment(form, postID) {
   }
   const data = {
     text: textValue,
-    parent_comment_id: null,
+    parent_comment_id: parentID,
   };
   try {
     const response = await fetch(
@@ -245,6 +254,10 @@ postInside.addEventListener("click", (event) => {
 
   const replyForm = comment.querySelector(".reply-form");
   replyForm.querySelector(".cancel").addEventListener("click", () => {
+    replyForm.remove();
+  });
+  replyForm.querySelector(".submit").addEventListener("click", async () => {
+    await createComment(replyForm, postID, Number(comment.id));
     replyForm.remove();
   });
 });
