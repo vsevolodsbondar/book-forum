@@ -4,14 +4,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+	"unicode/utf8"
+
 	"forum_backend/client"
 	"forum_backend/custom_err"
 	"forum_backend/helper"
 	"forum_backend/model"
 	"forum_backend/service"
-	"net/http"
-	"net/url"
-	"strconv"
 )
 
 type PostHandler struct {
@@ -178,36 +181,68 @@ func parseSearchPostsDTO(query url.Values, page int, limit int) (model.SearchPos
 		Offset: (page - 1) * limit,
 	}
 
-	// Search
-	search := query.Get("search")
-	if search == "true" {
-		// Search field
-		field := query.Get("field")
-		// Search value
-		value := query.Get("value")
-
-		if field == "" || value == "" {
-			return model.SearchPostsDTO{}, fmt.Errorf("%w: if search is true - should fill search fields", custom_err.ErrInvalidInput)
+	// Category
+	category := query.Get("categoryId")
+	if category != "" {
+		id, err := strconv.Atoi(category)
+		if err != nil || id <= 0 {
+			return model.SearchPostsDTO{},
+				fmt.Errorf("%w: invalid category ID", custom_err.ErrInvalidInput)
 		}
 
-		dto.IsSearch = true
-		dto.SearchField = &field
-		dto.SearchValue = &value
+		dto.CategoryID = &id
+	}
+
+	// Reaction filter
+	reaction := query.Get("reaction")
+	userID := query.Get("userID")
+
+	switch reaction {
+	case "":
+		if userID != "" {
+			return model.SearchPostsDTO{},
+				fmt.Errorf("%w: userID requires a reaction filter",
+					custom_err.ErrInvalidInput)
+		}
+	case "liked", "disliked":
+		if userID == "" {
+			return model.SearchPostsDTO{},
+				fmt.Errorf("%w: userID required for reaction filter",
+					custom_err.ErrInvalidInput)
+		}
+
+		dto.Reaction = &reaction
+		dto.UserID = &userID
+	default:
+		return model.SearchPostsDTO{},
+			fmt.Errorf("%w: invalid reaction filter",
+				custom_err.ErrInvalidInput)
 	}
 
 	// Ordering
-	byLatest := query.Get("byLatest")
-
-	switch byLatest {
-	case "true":
+	switch query.Get("byLatest") {
+	case "", "true":
 		dto.IsLatestPostsFirst = true
-
 	case "false":
 		dto.IsLatestPostsFirst = false
-
 	default:
-		dto.IsLatestPostsFirst = true
+		return model.SearchPostsDTO{}, fmt.Errorf("%w: invalid sort order", custom_err.ErrInvalidInput)
 	}
+
+	// Search
+	title := strings.TrimSpace(query.Get("title"))
+	if title != "" {
+		if utf8.RuneCountInString(title) < 3 ||
+			utf8.RuneCountInString(title) > 100 {
+			return model.SearchPostsDTO{},
+				fmt.Errorf("%w: title must be 3–100 characters",
+					custom_err.ErrInvalidInput)
+		}
+
+		dto.Title = &title
+	}
+
+	dto.IsSearch = dto.Title != nil || dto.CategoryID != nil || dto.Reaction != nil
 
 	return dto, nil
 }

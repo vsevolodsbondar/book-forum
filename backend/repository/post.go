@@ -5,11 +5,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"forum_backend/custom_err"
 	"forum_backend/model"
 	m "forum_backend/model"
-	"strings"
-	"time"
 )
 
 type SQLitePostRepository struct {
@@ -66,7 +67,7 @@ func (repo *SQLitePostRepository) CreatePost(ctx context.Context, dto m.CreatePo
 	defer tx.Rollback()
 
 	query := `
-		INSERT INTO post (title, author_id, category_id) 
+		INSERT INTO post (title, author_id, category_id)
 		VALUES (?,?,?)
 		RETURNING id
 	`
@@ -88,7 +89,7 @@ func (repo *SQLitePostRepository) CreatePost(ctx context.Context, dto m.CreatePo
 	}
 
 	updInitCommentID := `
-		UPDATE post 
+		UPDATE post
 		SET init_comment_id = ?
 		WHERE id = ?
 		RETURNING id, title, author_id, init_comment_id, created_at
@@ -236,7 +237,6 @@ func (repo *SQLitePostRepository) ReplaceFieldsInPost(ctx context.Context, field
 		&res.Title,
 		&res.CategoryID,
 	)
-
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return &model.PatchResultDTO{}, custom_err.ErrPostNotFound
@@ -251,7 +251,7 @@ func (repo *SQLitePostRepository) ReplaceFieldsInPost(ctx context.Context, field
 func (repo *SQLitePostRepository) createCommentTx(ctx context.Context, comment *model.CreateCommentRequest, tx *sql.Tx) (*model.Comment, error) {
 	query := `
 		INSERT INTO comment (text, post_id, user_id)
-		VALUES (?,?,?) 
+		VALUES (?,?,?)
 		RETURNING id, text;
 	`
 
@@ -274,49 +274,70 @@ func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.Se
 		FROM post
 	`
 
+	var conditions []string
 	var args []any
 
-	if dto.IsSearch {
-		switch *dto.SearchField {
-		case "authorId":
-			query += `WHERE author_id = ? `
-			args = append(args, dto.SearchValue)
+	// Title filter
+	if dto.Title != nil {
+		conditions = append(conditions, `title LIKE ? COLLATE NOCASE`)
+		args = append(args, "%"+*dto.Title+"%")
+	}
 
-		case "categoryId":
-			query += `WHERE category_id = ? `
-			args = append(args, dto.SearchValue)
+	// Category filter
+	if dto.CategoryID != nil {
+		conditions = append(conditions, `category_id = ?`)
+		args = append(args, *dto.CategoryID)
+	}
 
-		case "likedBy", "dislikedBy":
+	// Reaction filter
+	if dto.Reaction != nil {
+		if dto.UserID == nil || *dto.UserID == "" {
+			return nil, fmt.Errorf(
+				"%w: user ID required for reaction filter",
+				custom_err.ErrInvalidInput,
+			)
+		}
+
+		switch *dto.Reaction {
+		case "liked", "disliked":
 			reaction := 1
-			if *dto.SearchField == "dislikedBy" {
+			if *dto.Reaction == "disliked" {
 				reaction = -1
 			}
-			query += `WHERE init_comment_id IN (
-				SELECT comment_id FROM likes
-				WHERE user_id = ? AND type_of_like = ?
-			) `
-			args = append(args, dto.SearchValue, reaction)
 
-		case "title":
-			query += `WHERE title LIKE ? COLLATE NOCASE`
-			args = append(args, "%"+*dto.SearchValue+"%")
+			conditions = append(conditions, `
+				EXISTS (
+					SELECT 1
+					FROM likes
+					WHERE likes.comment_id = post.init_comment_id
+					  AND likes.user_id = ?
+					  AND likes.type_of_like = ?
+				)
+			`)
+			args = append(args, *dto.UserID, reaction)
+
+		default:
+			return nil, fmt.Errorf(
+				"%w: unsupported reaction filter",
+				custom_err.ErrInvalidInput,
+			)
 		}
 	}
 
-	if dto.IsLatestPostsFirst {
-		query += `
-			ORDER by id DESC
-		`
-	} else {
-		query += `
-			ORDER by id ASC
-		`
+	// Combine all active filters.
+	if len(conditions) > 0 {
+		query += " WHERE " + strings.Join(conditions, " AND ")
 	}
 
-	query += `
-		LIMIT ? OFFSET ?
-	`
+	// Ordering
+	if dto.IsLatestPostsFirst {
+		query += ` ORDER BY id DESC`
+	} else {
+		query += ` ORDER BY id ASC`
+	}
 
+	// Pagination
+	query += ` LIMIT ? OFFSET ?`
 	args = append(args, dto.Limit, dto.Offset)
 
 	rows, err := repo.db.QueryContext(ctx, query, args...)
@@ -327,12 +348,12 @@ func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.Se
 
 	posts := []model.PostResultDTO{}
 
-	var createdAt string
 	for rows.Next() {
 		var post model.PostResultDTO
 		var authorID sql.NullInt64
 		var categoryID sql.NullInt64
 		var initCommentID sql.NullInt64
+		var createdAt string
 
 		err := rows.Scan(
 			&post.ID,
@@ -342,6 +363,9 @@ func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.Se
 			&createdAt,
 			&initCommentID,
 		)
+		if err != nil {
+			return nil, err
+		}
 
 		if authorID.Valid {
 			post.AuthorID = &authorID.Int64
@@ -355,11 +379,10 @@ func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.Se
 			post.InitCommentID = &initCommentID.Int64
 		}
 
-		if err != nil {
-			return nil, err
-		}
-
-		post.CreatedAt, err = time.Parse("2006-01-02 15:04:05", createdAt)
+		post.CreatedAt, err = time.Parse(
+			"2006-01-02 15:04:05",
+			createdAt,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -464,7 +487,7 @@ func (repo *SQLitePostRepository) findCommentsForPosts(ctx context.Context, post
 	}
 	defer rows.Close()
 
-	//key == postID, value == commentIDs for post
+	// key == postID, value == commentIDs for post
 	postsWithComments := map[int64][]int64{}
 	for rows.Next() {
 		var commentID int64
@@ -512,7 +535,7 @@ func (repo *SQLitePostRepository) countLikesForPost(ctx context.Context, comment
 	}
 	defer rows.Close()
 
-	//key == commentID, value == likeCount for comment
+	// key == commentID, value == likeCount for comment
 	commentsWithLikes := map[int64]int{}
 	for rows.Next() {
 		var commentID int64
@@ -593,7 +616,7 @@ func (repo *SQLitePostRepository) findAuthorsForPosts(ctx context.Context, autho
 	}
 	defer rows.Close()
 
-	//key == userID, value == some user info for post
+	// key == userID, value == some user info for post
 	users := map[int64]model.UserShortInfo{}
 	for rows.Next() {
 		var userId int64
@@ -621,43 +644,65 @@ func (repo *SQLitePostRepository) findAuthorsForPosts(ctx context.Context, autho
 }
 
 func (repo *SQLitePostRepository) CountPosts(ctx context.Context, dto model.SearchPostsDTO) (int, error) {
-	query := `
-		SELECT COUNT(*)
-		FROM post
-	`
+	query := `SELECT COUNT(*) FROM post`
+
+	var conditions []string
 	var args []any
 
-	if dto.IsSearch {
-		switch *dto.SearchField {
-		case "authorId":
-			query += `WHERE author_id = ? `
-			args = append(args, dto.SearchValue)
+	// Title filter
+	if dto.Title != nil {
+		conditions = append(conditions, `title LIKE ? COLLATE NOCASE`)
+		args = append(args, "%"+*dto.Title+"%")
+	}
 
-		case "categoryId":
-			query += `WHERE category_id = ? `
-			args = append(args, dto.SearchValue)
+	// Category filter
+	if dto.CategoryID != nil {
+		conditions = append(conditions, `category_id = ?`)
+		args = append(args, *dto.CategoryID)
+	}
 
-		case "likedBy", "dislikedBy":
-			reaction := 1
-			if *dto.SearchField == "dislikedBy" {
-				reaction = -1
-			}
-			query += `WHERE init_comment_id IN (
-				SELECT comment_id FROM likes
-				WHERE user_id = ? AND type_of_like = ?
-			) `
-			args = append(args, dto.SearchValue, reaction)
-		case "title":
-			query += `WHERE title LIKE ? COLLATE NOCASE`
-			args = append(args, "%"+*dto.SearchValue+"%")
+	// Reaction filter
+	if dto.Reaction != nil {
+		if dto.UserID == nil {
+			return 0, fmt.Errorf("%w: user ID required for reaction filter", custom_err.ErrInvalidInput)
 		}
 
+		switch *dto.Reaction {
+		case "liked":
+			conditions = append(conditions, `
+                post.init_comment_id IN (
+                    SELECT comment_id
+                    FROM likes
+                    WHERE user_id = ? AND type_of_like = ?
+                )
+            `)
+			args = append(args, *dto.UserID, 1)
+
+		case "disliked":
+			conditions = append(conditions, `
+                post.init_comment_id IN (
+                    SELECT comment_id
+                    FROM likes
+                    WHERE user_id = ? AND type_of_like = ?
+                )
+            `)
+			args = append(args, *dto.UserID, -1)
+
+		default:
+			return 0, fmt.Errorf(
+				"%w: unsupported reaction filter",
+				custom_err.ErrInvalidInput,
+			)
+		}
+	}
+
+	// Combine all active filters with AND.
+	if len(conditions) > 0 {
+		query += " WHERE " + strings.Join(conditions, " AND ")
 	}
 
 	var total int
-
-	err := repo.db.QueryRowContext(ctx, query, args...).Scan(&total)
-	if err != nil {
+	if err := repo.db.QueryRowContext(ctx, query, args...).Scan(&total); err != nil {
 		return 0, err
 	}
 
