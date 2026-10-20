@@ -2,7 +2,8 @@ import { getUserID } from "./header.js";
 
 const postsContainer = document.querySelector(".posts");
 const categorySelect = document.querySelector("select[name='category']");
-const searchStringValue = document.querySelector("select[name='searchString']")
+const serverError = document.querySelector("#server-err")
+const filterTags = document.querySelector("#filter-tags");
 //for search
 const searchForm = document.querySelector("#searchBoxContainer form");
 const searchInput = document.querySelector("#searchString");
@@ -15,6 +16,7 @@ let currentPage = 1;
 let byLatest = "true";
 let reactionField = null; // "likedBy", "dislikedBy" or null
 let userID = null;
+
 function buildQuery(page) {
   const params = new URLSearchParams({ byLatest, page });
 
@@ -73,6 +75,7 @@ searchInput.addEventListener("input", () => {
 
 async function getPostData({ append = false } = {}) {
   // append = true -> load the next page and add it below the existing posts
+   serverError.hidden = true;
   const page = append ? currentPage + 1 : 1;
   try {
     const response = await fetch(
@@ -94,6 +97,8 @@ async function getPostData({ append = false } = {}) {
     // show the button only while there are more pages
     seeMoreBtn.style.display = page < postData.totalPages ? "block" : "none";
   } catch (error) {
+    serverError.hidden = false;
+    filterTags.hidden = true;
     console.log("the error was catched", error);
   }
 }
