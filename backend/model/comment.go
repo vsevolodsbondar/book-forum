@@ -70,7 +70,7 @@ type DeleteCommentDTO struct {
 
 type UserForComment struct {
 	UserName string `json:"username"`
-	Image    string `json:"image"`
+	ProfilePicture    string `json:"profilepic"`
 }
 
 type FullComment struct {

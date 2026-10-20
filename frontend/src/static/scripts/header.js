@@ -1,3 +1,5 @@
+import { getAvatarUrl } from "./avatar.js";
+
 export async function getUserID() {
   try {
     const response = await fetch("http://localhost:8080/me", {
@@ -68,7 +70,7 @@ function renderLoggedOutHeader() {
 function renderLoggedInHeader(user) {
   container.innerHTML = `<a href="createPost.html" aria-label="link to the page create post" class="main_btn">Write a post</a>
             <a href="profile.html?id=${user.id}" class="image-container" aria-label="link to the your personal page">
-                <img class="author_img" src="/src/static/imgs/default.jpg" alt="photo of ${user.username}">
+                <img class="author_img" src="${getAvatarUrl(user)}" alt="photo of ${user.username}">
             </a>
             <button type="button" class="blue_empty_btn logout">Log out</button>
             `;

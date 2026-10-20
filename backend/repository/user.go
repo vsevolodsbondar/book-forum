@@ -28,7 +28,6 @@ func (ur *SQLiteUserRepository) GetAllUsers(ctx context.Context, params model.Ge
 
 	total := 0
 	err := ur.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM user`).Scan(&total)
-
 	if err != nil {
 		slog.Error("failed to count users", "err", err)
 		return nil, custom_err.ErrGetUsers

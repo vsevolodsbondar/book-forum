@@ -10,6 +10,7 @@
 // </a>`
 // you need to add button update only for owner of user profile
 
+import { getAvatarUrl } from "./avatar.js";
 import { getUserID } from "./header.js";
 
 const usersPage = document.querySelector("#users-page");
@@ -94,7 +95,7 @@ function renderUsers(users) {
 
     const image = document.createElement("img");
     image.className = "author_img";
-    image.src = "/src/static/imgs/default.jpg";
+    image.src = getAvatarUrl(user)
     // when support of files will be there
     // image.src = user.profilepic
     //     ? `/src/static/imgs/${user.profilepic}`

@@ -1,9 +1,10 @@
 package server
 
 import (
+	"net/http"
+
 	"forum_backend/custom_err"
 	"forum_backend/handler"
-	"net/http"
 )
 
 func RegisterRoutes(
@@ -21,7 +22,7 @@ func RegisterRoutes(
 	mux.HandleFunc("PATCH /comments/{id}", custom_err.GlobalErrorHandler(comments.Update))
 	mux.HandleFunc("DELETE /comments/{id}", custom_err.GlobalErrorHandler(comments.Delete))
 
-	//users
+	// users
 	mux.HandleFunc("GET /users/{id}", custom_err.GlobalErrorHandler(users.GetUser))
 	mux.HandleFunc("GET /users", custom_err.GlobalErrorHandler(users.GetAllUsers))
 	mux.HandleFunc("POST /users", custom_err.GlobalErrorHandler(users.CreateUser))
@@ -30,21 +31,24 @@ func RegisterRoutes(
 	mux.HandleFunc("POST /login", custom_err.GlobalErrorHandler(users.Login))
 	mux.HandleFunc("POST /logout", custom_err.GlobalErrorHandler(users.Logout))
 
-	//posts
+	// posts
 	mux.HandleFunc("GET /posts", custom_err.GlobalErrorHandler(posts.GetPosts))
 	mux.HandleFunc("GET /posts/{id}", custom_err.GlobalErrorHandler(posts.GetPostByID))
 	mux.HandleFunc("DELETE /posts/{id}", custom_err.GlobalErrorHandler(posts.DeletePost))
-	mux.HandleFunc("POST /posts", custom_err.GlobalErrorHandler(posts.PostPost)) //namings...
+	mux.HandleFunc("POST /posts", custom_err.GlobalErrorHandler(posts.PostPost)) // namings...
 	mux.HandleFunc("PATCH /posts/{id}", custom_err.GlobalErrorHandler(posts.PatchPost))
 
-	//check for auth user
+	// check for auth user
 	mux.HandleFunc("GET /me", custom_err.GlobalErrorHandler(auth.AuthUser))
 
-	//categories
+	// categories
 	mux.HandleFunc("GET /categories", custom_err.GlobalErrorHandler(categories.GetAll))
 
-	//like
+	// like
 	mux.HandleFunc("POST /reaction", custom_err.GlobalErrorHandler(reactions.CreateReaction))
 	mux.HandleFunc("PATCH /reaction", custom_err.GlobalErrorHandler(reactions.UpdateReaction))
 	mux.HandleFunc("DELETE /reaction", custom_err.GlobalErrorHandler(reactions.DeleteReaction))
+
+	// avatar file server
+	mux.Handle("/avatars/", http.StripPrefix("/avatars/", http.FileServer(http.Dir("./data/avatars"))))
 }
