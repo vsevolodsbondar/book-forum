@@ -1,109 +1,107 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Forum</title>
-    <link rel="stylesheet" href="./src/static/styles/main.css" />
-    <link
-      rel="icon"
-      href="./src/static/imgs/icons/books.ico"
-      type="image/x-icon"
-    />
-  </head>
-  <body>
-    <header class="header log-out">
-      <a href="index.html" class="logo" aria-label="logo of forum"></a>
-      <div class="header-btn"></div>
-    </header>
-    <main class="main">
-      <section class="sidebar">
-        <nav class="nav">
-          <h2 class="nav_title">MENU</h2>
-          <ul class="nav-list">
-            <li class="choosed">
-              <a class="nav-list_item" href="index.html">Posts</a>
-            </li>
-            <li id="users-nav-item">
-              <a class="nav-list_item" href="users.html">Users</a>
-            </li>
-          </ul>
-        </nav>
-      </section>
-
-      <section class="main-section">
-      <section class="not-responding-server" id="server-err" hidden>
-        Server is not responding. Try again later.
-      </section>
-        <article class="tags" id="filter-tags">
-          <button type="button" class="tags_item choosed" data-filter="new">
-            Newest
-          </button>
-          <button type="button" class="tags_item" data-filter="old">
-            Oldest
-          </button>
-          <button
-            type="button"
-            class="tags_item"
-            data-filter="liked"
-            style="display: none"
-          >
-            Liked posts
-          </button>
-          <button
-            type="button"
-            class="tags_item"
-            data-filter="disliked"
-            style="display: none"
-          >
-            Disliked posts
-          </button>
-          <select name="category" class="tags_item">
-            <option value="">Filter by category</option>
-          </select>
-          <div id="searchBoxContainer">
-            <form>
-              <div class="search-bar">
-                <input 
-                  id="searchString" 
-                  class="search-bar-input"
-                  name="searchString" 
-                  type="search" 
-                  maxlength="100" 
-                  minlength="3"
-                  placeholder="Search post by name..."
-                  required
-                  autocomplete="off"
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Forum</title>
+        <link rel="stylesheet" href="./src/static/styles/main.css" />
+        <link
+            rel="icon"
+            href="./src/static/imgs/icons/books.ico"
+            type="image/x-icon"
+        />
+    </head>
+    <body>
+        <header class="header log-out">
+            <a href="index.html" class="logo" aria-label="logo of forum"></a>
+            <div class="header-btn"></div>
+        </header>
+        <main class="main">
+            <section class="sidebar">
+                <nav class="nav">
+                    <h2 class="nav_title">MENU</h2>
+                    <ul class="nav-list">
+                        <li class="choosed">
+                            <a class="nav-list_item" href="index.html">Posts</a>
+                        </li>
+                        <li id="users-nav-item">
+                            <a class="nav-list_item" href="users.html">Users</a>
+                        </li>
+                    </ul>
+                </nav>
+            </section>
+            <section class="main-section">
+                <section class="not-responding-server" id="server-err" hidden>
+                    Server is not responding. Try again later.
+                </section>
+                <article class="tags" id="filter-tags">
+                    <select name="category" class="tags_item">
+                        <option value="">Any category</option>
+                    </select>
+                    <select name="liked" class="tags_item">
+                        <option value="">Any reaction</option>
+                        <option value="liked">Liked</option>
+                        <option value="disliked">Disliked</option>
+                    </select>
+                    <select name="sort" class="tags_item">
+                        <option value="newest">Newest first</option>
+                        <option value="oldest">Oldest first</option>
+                    </select>
+                    <div id="searchBoxContainer">
+                        <form>
+                            <div class="search-bar">
+                                <input
+                                    id="searchString"
+                                    class="search-bar-input"
+                                    name="searchString"
+                                    type="search"
+                                    maxlength="100"
+                                    minlength="3"
+                                    placeholder="Search post by name..."
+                                    required
+                                    autocomplete="off"
+                                />
+                                <button
+                                    type="submit"
+                                    class="search-bar-submit"
+                                    aria-label="Search"
+                                    title="Search"
+                                >
+                                    <svg
+                                        aria-hidden="true"
+                                        viewBox="0 0 24 24"
+                                        width="16"
+                                        height="16"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                    >
+                                        <circle cx="11" cy="11" r="7"></circle>
+                                        <line
+                                            x1="21"
+                                            y1="21"
+                                            x2="16.65"
+                                            y2="16.65"
+                                        ></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </article>
+                <article class="posts"></article>
+                <button
+                    type="button"
+                    class="blue_empty_btn see-more"
+                    style="display: none; margin: 20px auto 0"
                 >
-                <button 
-                  type="submit" 
-                  class="search-bar-submit" 
-                  aria-label="Search" 
-                  title="Search"
-                >
-                <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round">
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
+                    See more
                 </button>
-              </div>
-            </form>
-          </div>
-        </article>
-        <article class="posts"></article>
-        <button
-          type="button"
-          class="blue_empty_btn see-more"
-          style="display: none; margin: 20px auto 0"
-        >
-          See more
-        </button>
-
-      </section>
-    </main>
-    <script type="module" src="/src/static/scripts/header.js"></script>
-    <script type="module" src="/src/static/scripts/allPosts.js"></script>
-  </body>
+            </section>
+        </main>
+        <script type="module" src="/src/static/scripts/header.js"></script>
+        <script type="module" src="/src/static/scripts/allPosts.js"></script>
+    </body>
 </html>

@@ -2,9 +2,11 @@ package model
 
 import (
 	"fmt"
-	"forum_backend/custom_err"
 	"strings"
 	"time"
+	"unicode/utf8"
+
+	"forum_backend/custom_err"
 )
 
 type Post struct {
@@ -21,8 +23,10 @@ type Post struct {
 
 type SearchPostsDTO struct {
 	IsSearch           bool
-	SearchField        *string
-	SearchValue        *string
+	Title              *string
+	CategoryID         *int
+	Reaction           *string
+	UserID             *string
 	IsLatestPostsFirst bool
 	Page               int
 	Limit              int
@@ -90,52 +94,81 @@ type PatchResultDTO struct {
 }
 
 func (dto *SearchPostsDTO) Validate() error {
+	if dto.Page < 1 {
+		return fmt.Errorf(
+			"%w: page must be greater than 0",
+			custom_err.ErrInvalidInput,
+		)
+	}
+
 	if dto.Limit <= 0 {
-		return fmt.Errorf("%w: limit must be greater than 0", custom_err.ErrInvalidInput)
+		return fmt.Errorf(
+			"%w: limit must be greater than 0",
+			custom_err.ErrInvalidInput,
+		)
 	}
 
 	if dto.Offset < 0 {
-		return fmt.Errorf("%w: offset cannot be negative", custom_err.ErrInvalidInput)
-	}
-
-	if dto.SearchField == nil {
-		return nil
-	}
-
-	switch *dto.SearchField {
-	case "authorId":
-		if dto.SearchValue == nil {
-			return fmt.Errorf(
-				"%w: author search value cannot be empty",
-				custom_err.ErrInvalidInput,
-			)
-		}
-	case "categoryId":
-		if dto.SearchValue == nil {
-			return fmt.Errorf(
-				"%w: category_id search value cannot be empty",
-				custom_err.ErrInvalidInput,
-			)
-		}
-	case "title":
-		if dto.SearchValue == nil || len(strings.TrimSpace(*dto.SearchValue)) < 3 {
-			return fmt.Errorf(
-				"%w: title search value must be at least 3 characters",
-				custom_err.ErrInvalidInput,
-			)
-		}
-	case "likedBy", "dislikedBy":
-		if dto.SearchValue == nil {
-			return fmt.Errorf(
-				"%w: liked_by search value cannot be empty",
-				custom_err.ErrInvalidInput,
-			)
-		}
-	default:
 		return fmt.Errorf(
-			"%w: unsupported search field %q",
+			"%w: offset cannot be negative",
 			custom_err.ErrInvalidInput,
-			*dto.SearchField,
+		)
+	}
+
+	// Title filter
+	if dto.Title != nil {
+		title := strings.TrimSpace(*dto.Title)
+		titleLength := utf8.RuneCountInString(title)
+
+		if titleLength < 3 || titleLength > 100 {
+			return fmt.Errorf(
+				"%w: title must be between 3 and 100 characters",
+				custom_err.ErrInvalidInput,
+			)
+		}
+	}
+
+	// Category filter
+	if dto.CategoryID != nil && *dto.CategoryID <= 0 {
+		return fmt.Errorf(
+			"%w: category ID must be greater than 0",
+			custom_err.ErrInvalidInput,
+		)
+	}
+
+	// Reaction filter
+	if dto.Reaction == nil {
+		if dto.UserID != nil {
+			return fmt.Errorf(
+				"%w: user ID requires a reaction filter",
+				custom_err.ErrInvalidInput,
+			)
+		}
+	} else {
+		switch *dto.Reaction {
+		case "liked", "disliked":
+			if dto.UserID == nil || strings.TrimSpace(*dto.UserID) == "" {
+				return fmt.Errorf(
+					"%w: user ID required for reaction filter",
+					custom_err.ErrInvalidInput,
+				)
+			}
+		default:
+			return fmt.Errorf(
+				"%w: unsupported reaction %q",
+				custom_err.ErrInvalidInput,
+				*dto.Reaction,
+			)
+		}
+	}
+
+	// Ensure IsSearch accurately reflects the active filters.
+	hasFilters := dto.Title != nil || dto.CategoryID != nil || dto.Reaction != nil
+
+	if dto.IsSearch != hasFilters {
+		return fmt.Errorf(
+			"%w: IsSearch does not match active filters",
+			custom_err.ErrInvalidInput,
 		)
 	}
 
