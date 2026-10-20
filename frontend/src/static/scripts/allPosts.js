@@ -16,28 +16,6 @@ let userID = null;
 let activeTitle = "";
 let currentPage = 1;
 
-function buildQuery(page) {
-  const params = new URLSearchParams({ byLatest, page });
-
-  if (reactionField) {
-    params.set("search", "true");
-    params.set("field", reactionField);
-    params.set("value", userID);
-  } else if (categorySelect.value !== "") {
-    params.set("search", "true");
-    params.set("field", "categoryId");
-    params.set("value", categorySelect.value);
-  } else if (searchInput.value.trim() !== "") {
-    params.set("search", "true");
-    params.set("field", "title");
-    params.set("value", searchInput.value.trim());
-  }
-
-  return params.toString();
-}
-
-searchForm.addEventListener("submit", (event) => {
-  event.preventDefault();
 
 // Build the URL query parameters for the backend.
 function buildQuery(page) {
@@ -71,7 +49,8 @@ function buildQuery(page) {
 // Fetch posts, either replacing the existing list or appending another page.
 async function getPostData({ append = false } = {}) {
   // append = true -> load the next page and add it below the existing posts
-   serverError.hidden = true;
+  serverError.hidden = true;
+  filterTags.hidden = false;
   const page = append ? currentPage + 1 : 1;
 
   try {
@@ -128,7 +107,7 @@ searchForm.addEventListener("submit", (event) => {
   activeTitle = value;
 
   getPostData();
-});
+})
 
 searchInput.addEventListener("input", () => {
   searchInput.setCustomValidity("");
@@ -174,6 +153,8 @@ async function loadCategories() {
     }
   } catch (error) {
     console.error("Could not load categories:", error);
+      serverError.hidden = false;
+      filterTags.hidden = true;
   }
 }
 
