@@ -1,3 +1,4 @@
+import { getAvatarUrl } from "./avatar.js";
 import { getUserID } from "./header.js";
 
 const form = document.querySelector(".message");
@@ -60,7 +61,7 @@ function renderPostData(data, isOwner, isLoggedIn, userID) {
   postDiscription.innerHTML = `
     <div class="author">
                     <div class="image-container">
-                        <img class="author_img" src="/src/static/imgs/default.jpg" alt="photo of ${data.comments[0].user_for_comment.username}">
+                        <img class="author_img" src="${getAvatarUrl(data.comments[0].user_for_comment)}" alt="photo of ${data.comments[0].user_for_comment.username}">
                     </div>
                     <div class="author-info">
                         <p class="username">${data.comments[0].user_for_comment.username}</p>
@@ -103,7 +104,7 @@ function renderComment(comment, isOwner, isLoggedIn) {
         <article id="${comment.id}" class="comment${parentList ? " replies" : ""}">
                 <div class="author">
                     <div class="image-container">
-                        <img class="author_img" src="/src/static/imgs/default.jpg" alt="photo of ${comment.user_for_comment.username}">
+                        <img class="author_img" src="${getAvatarUrl(comment.user_for_comment)}" alt="photo of ${comment.user_for_comment.username}">
                     </div>
                     <div class="author-info">
                         <p class="username">${comment.user_for_comment.username}</p>

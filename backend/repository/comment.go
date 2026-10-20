@@ -113,7 +113,7 @@ func (cr *SQLiteCommentRepository) GetAllByPostID(ctx context.Context, comment m
 			Dislikes:        dislikes,
 			User: model.UserForComment{
 				UserName: userName,
-				Image:    image,
+				ProfilePicture:    image,
 			},
 			IsLiked:    isLiked,
 			IsDisliked: isDisliked,
@@ -148,7 +148,7 @@ func (cr *SQLiteCommentRepository) GetByID(ctx context.Context, commentID int, u
 	var updatedStr string
 	err := cr.db.QueryRowContext(ctx, query, userID, commentID).Scan(
 		&c.ID, &c.Text, &c.PostID, &updatedStr, &c.ParentCommentID, &c.UserID,
-		&c.User.UserName, &c.User.Image,
+		&c.User.UserName, &c.User.ProfilePicture,
 		&c.Likes, &c.Dislikes, &c.IsLiked, &c.IsDisliked,
 	)
 	if errors.Is(err, sql.ErrNoRows) {

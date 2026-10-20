@@ -1,4 +1,5 @@
 import { getUserID } from "./header.js";
+import { getAvatarUrl } from "./avatar.js";
 
 const section = document.querySelector(".user-profile");
 const titleEl = section.querySelector(".user_title");
@@ -46,7 +47,7 @@ async function getUser() {
       });
       createdEl.textContent = `Member since ${date}`;
     }
-    avatarEl.src = "/src/static/imgs/default.jpg";
+    avatarEl.src = getAvatarUrl(user);
     avatarEl.alt = `photo of ${user.username}`;
   } catch (error) {
     console.log("the error was catched", error);

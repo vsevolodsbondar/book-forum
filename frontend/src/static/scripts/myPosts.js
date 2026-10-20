@@ -1,3 +1,4 @@
+import { getAvatarUrl } from "./avatar.js";
 import { getUserID } from "./header.js";
 
 const postsContainer = document.querySelector(".posts-of-user");
@@ -42,7 +43,7 @@ function renderPosts(data) {
                     <a href="postInside.html?id=${postID}" aria-label="link to the post" class="post">
                     <div class="author">
                         <div class="image-container">
-                            <img class="author_img" src="/src/static/imgs/default.jpg" alt="photo of ${userName}">
+                            <img class="author_img" src="${getAvatarUrl(data.posts[i].author)}" alt="photo of ${userName}">
                         </div>
                         <div class="author-info">
                             <p class="username">${userName}</p>
