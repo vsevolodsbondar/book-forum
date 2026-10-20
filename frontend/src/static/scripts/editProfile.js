@@ -4,6 +4,7 @@ const form = document.querySelector("#editProfile");
 const usernameInput = document.querySelector("#username");
 const nameInput = document.querySelector("#name");
 const descriptionInput = document.querySelector("#description");
+const avatarInput = document.querySelector("#avatar");
 const errorEl = document.querySelector(".form_error");
 
 let originalUser = {};
@@ -53,26 +54,30 @@ form.addEventListener("submit", async (event) => {
     errorEl.textContent = "";
 
     // Collect only fields that have changed
-    const body = {};
+    const body = new FormData();
 
     const username = usernameInput.value.trim();
     const name = nameInput.value.trim();
     const description = descriptionInput.value.trim();
 
     if (username !== originalUser.username) {
-        body.username = username;
+        body.append("username", username);
     }
 
     if (name !== originalUser.name) {
-        body.name = name;
+        body.append("name", name);
     }
 
     if (description !== originalUser.description) {
-        body.description = description;
+        body.append("description", description);
+    }
+
+    if (avatarInput.files.length > 0) {
+        body.append("avatar", avatarInput.files[0]);
     }
 
     // Nothing changed: don't send a request
-    if (Object.keys(body).length === 0) {
+    if ([...body.keys()].length === 0) {
         alert("You haven't changed anything!");
         return;
     }
@@ -90,10 +95,7 @@ form.addEventListener("submit", async (event) => {
             {
                 method: "PATCH",
                 credentials: "include",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(body)
+                body
             }
         );
 
