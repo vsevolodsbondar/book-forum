@@ -30,6 +30,7 @@ func NewUserHandler(service *service.UserService, auth client.AuthInterface) *Us
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
+	r.Body = http.MaxBytesReader(w, r.Body, maxReqBodySize)
 
 	var input client.LoginUserRequestDTO
 
