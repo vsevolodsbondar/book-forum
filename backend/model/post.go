@@ -27,6 +27,7 @@ type SearchPostsDTO struct {
 	CategoryID         *int
 	Reaction           *string
 	UserID             *string
+	AuthorID           *int64
 	IsLatestPostsFirst bool
 	Page               int
 	Limit              int
@@ -115,6 +116,13 @@ func (dto *SearchPostsDTO) Validate() error {
 		)
 	}
 
+	if dto.AuthorID != nil && *dto.AuthorID <= 0 {
+		return fmt.Errorf(
+			"%w: author ID must be greater than 0",
+			custom_err.ErrInvalidInput,
+		)
+	}
+
 	// Title filter
 	if dto.Title != nil {
 		title := strings.TrimSpace(*dto.Title)
@@ -163,7 +171,7 @@ func (dto *SearchPostsDTO) Validate() error {
 	}
 
 	// Ensure IsSearch accurately reflects the active filters.
-	hasFilters := dto.Title != nil || dto.CategoryID != nil || dto.Reaction != nil
+	hasFilters := dto.Title != nil || dto.CategoryID != nil || dto.Reaction != nil || dto.AuthorID != nil
 
 	if dto.IsSearch != hasFilters {
 		return fmt.Errorf(
