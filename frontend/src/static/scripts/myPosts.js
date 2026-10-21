@@ -2,8 +2,10 @@ import { getAvatarUrl } from "./avatar.js";
 import { getUserID } from "./header.js";
 
 const postsContainer = document.querySelector(".posts-of-user");
+const serverError = document.querySelector("#server-err")
 
 async function getMyPosts() {
+  serverError.hidden = true;
   try {
     const params = new URLSearchParams(window.location.search);
     const userID = params.get("id") ?? (await getUserID());
@@ -12,7 +14,7 @@ async function getMyPosts() {
       return;
     }
     const response = await fetch(
-      `http://localhost:8080/posts?search=true&field=authorId&value=${userID}`,
+      `http://localhost:8080/posts?authorID=${encodeURIComponent(userID)}&page=1&byLatest=true`
     );
     // the backend answers 404 when the user has no posts at all
     if (response.status === 404) {
@@ -25,6 +27,7 @@ async function getMyPosts() {
     const postData = await response.json();
     renderPosts(postData);
   } catch (error) {
+    serverError.hidden = false;
     console.log("the error was catched", error);
   }
 }

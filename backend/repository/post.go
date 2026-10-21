@@ -277,6 +277,11 @@ func (repo *SQLitePostRepository) findAllPosts(ctx context.Context, dto model.Se
 	var conditions []string
 	var args []any
 
+	if dto.AuthorID != nil {
+		conditions = append(conditions, `post.author_id = ?`)
+		args = append(args, *dto.AuthorID)
+	}
+
 	// Title filter
 	if dto.Title != nil {
 		conditions = append(conditions, `title LIKE ? COLLATE NOCASE`)
@@ -648,6 +653,11 @@ func (repo *SQLitePostRepository) CountPosts(ctx context.Context, dto model.Sear
 
 	var conditions []string
 	var args []any
+
+	if dto.AuthorID != nil {
+		conditions = append(conditions, `post.author_id = ?`)
+		args = append(args, *dto.AuthorID)
+	}
 
 	// Title filter
 	if dto.Title != nil {

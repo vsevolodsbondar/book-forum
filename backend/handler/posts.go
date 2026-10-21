@@ -181,6 +181,18 @@ func parseSearchPostsDTO(query url.Values, page int, limit int) (model.SearchPos
 		Offset: (page - 1) * limit,
 	}
 
+	// Author
+	authorID := query.Get("authorID")
+	if authorID != "" {
+		id, err := strconv.ParseInt(authorID, 10, 64)
+		if err != nil || id <= 0 {
+			return model.SearchPostsDTO{},
+				fmt.Errorf("%w: invalid author ID", custom_err.ErrInvalidInput)
+		}
+
+		dto.AuthorID = &id
+	}
+
 	// Category
 	category := query.Get("categoryId")
 	if category != "" {
@@ -242,7 +254,7 @@ func parseSearchPostsDTO(query url.Values, page int, limit int) (model.SearchPos
 		dto.Title = &title
 	}
 
-	dto.IsSearch = dto.Title != nil || dto.CategoryID != nil || dto.Reaction != nil
+	dto.IsSearch = dto.Title != nil || dto.CategoryID != nil || dto.Reaction != nil || dto.AuthorID != nil
 
 	return dto, nil
 }
