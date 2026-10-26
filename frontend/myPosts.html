@@ -1,35 +1,43 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Forum</title>
-    <link rel="stylesheet" href="./src/static/styles/main.css" />
-    <link
-      rel="icon"
-      href="./src/static/imgs/icons/books.ico"
-      type="image/x-icon"
-    />
-  </head>
-  <body>
-    <header class="header">
-      <a href="index.html" class="logo" aria-label="logo of forum"></a>
-      <div class="header-btn"></div>
-    </header>
-    <main class="main">
-      <section class="sidebar">
-        <nav class="nav">
-          <h2 class="nav_title">MENU</h2>
-          <ul class="nav-list">
-            <li><a class="nav-list_item" href="index.html">Posts</a></li>
-            <li><a class="nav-list_item" href="users.html">Users</a></li>
-          </ul>
-        </nav>
-      </section>
-      <section class="posts-of-user posts"></section>
-    </main>
-    <script type="module" src="/src/static/scripts/header.js"></script>
-    <script type="module" src="/src/static/scripts/myPosts.js"></script>
-  </body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Forum</title>
+        <link rel="stylesheet" href="./src/static/styles/main.css" />
+        <link
+            rel="icon"
+            href="./src/static/imgs/icons/books.ico"
+            type="image/x-icon"
+        />
+    </head>
+    <body>
+        <header class="header">
+            <a href="index.html" class="logo" aria-label="logo of forum"></a>
+            <div class="header-btn"></div>
+        </header>
+        <main class="main">
+            <section class="sidebar">
+                <nav class="nav">
+                    <h2 class="nav_title">MENU</h2>
+                    <ul class="nav-list">
+                        <li>
+                            <a class="nav-list_item" href="index.html">Posts</a>
+                        </li>
+                        <li>
+                            <a class="nav-list_item" href="users.html">Users</a>
+                        </li>
+                    </ul>
+                </nav>
+            </section>
+            <section class="posts-of-user posts">
+                <section class="not-responding-server" id="server-err" hidden>
+                    Server is not responding. Try again later.
+                </section>
+            </section>
+        </main>
+        <script type="module" src="/src/static/scripts/header.js"></script>
+        <script type="module" src="/src/static/scripts/myPosts.js"></script>
+    </body>
 </html>
